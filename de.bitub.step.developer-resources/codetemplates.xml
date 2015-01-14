@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="false" context="settercomment_context" deleted="false" description="Comment for setter method" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.settercomment" name="settercomment">/**
+ * &lt;!-- begin-user-doc --&gt;
+ * &lt;!-- end-user-doc --&gt;
+ * @generated NOT
+ * @param ${param} the ${bare_field_name} to set
+ */</template><template autoinsert="false" context="overridecomment_context" deleted="false" description="Comment for overriding methods" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.overridecomment" name="overridecomment">/**
+ * &lt;!-- begin-user-doc --&gt;
+ * &lt;!-- end-user-doc --&gt;
+ * @generated NOT
+ * ${see_to_overridden}
+ */</template><template autoinsert="false" context="constructorcomment_context" deleted="false" description="Comment for created constructors" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.constructorcomment" name="constructorcomment">/**
+ * &lt;!-- begin-user-doc --&gt;
+ * &lt;!-- end-user-doc --&gt;
+ * @generated NOT
+ * ${tags}
+ */</template><template autoinsert="true" context="delegatecomment_context" deleted="false" description="Comment for delegate methods" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.delegatecomment" name="delegatecomment">/**
+ * ${tags}
+ * ${see_to_target}
+ */</template><template autoinsert="false" context="filecomment_context" deleted="false" description="Comment for created Java files" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.filecomment" name="filecomment">/*
+ * Copyright (c) 2014 Bernold Kraft, Sebastian Riemschüssel, Torsten Krämer (Berlin, Germany).
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ * Initial commit by ${user} @ ${date}.
+ */</template><template autoinsert="false" context="methodcomment_context" deleted="false" description="Comment for non-overriding methods" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.methodcomment" name="methodcomment">/**
+ * &lt;!-- begin-user-doc --&gt;
+ * &lt;!-- end-user-doc --&gt;
+ * @generated NOT
+ * ${tags}
+ */</template><template autoinsert="false" context="fieldcomment_context" deleted="false" description="Comment for fields" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.fieldcomment" name="fieldcomment">/**
+ * &lt;!-- begin-user-doc --&gt;
+ * &lt;!-- end-user-doc --&gt;
+ * @generated NOT
+ */</template><template autoinsert="false" context="typecomment_context" deleted="false" description="Comment for created types" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.typecomment" name="typecomment">/**
+ * &lt;!-- begin-user-doc --&gt;
+ * &lt;!-- end-user-doc --&gt;
+ * @generated NOT
+ * ${tags}
+ * @author ${user} - ${date}
+ */</template><template autoinsert="false" context="gettercomment_context" deleted="false" description="Comment for getter method" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.gettercomment" name="gettercomment">/**
+ * &lt;!-- begin-user-doc --&gt;
+ * &lt;!-- end-user-doc --&gt;
+ * @generated NOT
+ * @return the ${bare_field_name}
+ */</template></templates>
