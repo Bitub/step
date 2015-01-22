@@ -1,0 +1,236 @@
+/* 
+ * Copyright (c) 2015 Torsten Krämer and others (Berlin, Germany).
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *  Torsten Krämer - initial implementation and initial documentation
+ *  Bernold Kraft - Changes, cross-reference resolving
+ */
+
+grammar de.bitub.step.EXPRESS with org.eclipse.xtext.common.Terminals hidden(WS, EXP_COMMENT)
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+generate express "http://www.bitub.de/step/EXPRESS"
+
+// Root entity
+Schema:
+	'SCHEMA' name=ID SEMICOLON
+	types+=Type*
+	entities+=Entity*
+	funtions+=Function*
+	rules+=Rule*
+	'END_SCHEMA' SEMICOLON;
+
+// Qualified IDs
+QualifiedMember returns ecore::EString:
+	('SELF\\')? ID ('.' ID)*;
+
+// Named types
+ExpressConcept:
+	Type | Entity;
+
+// Custom type definition
+Type:
+	'TYPE' name=ID '=' datatype=DataType SEMICOLON
+	('WHERE' (whereRule+=WhereRule SEMICOLON)+)?
+	'END_TYPE' SEMICOLON;
+
+Entity:
+	'ENTITY' name=ID	
+	((abstract?='ABSTRACT')? 'SUPERTYPE' 'OF' '(' 
+		('ONEOF' '(' disjointSubtype+=[Entity|ID] (',' disjointSubtype+=[Entity|ID])* ')' |
+			subtype+=[Entity|ID] (',' subtype+=[Entity|ID])*) ')')?
+			
+	('SUBTYPE' 'OF' '(' supertype+=[Entity|ID] (',' supertype+=[Entity|ID])* ')')?
+	SEMICOLON
+	(attribute+=Attribute SEMICOLON)*
+	('DERIVE' (attribute+=DerivedAttribute SEMICOLON)+)?
+	('INVERSE' (attribute+=InverseAttribute SEMICOLON)+)?
+	('UNIQUE' (uniqueRule+=UniqueRule SEMICOLON)+)?
+	('WHERE' (whereRule+=WhereRule SEMICOLON)+)?
+	'END_ENTITY' SEMICOLON;
+
+// Black box statements which should not be parsed deeply
+Blackbox:
+  (ID | '<' | '>' | '=' | ':' | '?' | '(' | ')' | ']' | '[' | '\\' | '-' | '+' | '*' | '\'' | STRING | ',' | '|'
+  | '.' | INT | '/' | 'SELF\\' )+;
+
+// Attributes
+// Nur in Derive wird ein optionaler Select über die Vaterklasse mit
+// SELF\Klasse.attriubt ausgeführt.; Hier aber mit aufgenommen
+Attribute:
+	(self?='SELF\\' (qualifier+=ID '.')+)? name=ID ':' (optional?='OPTIONAL')? (type=DataType);
+
+InverseAttribute returns Attribute:
+	(Attribute) 'FOR' opposite=[Attribute|ID];
+
+DerivedAttribute returns Attribute:
+	(Attribute) ':=' expression=Blackbox;
+
+Reference:
+	(self?='SELF\\' (qualifier+=ID '.')+)? name=ID ':' (optional?='OPTIONAL')? type=[Entity|ID];
+
+Rule:
+	'RULE' name=ID 'FOR' target=TypeNameList SEMICOLON
+	// beliebige Declartion (z.Bsp. Entity) können hier noch stehen  
+	('CONSTANT' (constants+=ConstantVal SEMICOLON)+ 'END_CONSTANT' SEMICOLON)?
+	('LOCAL' (localVar+=LocalVar SEMICOLON)+ 'END_LOCAL' SEMICOLON)?
+	(statements+=Statement SEMICOLON)*
+	('WHERE' (whereRule+=WhereRule SEMICOLON)+)?
+	'END_RULE' SEMICOLON;
+
+ConstantVal:
+	name=ID ':' type=DataType ':=' expression=Line;
+
+LocalVar:
+	varname+=ID (',' varname+=ID)* ':' type=DataType (':=' expression=Line)?;
+
+Function:
+	'FUNCTION' name=ID params=ParameterList ':' returnType=DataType SEMICOLON
+	// beliebige Declartion (z.Bsp. Entity) können hier noch stehen  
+	('CONSTANT' (constants+=ConstantVal SEMICOLON)+ 'END_CONSTANT' SEMICOLON)?
+	('LOCAL' (localVar+=LocalVar SEMICOLON)+ 'END_LOCAL' SEMICOLON)?
+	(statements+=Statement SEMICOLON)*
+	'END_FUNCTION' SEMICOLON;
+
+ParameterList:
+	'(' formalParam+=FormalParam (SEMICOLON formalParam+=FormalParam)* ')';
+
+FormalParam:
+	paramName+=ID (',' paramName+=ID)* ':' type=DataType;
+
+TypeNameList:
+	'(' types+=ID (',' types+=ID)* ')';
+
+WhereRule:
+	name=ID ':' ((expression=Blackbox) | (interval=Intervall));
+
+UniqueRule:
+	(name=ID ':')? attributes+=ID (',' attributes+=ID)*;
+
+BuiltInType:
+	BinaryType | LogicalType | BooleanType | RealType | NumberType | IntegerType | StringType
+;
+
+DataType:
+	ReferenceType | CollectionType | EnumType | SelectType | BuiltInType | GenericType;
+
+ReferenceType:
+	{ReferenceType}
+	instance=[ExpressConcept|ID];
+
+GenericType:
+	{GenericType} 'GENERIC' (':' typelabel=ID)?;
+
+CollectionType:
+	name=('LIST' | 'ARRAY' | 'BAG' | 'SET') 
+	('[' (lowerBound=INT | lowerRef=[Attribute|ID]) (':' (upperBound=INT | upperRef=[Attribute|ID] | many?='?'))? ']')?
+	('OF')? (opt?='OPTIONAL')? (unique?='UNIQUE')? type=DataType;
+
+StringType:
+	{StringType} 'STRING' ('(' size=INT ')' (fixed?='FIXED')?)?;
+
+BinaryType:
+	{BinaryType} 'BINARY' ('(' size=INT ')')?;
+
+LogicalType:
+	{LogicalType} 'LOGICAL';
+
+BooleanType:
+	{BooleanType} 'BOOLEAN';
+	
+RealType:
+	{RealType} 'REAL';
+	
+NumberType:
+	{NumberType} 'NUMBER';
+	
+IntegerType:
+	{IntegerType} 'INTEGER';
+
+EnumType:
+	'ENUMERATION' 'OF' '(' literal+=LiteralType (',' literal+=LiteralType)* ')';
+	
+LiteralType:
+	name=ID;
+
+SelectType:
+	'SELECT' '(' select+=[ExpressConcept|ID] (',' select+=[ExpressConcept|ID])* ')';
+
+Line:
+	{Line} (text+=(ANY_OTHER))* SEMICOLON;
+
+Select:
+	('SELF\\')? ID;
+
+Intervall:
+	'{' expression=Blackbox '}';
+
+Statement:
+	IfStatement | SequenceStatement | RepeatStatement | Assignment | EscapeStatement | ReturnStatement | CaseStatement;
+
+SequenceStatement:
+	'BEGIN' expression=Blackbox 'END' SEMICOLON;
+
+CaseStatement:
+	'CASE' variable+=ID 'OF'
+	(slot+=CaseAction)*
+	('OTHERWISE' ':' otherwise+=Statement)?
+	'END_CASE';
+
+CaseAction:
+	value+=QualifiedMember (',' value+=QualifiedMember)* ':' statement=Statement;
+
+	// Eigentlich: ReturnStatement: {ReturnStatement} 'RETURN' ('(' expression=Freitext ')')? ;  
+// geht auch nicht: ReturnStatement: {ReturnStatement} 'RETURN' ('(' ('?')? ')')?; // ('(' expression=Freitext ')')? ;
+// Hack, geht:  
+ReturnStatement:
+	{ReturnStatement} 'RETURN' (expression=Blackbox)?;
+
+EscapeStatement:
+	{EscapeStatement} 'ESCAPE';
+
+Assignment:
+	assignTo=VarOrAttrib? ':=' expression=Blackbox;
+
+VarOrAttrib:
+	SimpleVar | IndexedVar | AttributeVar;
+
+SimpleVar:
+	name=ID;
+
+IndexedVar:
+	variable=SimpleVar '[' index+=Index (':' index+=Index)* ']';
+
+AttributeVar:
+	component+=(SimpleVar | IndexedVar) ('.' component+=(SimpleVar | IndexedVar))+;
+
+Index:
+	IndexTerminal;
+
+	//Index: INT;
+//Index: value=IndexExpr;
+//
+//IndexExpr: IndexTerminal ({IndexOperation.left=current} op=('+'|'-') right=IndexExpr); 
+//IndexTerminal returns IndexExpr:  {VarLiteral} value=ID | {IntLiteral} value=INT | '(' IndexExpr ')';
+IndexTerminal:
+	{VarLiteral} value=ID | {IntLiteral} value=INT;
+
+IfStatement:
+	'IF' condition=Line 'THEN'
+	(statements+=Statement SEMICOLON)*
+	('ELSE' (elseStatements+=Statement SEMICOLON)+)? 'END_IF';
+
+RepeatStatement:
+	'REPEAT' idx=ID ':=' start=Blackbox 'TO' end=Blackbox SEMICOLON
+	(statements+=Statement SEMICOLON)* 'END_REPEAT';
+
+terminal SEMICOLON:
+	';';
+
+terminal EXP_COMMENT:
+	'(*'->'*)';
+

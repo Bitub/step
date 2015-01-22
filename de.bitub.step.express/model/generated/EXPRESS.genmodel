@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/de.bitub.step.express/src-gen" editDirectory="/de.bitub.step.express.edit/src"
+    editorDirectory="/de.bitub.step.express.editor/src" modelPluginID="de.bitub.step.express"
+    forceOverwrite="true" modelName="EXPRESS" updateClasspath="false" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    complianceLevel="5.0" copyrightFields="false" editPluginID="de.bitub.step.express.edit"
+    editorPluginID="de.bitub.step.express.editor" runtimeVersion="2.10">
+  <genPackages prefix="Express" basePackage="de.bitub.step" disposableProviderFactory="true"
+      fileExtensions="exp" ecorePackage="EXPRESS.ecore#/">
+    <genClasses ecoreClass="EXPRESS.ecore#//Schema">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Schema/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Schema/types"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Schema/entities"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Schema/funtions"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Schema/rules"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//ExpressConcept">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//ExpressConcept/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//ExpressConcept/whereRule"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Type">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Type/datatype"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Entity">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Entity/abstract"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/disjointSubtype"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/subtype"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/supertype"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/attribute"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/uniqueRule"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Attribute">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Attribute/self"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Attribute/qualifier"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Attribute/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Attribute/optional"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Attribute/type"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Attribute/opposite"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Attribute/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Reference">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Reference/self"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Reference/qualifier"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Reference/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Reference/optional"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Reference/type"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Rule">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Rule/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Rule/target"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Rule/constants"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Rule/localVar"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Rule/statements"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Rule/whereRule"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//ConstantVal">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//ConstantVal/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//ConstantVal/type"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//ConstantVal/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//LocalVar">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//LocalVar/varname"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//LocalVar/type"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//LocalVar/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Function">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Function/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Function/params"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Function/returnType"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Function/constants"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Function/localVar"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Function/statements"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//ParameterList">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//ParameterList/formalParam"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//FormalParam">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//FormalParam/paramName"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FormalParam/type"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//TypeNameList">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//TypeNameList/types"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//WhereRule">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//WhereRule/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//WhereRule/expression"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//WhereRule/interval"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//UniqueRule">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//UniqueRule/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//UniqueRule/attributes"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//BuiltInType"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//DataType"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//ReferenceType">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//ReferenceType/instance"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//GenericType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//GenericType/typelabel"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//CollectionType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CollectionType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CollectionType/lowerBound"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//CollectionType/lowerRef"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CollectionType/upperBound"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//CollectionType/upperRef"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CollectionType/many"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CollectionType/opt"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CollectionType/unique"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//CollectionType/type"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//StringType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//StringType/size"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//StringType/fixed"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//BinaryType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//BinaryType/size"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//LogicalType"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//BooleanType"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//RealType"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//NumberType"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//IntegerType"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//EnumType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//EnumType/literal"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//LiteralType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//LiteralType/name"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//SelectType">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//SelectType/select"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Line">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Line/text"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Intervall">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Intervall/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Statement"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//SequenceStatement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//SequenceStatement/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//CaseStatement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CaseStatement/variable"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//CaseStatement/slot"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//CaseStatement/otherwise"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//CaseAction">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//CaseAction/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//CaseAction/statement"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//ReturnStatement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//ReturnStatement/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//EscapeStatement"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//Assignment">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Assignment/assignTo"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Assignment/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//VarOrAttrib"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//SimpleVar">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//SimpleVar/name"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//IndexedVar">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//IndexedVar/variable"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//IndexedVar/index"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//AttributeVar">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//AttributeVar/component"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//Index"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//IndexTerminal"/>
+    <genClasses ecoreClass="EXPRESS.ecore#//IfStatement">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//IfStatement/condition"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//IfStatement/statements"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//IfStatement/elseStatements"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//RepeatStatement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//RepeatStatement/idx"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//RepeatStatement/start"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//RepeatStatement/end"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//RepeatStatement/statements"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//VarLiteral">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//VarLiteral/value"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//IntLiteral">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//IntLiteral/value"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>
