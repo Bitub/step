@@ -21,6 +21,7 @@ import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import java.util.List
+import org.apache.log4j.Logger
 
 /**
  * This class contains custom scoping description.
@@ -31,11 +32,14 @@ import java.util.List
  */
 class EXPRESSScopeProvider extends AbstractDeclarativeScopeProvider {
 
+	val myLog = Logger.getLogger(EXPRESSScopeProvider)
+
+
 	/**
 	 * Resolve opposite attributes.
 	 */
 	def scope_Attribute_opposite(Attribute context, EReference r) {
-		var DataType dataType = null		
+		var DataType dataType = context.type		
 		
 		if(context.type instanceof CollectionType) {
 			
@@ -50,21 +54,37 @@ class EXPRESSScopeProvider extends AbstractDeclarativeScopeProvider {
 			if(dataType.instance instanceof Entity) {
 				Scopes.scopeFor((dataType.instance as Entity).attribute, IScope.NULLSCOPE);
 			}				
+		} else {
+			
+			myLog.debug("No reference given.")	
 		}
 	}
 	
-//	def scope_CollectionType_lowerRef(CollectionType context, EReference r) {
-//		
-//		val entity = context.eContainer.eContainer as Entity;
-//		if(null!=entity) {
-//						
-//			val candidateList = recursiveSuperExecute(newArrayList())		
-//		}
-//	}
-//
-//	def recursiveSuperExecute(List<Attribute> candidates, Entity e , (Entity) => List<Attribute> f) {
-//		
-//		candidates.addAll( f.apply(e) );
-//		e.supertype.forEach[ x | recursiveSuperExecute(candidates, x, f) ];		
-//	}
+	def scope_CollectionType_lowerRef(CollectionType context, EReference r) {
+		
+		val entity = context.eContainer.eContainer as Entity;
+		if(null!=entity) {
+						
+			val candidates = newArrayList()
+			recursiveSuperExecute(candidates ,entity)
+			Scopes.scopeFor(candidates, IScope.NULLSCOPE);
+		}		
+	}
+
+	def scope_CollectionType_upperRef(CollectionType context, EReference r) {
+		
+		val entity = context.eContainer.eContainer as Entity;
+		if(null!=entity) {
+						
+			val candidates = newArrayList()
+			recursiveSuperExecute(candidates ,entity)
+			Scopes.scopeFor(candidates, IScope.NULLSCOPE);
+		}		
+	}
+
+	def void recursiveSuperExecute(List<Attribute> candidates, Entity e) {
+		
+		candidates += e.attribute 
+		e.supertype.forEach[ supertype | recursiveSuperExecute(candidates, supertype) ];
+	}
 }
