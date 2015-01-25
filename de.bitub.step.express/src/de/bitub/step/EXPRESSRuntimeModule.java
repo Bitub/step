@@ -13,7 +13,7 @@ package de.bitub.step;
 
 import org.eclipse.xtext.generator.IGenerator;
 
-import de.bitub.step.generator.OclInEcoreGenerator;
+import de.bitub.step.generator.XcoreGenerator;
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
@@ -23,6 +23,6 @@ public class EXPRESSRuntimeModule extends de.bitub.step.AbstractEXPRESSRuntimeMo
   @Override
   public Class<? extends IGenerator> bindIGenerator()
   {
-    return OclInEcoreGenerator.class;
+    return XcoreGenerator.class;
   }
 }

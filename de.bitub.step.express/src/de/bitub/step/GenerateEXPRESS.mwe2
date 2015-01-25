@@ -4,12 +4,13 @@ import org.eclipse.emf.mwe.utils.*
 import org.eclipse.xtext.generator.*
 import org.eclipse.xtext.ui.generator.*
 
-var grammarURI = "classpath:/de/bitub/step/EXPRESS.xtext"
+
 var fileExtensions = "exp"
 var projectName = "de.bitub.step.express"
 var runtimeProject = "../${projectName}"
 var generateXtendStub = true
 var encoding = "UTF-8"
+var grammarURI = "platform:/resource/${projectName}/src/de/bitub/step/EXPRESS.xtext"
 
 Workflow {
     bean = StandaloneSetup {

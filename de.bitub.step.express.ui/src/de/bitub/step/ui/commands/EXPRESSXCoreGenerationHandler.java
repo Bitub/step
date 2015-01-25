@@ -28,7 +28,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.xtext.util.StringInputStream;
 
-import de.bitub.step.generator.OclInEcoreGenerator;
+import de.bitub.step.generator.XcoreGenerator;
 
 
 /**
@@ -38,7 +38,7 @@ import de.bitub.step.generator.OclInEcoreGenerator;
  * @generated NOT
  * @author bernold - 18.01.2015
  */
-public class EXPRESSOCLInEcoreGenerationHandler extends AbstractHandler implements IHandler
+public class EXPRESSXCoreGenerationHandler extends AbstractHandler implements IHandler
 {
 
   @Override
@@ -58,7 +58,7 @@ public class EXPRESSOCLInEcoreGenerationHandler extends AbstractHandler implemen
         ResourceSet rs = new ResourceSetImpl();
         Resource xtextResource = rs.getResource(uri, true);
         
-        OclInEcoreGenerator oclInEcoreGenerator = new OclInEcoreGenerator();
+        XcoreGenerator oclInEcoreGenerator = new XcoreGenerator();
         
         IFile genFile = file.getParent().getFile(new Path(file.getName()+".oclinecore"));
         

@@ -445,7 +445,7 @@
   <extension
         point="org.eclipse.ui.handlers">
      <handler
-           class="de.bitub.step.ui.commands.EXPRESSOCLInEcoreGenerationHandler"
+           class="de.bitub.step.ui.commands.EXPRESSXCoreGenerationHandler"
            commandId="de.bitub.step.ui.commands.express.EXPRESSGenerateOclInEcore">
      </handler>
   </extension>
