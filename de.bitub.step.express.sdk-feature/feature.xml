@@ -2,7 +2,7 @@
 <feature
       id="de.bitub.step.express.sdk.f"
       label="EXPRESS 2 Ecore SDK Feature"
-      version="1.0.0.qualifier"
+      version="0.1.0.qualifier"
       provider-name="bitub.de">
 
    <description url="www.bitub.de/step">
