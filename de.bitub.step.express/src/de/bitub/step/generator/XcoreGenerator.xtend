@@ -25,6 +25,10 @@ import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
+import java.util.Set
+import de.bitub.step.express.CollectionType
+import de.bitub.step.express.DataType
+import de.bitub.step.express.ReferenceType
 
 /**
  * Generates code from your model files on save.
@@ -40,28 +44,29 @@ class XcoreGenerator implements IGenerator {
 		new Pair(ExpressPackage.Literals.NUMBER_TYPE, "double"),
 		new Pair(ExpressPackage.Literals.LOGICAL_TYPE, "BooleanObject"),
 		new Pair(ExpressPackage.Literals.BOOLEAN_TYPE, "boolean"),
-		new Pair(ExpressPackage.Literals.BINARY_TYPE, "boolean[]"),
+		new Pair(ExpressPackage.Literals.BINARY_TYPE, "Binary"),
 		new Pair(ExpressPackage.Literals.REAL_TYPE, "double"),
 		new Pair(ExpressPackage.Literals.STRING_TYPE, "String")
 	);
 	
-	var m_simplifiedSelectTypeMapping = <Type, String>newHashMap()
-	var m_containmentRefs = <Attribute>newHashSet()
-	var m_bridgeClasses = <Attribute>newHashSet()
+	
+	var m_builtinSelectTypeMap = <Type, String>newHashMap()
+	var m_compositeSelectTypeMap = <Type, Set<ExpressConcept>>newHashMap()
+	var m_multiOppositeReferencesMap = <Attribute, String>newHashMap()
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 		
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
 							
 		myLog.info("Generating XCore representation of "+schema.name)
-		fsa.generateFile(schema.name+".xcore", schema.compile)
+		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
 	}
 	
 	def compile(Resource resource) {
 		
 		// TODO Get resource folder
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
-		schema.compile
+		schema.compileSchema
 	}
 		
 	def header(String projectFolder, Schema s) {
@@ -80,46 +85,96 @@ class XcoreGenerator implements IGenerator {
 			'''
 	}	
 	
-	def static boolean isEntityCompositeSelect(ExpressConcept t) {
 	
-		if(t instanceof Type) {
-			
-			if(t.datatype instanceof SelectType) {
-				
-				// True if any select or sub select is an entity
-				return (t.datatype as SelectType).select.exists
-					[x | x instanceof Entity || isEntityCompositeSelect(x) ];
-			}			
-		}
+	def static Set<ExpressConcept> selectSet(ExpressConcept t) {
 		
-		false		
-	}
-	
-	def static boolean isMultiBuiltinTypeSelect(ExpressConcept t) {
+		val uniqueTypeSet = <ExpressConcept>newHashSet
 		
 		if(t instanceof Type) {
-			
 			if(t.datatype instanceof SelectType) {
 				
-				// True if any select aggregation or sub select aggregation has different datatypes
-				return (t.datatype as SelectType).select
-					.filter[t1 | t1 instanceof Type]
-					.filter[t2 | (t2 as Type).datatype instanceof BuiltInType || isMultiBuiltinTypeSelect(t2)]
-					.map[(it as Type).datatype].toSet.size <= 1
+				// Self evaluation
+				var set = (t.datatype as SelectType).select
+					.filter[!(it instanceof Type && (it as Type).datatype instanceof SelectType)]
+					.map[].toSet;
+				
+				// Recursion
+				(t.datatype as SelectType).select
+					.filter[it instanceof Type && (it as Type).datatype instanceof SelectType]
+					.forEach[uniqueTypeSet+=selectSet(it)]
+				
+				uniqueTypeSet += set	
 			}
 		}
 		
-		false
+		uniqueTypeSet
 	}
+	
+	def static isMultiSelectType(Set<ExpressConcept> selects) {
+		
+		var isMulti = selects.exists[it instanceof Entity] 
+		isMulti || selects
+			.filter[it instanceof Type 
+				&& ((it as Type).datatype instanceof BuiltInType || (it as Type).datatype instanceof CollectionType)
+			]
+			.map[(it as Type).datatype.class].toSet.size > 1		
+	}
+	
+	
+	def static builtinSelectTypeEClass(Set<ExpressConcept> selects) {
+	
+		var datatypeSet = selects
+			.filter[it instanceof Type 
+				&& ((it as Type).datatype instanceof BuiltInType || (it as Type).datatype instanceof CollectionType)
+			]
+			.map[(it as Type).datatype.eClass].toSet
+			
+		return if(datatypeSet.size == 1) datatypeSet.get(0) else null	
+	}
+	
 	
 	def precompile(Schema s) {
 		
 		// Filter for simplified type selects
+		myLog.info("Processing selects...")
+		for(Type t : s.types.filter[it.datatype instanceof SelectType]) {
+			
+			val conceptSet = selectSet(t)
+			if(isMultiSelectType(conceptSet)) {
+				
+				myLog.debug("~~> Composite select: "+t.name)
+				m_compositeSelectTypeMap.put(t, conceptSet)
+			} else {
+				
+				val eClass = builtinSelectTypeEClass(conceptSet)
+				if(builtinTypeMapping.containsKey(eClass)) {
+					
+					myLog.debug("~~> Simple select: "+t.name)
+					m_builtinSelectTypeMap.put(t, builtinTypeMapping.get(eClass))
+				} else {
+					
+					myLog.warn("~~> Found unknown builtin type mapping "+eClass.name)
+				}
+			}
+		}
 		
-		// Find containment
+		myLog.info("Processing inverse non-unique n-m relations ...")
+		for(Entity e : s.entities.filter[it.attribute.exists[it.opposite!=null]]) {
+						
+			for(Attribute a : e.attribute.filter[
+				opposite!=null && type instanceof CollectionType && opposite.type instanceof CollectionType  			
+			]) {
+
+				myLog.debug("~~> "+e.name+"."+a.name+" <-> "+(a.eContainer as ExpressConcept).name+"."+a.opposite.name)				
+				m_multiOppositeReferencesMap.put(a.opposite, e.name.toFirstUpper + (a.eContainer as ExpressConcept).name.toFirstUpper)
+			}
+		}
 	}
-	
-	def compile(Schema s) {
+		
+	/**
+	 * Pre-compilation phase.
+	 */
+	def compileSchema(Schema s) {
 
 		// Precompilation
 		s.precompile
@@ -128,69 +183,90 @@ class XcoreGenerator implements IGenerator {
 		
 		package «s.name.toFirstLower» 
 				
+		// Additional datatype for binary
+		
+		type Binary wraps java.util.BitSet
+				
+		// Base container of «s.name»
+		
+		@GenModel(documentation="Generated container class of «s.name»")
+		class «s.name» {
+			
+			«FOR t:m_compositeSelectTypeMap.keySet»
+			contains ordered «t.name»[]
+			«ENDFOR»
+			
+			«FOR e:s.entities»
+			contains ordered «e.name»[]
+			«ENDFOR»
+		}
+				
 		// Enumerations of «s.name»
 					
 		«FOR en : s.types.filter[t | t.datatype instanceof EnumType]»
-		«compile(en.name, (en.datatype as EnumType))»
+		@GenModel(documentation="Enumeration of «en.name»")
+		enum «en.name.toFirstUpper» {
+			
+			«(en.datatype as EnumType).compile»
+		}
 		«ENDFOR»
 		
 		// Composite select types of «s.name»
 		
-		«FOR t : s.types.filter[t | isEntityCompositeSelect(t)]»
-		class «t.name» {
+		«FOR entry : m_compositeSelectTypeMap.entrySet»
+		@GenModel(documentation="Generated composite multi-select «entry.key.name»")
+		class «entry.key.name.toFirstUpper» {
 			
-			«FOR e : (t.datatype as SelectType).select»«e.name» : 
-				«IF e instanceof Type && builtinTypeMapping.containsKey((e as Type).datatype)»«builtinTypeMapping.get((e as Type).datatype)»«ENDIF»
+			«FOR c : entry.value»
+			«IF c instanceof Entity»refers«ENDIF» «c.name.toFirstUpper» «c.name.toFirstLower»
 			«ENDFOR»
-							
 		}
 		«ENDFOR»
 					
 		// Entities of «s.name»
 							
-		«FOR e : s.entities»
-		«e.compile»
-		«ENDFOR»
+		«FOR e : s.entities»«e.compileEntity»«ENDFOR»
 		'''
 	}
+	
+	def compileAttribute(Attribute a) {
+
+		'''«IF null!=a.opposite»contains«ELSE»refers«ENDIF»
+		«IF null!=a.expression» derived«ENDIF»
+		«IF m_multiOppositeReferencesMap.containsKey(a)»«ENDIF» «a.type.compile»'''		
+	}
+	
+	def dispatch compile(ReferenceType r) {
 		
-	def compile(Entity e) {
+		'''«r.instance.name»'''
+	}
+		
+	def dispatch compile(CollectionType c) {
+		
+		'''«IF !#["ARRAY","LIST"].contains(c.name)»un«ENDIF»ordered«IF "SET"==c.name» unique«ENDIF» 
+		'''
+	}
+	
+		
+	def compileEntity(Entity e) {
 		
 		'''
 		@GenModel(documentation="Entity of «e.name»")
 		«IF e.abstract»abstract«ENDIF» class «e.name.toFirstUpper»«IF !e.supertype.empty» extends «e.supertype.map[name].join(', ')» «ENDIF» {
 
+			«»
 					
 		}
 		'''
 	}
 	
-	def compile(String name, SelectType selectType) {
-
+	def dispatch compile(BuiltInType builtin) {
 		
-
-		'''
-		class «name» {
-			
-			
-		}
-		'''		
+		'''«builtinTypeMapping.get(builtin.eClass)»'''
 	}
-	
-	def compile(String name, EnumType t) {
 		
-		'''
-		@GenModel(documentation="Enumeration of «name»")
-		enum «name.toFirstUpper»  {
-			
-			«t.literal.map[name].join(", ")»			
-		}'''
-	}
-	
-	def compile(Attribute a) {
-	
-		// Distinguish between SELECT and builtin types
-		'''
-		'''
+	def dispatch compile(EnumType t) {
+		
+		'''«t.literal.map[name].join(", ")»'''
 	}
 }		
