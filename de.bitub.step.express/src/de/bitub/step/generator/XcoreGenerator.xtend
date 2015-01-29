@@ -192,13 +192,13 @@ class XcoreGenerator implements IGenerator {
 		@GenModel(documentation="Generated container class of «s.name»")
 		class «s.name» {
 			
-			«FOR t:m_compositeSelectTypeMap.keySet»
-			contains ordered «t.name»[]
-			«ENDFOR»
+			«FOR t:m_compositeSelectTypeMap.keySet
+				»contains ordered «t.name»[]«
+			ENDFOR»
 			
-			«FOR e:s.entities»
-			contains ordered «e.name»[]
-			«ENDFOR»
+			«FOR e:s.entities
+				»contains ordered «e.name»[]«
+			ENDFOR»
 		}
 				
 		// Enumerations of «s.name»
@@ -217,8 +217,11 @@ class XcoreGenerator implements IGenerator {
 		@GenModel(documentation="Generated composite multi-select «entry.key.name»")
 		class «entry.key.name.toFirstUpper» {
 			
-			«FOR c : entry.value»
-			«IF c instanceof Entity»refers«ENDIF» «c.name.toFirstUpper» «c.name.toFirstLower»
+			«FOR c : entry.value»«
+				IF c instanceof Entity
+					»refers«
+				ENDIF
+				» «c.name.toFirstUpper» «c.name.toFirstLower»
 			«ENDFOR»
 		}
 		«ENDFOR»
@@ -231,20 +234,54 @@ class XcoreGenerator implements IGenerator {
 	
 	def compileAttribute(Attribute a) {
 
-		'''«IF null!=a.opposite»contains«ELSE»refers«ENDIF»
-		«IF null!=a.expression» derived«ENDIF»
-		«IF m_multiOppositeReferencesMap.containsKey(a)»«ENDIF» «a.type.compile»'''		
+		'''«IF null!=a.opposite && m_multiOppositeReferencesMap.containsKey(a.opposite)
+				»contains «
+			ELSEIF a.type instanceof ReferenceType || a.type instanceof CollectionType
+				»refers «
+			ENDIF»«
+			IF null!=a.expression
+				»derived «
+			ENDIF»«
+			 
+			a.type.compile» «a.name.toFirstLower» «
+			
+			IF null!=a.opposite && !m_multiOppositeReferencesMap.containsKey(a.opposite)
+				»opposite «a.opposite.name.toFirstLower»«ENDIF»'''		
 	}
 	
+	def parentAttribute(DataType t) {
+
+		var eAttr = t.eContainer
+		while(null!=eAttr && !(eAttr instanceof Attribute)) {
+			eAttr = eAttr.eContainer
+		}
+		eAttr as Attribute
+	}
+	
+	
 	def dispatch compile(ReferenceType r) {
-		
-		'''«r.instance.name»'''
+						
+		val parent = r.parentAttribute
+		'''«IF m_multiOppositeReferencesMap.containsKey(parent)
+				»«m_multiOppositeReferencesMap.get(parent)»«
+			ELSEIF m_multiOppositeReferencesMap.containsKey(parent.opposite)
+				»«m_multiOppositeReferencesMap.get(parent.opposite)»«
+			ELSE
+				»«r.instance.name.toFirstUpper»«
+			ENDIF»'''
 	}
 		
 	def dispatch compile(CollectionType c) {
 		
-		'''«IF !#["ARRAY","LIST"].contains(c.name)»un«ENDIF»ordered«IF "SET"==c.name» unique«ENDIF» 
-		'''
+		val parent = c.parentAttribute
+		'''«IF !#["ARRAY","LIST"].contains(c.name)
+				»un«
+			ENDIF
+			»ordered «
+			IF "SET"==c.name
+			»unique «
+			ENDIF
+			»«c.type.compile»[]'''
 	}
 	
 		
