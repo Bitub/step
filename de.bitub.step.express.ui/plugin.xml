@@ -438,15 +438,15 @@
      </category>
      <command
            categoryId="de.bitub.step.express.ui.category"
-           id="de.bitub.step.ui.commands.express.EXPRESSGenerateOclInEcore"
-           name="Generate OclInEcore file from schema">
+           id="de.bitub.step.ui.commands.express.EXPRESSGenerateXcore"
+           name="Generate Xcore from EXPRESS">
      </command>
   </extension>
   <extension
         point="org.eclipse.ui.handlers">
      <handler
            class="de.bitub.step.ui.commands.EXPRESSXCoreGenerationHandler"
-           commandId="de.bitub.step.ui.commands.express.EXPRESSGenerateOclInEcore">
+           commandId="de.bitub.step.ui.commands.express.EXPRESSGenerateXcore">
      </handler>
   </extension>
   <extension
@@ -454,29 +454,8 @@
      <menuContribution
            locationURI="popup:org.eclipse.jdt.ui.PackageExplorer">
         <command
-              commandId="de.bitub.step.ui.commands.express.EXPRESSGenerateOclInEcore"
-              label="Generate OclInEcore from schema"
-              style="push"
-              tooltip="Generates an OclInEcore text file from selected EXPRESS file.">
-           <visibleWhen
-                 checkEnabled="false">
-              <iterate>
-                 <adapt
-                       type="org.eclipse.core.resources.IResource">
-                    <test
-                          property="org.eclipse.core.resources.name"
-                          value="*.exp">
-                    </test>
-                 </adapt>
-              </iterate>
-           </visibleWhen>
-        </command>
-     </menuContribution>
-     <menuContribution
-           locationURI="popup:org.eclipse.jdt.ui.ProjectExplorer">
-        <command
-              commandId="de.bitub.step.ui.commands.express.EXPRESSGenerateOclInEcore"
-              label="Generate OclInEcore from schema"
+              commandId="de.bitub.step.ui.commands.express.EXPRESSGenerateXcore"
+              label="Generate Xcore from EXPRESS"
               style="push"
               tooltip="Generates an OclInEcore text file from selected EXPRESS file.">
            <visibleWhen

@@ -37,6 +37,15 @@ specification to be able to read a P21 textual representation by a custom EMF re
 
 ## P2 Update site
 
+### Building manually for Eclipse Luna (default). This command will produce a local (default) update site placed in user directory ".p2".
+
+```
+	cd de.bitub.step.build-resources
+	mvn -P local,platform-luna clean install
+```
+
+### Or use the existing update site at
+
 ## Techiques
 
 ## General limitations

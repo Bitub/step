@@ -16,6 +16,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -59,13 +60,17 @@ public class EXPRESSXCoreGenerationHandler extends AbstractHandler implements IH
         Resource xtextResource = rs.getResource(uri, true);
         
         XcoreGenerator oclInEcoreGenerator = new XcoreGenerator();
+        oclInEcoreGenerator.setProjectFolder(file.getProject().getFullPath().toString());
         
-        IFile genFile = file.getParent().getFile(new Path(file.getName()+".oclinecore"));
+        IFile genFile = file.getParent().getFile(new Path(file.getName()+".xcore")); //$NON-NLS-1$
         
         CharSequence charSequence = oclInEcoreGenerator.compile(xtextResource);
         try {
-                    
-          genFile.create(new StringInputStream(charSequence.toString()), true, new NullProgressMonitor());
+                 
+          if(genFile.exists()) {
+            genFile.delete(true, new NullProgressMonitor());
+          }
+          genFile.create(new StringInputStream(charSequence.toString()), IResource.FORCE|IResource.REPLACE, new NullProgressMonitor());
         }
         catch (CoreException e1) {
 

@@ -13,79 +13,106 @@ package de.bitub.step.generator
 
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.BuiltInType
+import de.bitub.step.express.CollectionType
+import de.bitub.step.express.DataType
 import de.bitub.step.express.Entity
 import de.bitub.step.express.EnumType
 import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.ExpressPackage
+import de.bitub.step.express.GenericType
+import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
+import java.util.Set
+import javax.inject.Inject
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
-import java.util.Set
-import de.bitub.step.express.CollectionType
-import de.bitub.step.express.DataType
-import de.bitub.step.express.ReferenceType
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 /**
- * Generates code from your model files on save.
+ * Generates code from your model files on save. 
  * 
  * see http://www.eclipse.org/Xtext/documentation.html#TutorialCodeGeneration
  */
 class XcoreGenerator implements IGenerator {
-	
+		
 	val static Logger myLog = Logger.getLogger(XcoreGenerator);
 	
-	static val builtinTypeMapping =  <EClass, String>newHashMap(
-		new Pair(ExpressPackage.Literals.INTEGER_TYPE, "int"),
-		new Pair(ExpressPackage.Literals.NUMBER_TYPE, "double"),
-		new Pair(ExpressPackage.Literals.LOGICAL_TYPE, "BooleanObject"),
-		new Pair(ExpressPackage.Literals.BOOLEAN_TYPE, "boolean"),
-		new Pair(ExpressPackage.Literals.BINARY_TYPE, "Binary"),
-		new Pair(ExpressPackage.Literals.REAL_TYPE, "double"),
-		new Pair(ExpressPackage.Literals.STRING_TYPE, "String")
+	val static builtinMappings =  <EClass, String>newHashMap(
+		ExpressPackage.Literals.INTEGER_TYPE -> "int",
+		ExpressPackage.Literals.NUMBER_TYPE -> "double",
+		ExpressPackage.Literals.LOGICAL_TYPE -> "BooleanObject",
+		ExpressPackage.Literals.BOOLEAN_TYPE -> "boolean",
+		ExpressPackage.Literals.BINARY_TYPE -> "Binary",
+		ExpressPackage.Literals.REAL_TYPE -> "double",
+		ExpressPackage.Literals.STRING_TYPE -> "String"
 	);
 	
 	
-	var m_builtinSelectTypeMap = <Type, String>newHashMap()
-	var m_compositeSelectTypeMap = <Type, Set<ExpressConcept>>newHashMap()
-	var m_multiOppositeReferencesMap = <Attribute, String>newHashMap()
+	@Inject
+	IQualifiedNameProvider nameProvider; 
+	
+	var resolvedSelectsMap = <Type, Set<ExpressConcept>>newHashMap()
+	var inverseReferenceMap = <Attribute, Set<Attribute>>newHashMap()
+	var secondOrderCache = ''''''
+	
+	var projectFolder = "<project folder>";
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 		
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
 							
+							
 		myLog.info("Generating XCore representation of "+schema.name)
 		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
 	}
 	
-	def compile(Resource resource) {
+	/**
+	 * Sets the project folder for Xcore code generation.
+	 */
+	def setProjectFolder(String prjFolder) {
 		
-		// TODO Get resource folder
+		projectFolder = prjFolder;
+	}
+	
+	/**
+	 * Compiles Xcore from given EXPRESS resource.
+	 */
+	def compile(Resource resource) {
+				
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
+		
+		schema.preprocess
 		schema.compileSchema
 	}
 		
-	def header(String projectFolder, Schema s) {
-		
-		'''@Ecore(nsPrefix="«s.name»",nsURI="http://example.org/«s.name»")
-		@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
-		@GenModel(
-			modelDirectory="«projectFolder»/src-gen", 
-			rootExtendsInterface="org.eclipse.emf.cdo.CDOObject", 
-			rootExtendsClass="org.eclipse.emf.internal.cdo.CDOObjectImpl", 
-			importerID="org.eclipse.emf.importer.ecore", 
-			featureDelegation="Dynamic", 
-			providerRootExtendsClass="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter")
-			
-		annotation "http://www.eclipse.org/OCL/Import" as Import @GenModel(documentation="Generated schema from «s.name».")
-			'''
-	}	
+	/**
+	 * Compiles the header / annotation information on top of the Xcore file.
+	 */
+	def compileHeader(Schema s) 
+'''
+@Ecore(nsPrefix="«s.name»",nsURI="http://example.org/«s.name»")
+@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
+@GenModel(
+	modelDirectory="«projectFolder»/src-gen"
+	 
+// UNCOMMENT THESE LINES TO HAVE ECLIPSE CDO WORKING.
+
+//	rootExtendsInterface="org.eclipse.emf.cdo.CDOObject", 
+//	rootExtendsClass="org.eclipse.emf.internal.cdo.CDOObjectImpl", 
+//	importerID="org.eclipse.emf.importer.ecore", 
+//	featureDelegation="Dynamic", 
+//	providerRootExtendsClass="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"
+)	
+'''		
 	
-	
+	/**
+	 * Determines the set of express concepts represented by given Select statement.
+	 */
 	def static Set<ExpressConcept> selectSet(ExpressConcept t) {
 		
 		val uniqueTypeSet = <ExpressConcept>newHashSet
@@ -96,7 +123,7 @@ class XcoreGenerator implements IGenerator {
 				// Self evaluation
 				var set = (t.datatype as SelectType).select
 					.filter[!(it instanceof Type && (it as Type).datatype instanceof SelectType)]
-					.map[].toSet;
+					.toSet;
 				
 				// Recursion
 				(t.datatype as SelectType).select
@@ -110,145 +137,225 @@ class XcoreGenerator implements IGenerator {
 		uniqueTypeSet
 	}
 	
-	def static isMultiSelectType(Set<ExpressConcept> selects) {
-		
-		var isMulti = selects.exists[it instanceof Entity] 
-		isMulti || selects
-			.filter[it instanceof Type 
-				&& ((it as Type).datatype instanceof BuiltInType || (it as Type).datatype instanceof CollectionType)
-			]
-			.map[(it as Type).datatype.class].toSet.size > 1		
-	}
-	
-	
-	def static builtinSelectTypeEClass(Set<ExpressConcept> selects) {
-	
-		var datatypeSet = selects
-			.filter[it instanceof Type 
-				&& ((it as Type).datatype instanceof BuiltInType || (it as Type).datatype instanceof CollectionType)
-			]
-			.map[(it as Type).datatype.eClass].toSet
-			
-		return if(datatypeSet.size == 1) datatypeSet.get(0) else null	
-	}
-	
-	
-	def precompile(Schema s) {
-		
-		// Filter for simplified type selects
-		myLog.info("Processing selects...")
-		for(Type t : s.types.filter[it.datatype instanceof SelectType]) {
-			
-			val conceptSet = selectSet(t)
-			if(isMultiSelectType(conceptSet)) {
-				
-				myLog.debug("~~> Composite select: "+t.name)
-				m_compositeSelectTypeMap.put(t, conceptSet)
-			} else {
-				
-				val eClass = builtinSelectTypeEClass(conceptSet)
-				if(builtinTypeMapping.containsKey(eClass)) {
-					
-					myLog.debug("~~> Simple select: "+t.name)
-					m_builtinSelectTypeMap.put(t, builtinTypeMapping.get(eClass))
-				} else {
-					
-					myLog.warn("~~> Found unknown builtin type mapping "+eClass.name)
-				}
-			}
-		}
-		
-		myLog.info("Processing inverse non-unique n-m relations ...")
-		for(Entity e : s.entities.filter[it.attribute.exists[it.opposite!=null]]) {
-						
-			for(Attribute a : e.attribute.filter[
-				opposite!=null && type instanceof CollectionType && opposite.type instanceof CollectionType  			
-			]) {
-
-				myLog.debug("~~> "+e.name+"."+a.name+" <-> "+(a.eContainer as ExpressConcept).name+"."+a.opposite.name)				
-				m_multiOppositeReferencesMap.put(a.opposite, e.name.toFirstUpper + (a.eContainer as ExpressConcept).name.toFirstUpper)
-			}
-		}
-	}
-		
 	/**
-	 * Pre-compilation phase.
+	 * Check whether there are any entity concepts inside set.
 	 */
-	def compileSchema(Schema s) {
+	def static isEntityCompositeSelect(Set<ExpressConcept> selects) {
+	
+		selects.exists[it instanceof Entity]	
+	}
+	
+	/**
+	 * Check whether the collection types are identically.
+	 */
+	def static boolean isUniqueCollectionSelect(Iterable<CollectionType> aggregationTypes) {
+		
+		// Check unique aggregation type
+		if(aggregationTypes.map[name].toSet.size > 1) {
+			
+			return false
+		}
+		
+		val nonNullLowerBound = aggregationTypes.findFirst[lowerBound > 0]
+		// If there any non-null lower bound
+		if(null!=nonNullLowerBound 
+			&& aggregationTypes.filter[lowerBound != nonNullLowerBound.lowerBound ].size > 1
+		) {
+			// False, if there are multiple lower bounds
+			return false;
+		}
 
-		// Precompilation
-		s.precompile
+		val nonNullUpperBound = aggregationTypes.findFirst[upperBound > 0]
+		// If there any non-null upper bound
+		if(null!=nonNullLowerBound 
+			&& aggregationTypes.filter[upperBound != nonNullUpperBound.upperBound ].size > 1
+		) {
+			// False if there are multiple upper bounds
+			return false;
+		}
 		
-		'''«header("<project folder>",s)»
-		
-		package «s.name.toFirstLower» 
+		val nestedCollections = aggregationTypes.filter[it.type instanceof CollectionType];
+		if(!nestedCollections.empty) {
+			// If there are nested aggregations
+			if(nestedCollections.size < aggregationTypes.size) {
 				
-		// Additional datatype for binary
-		
-		type Binary wraps java.util.BitSet
+				return false
 				
-		// Base container of «s.name»
-		
-		@GenModel(documentation="Generated container class of «s.name»")
-		class «s.name» {
-			
-			«FOR t:m_compositeSelectTypeMap.keySet
-				»contains ordered «t.name»[]«
-			ENDFOR»
-			
-			«FOR e:s.entities
-				»contains ordered «e.name»[]«
-			ENDFOR»
+			} else {
+				// Check nested aggregation
+				return isUniqueCollectionSelect(nestedCollections.map[type as CollectionType])
+			}
 		}
 				
-		// Enumerations of «s.name»
-					
-		«FOR en : s.types.filter[t | t.datatype instanceof EnumType]»
-		@GenModel(documentation="Enumeration of «en.name»")
-		enum «en.name.toFirstUpper» {
+		val typeSet = aggregationTypes.map[it.type.eClass].toSet
+		if(typeSet.size>1) {
 			
-			«(en.datatype as EnumType).compile»
+			return false
 		}
-		«ENDFOR»
 		
-		// Composite select types of «s.name»
+		// Check if concept
+		if(aggregationTypes
+			.filter[it.type instanceof ExpressConcept]
+			.map[(it.type as ExpressConcept).name].toSet.size > 1
+		) {
+			return false
+		}
 		
-		«FOR entry : m_compositeSelectTypeMap.entrySet»
-		@GenModel(documentation="Generated composite multi-select «entry.key.name»")
-		class «entry.key.name.toFirstUpper» {
+		return true
+	}
+	
+	/**
+	 * Checks whether select is a unique alias select (only semantics changes)
+	 */
+	def static isUniqueAliasSelect(Set<ExpressConcept> selects) {
+		
+		// Filter for aggregations
+		val aggregationTypes = selects.filter[
+			it instanceof Type && (it as Type).datatype instanceof CollectionType
+		].map[(it as Type).datatype as CollectionType];
+		
+		var isAggregationSelect = !aggregationTypes.empty
+		if(isAggregationSelect) {
+			if(!isUniqueCollectionSelect(aggregationTypes)) {
+				return false;
+			}			
+		}
+		
+		// Test for builtin selects
+		val builtinSelects = selects.filter[
+			it instanceof Type && (it as Type).datatype instanceof BuiltInType 
+		].map[(it as Type).datatype as BuiltInType]
+		
+		var isBuiltinSelect = !builtinSelects.empty;
+		if(isAggregationSelect && isBuiltinSelect) {
 			
-			«FOR c : entry.value»«
-				IF c instanceof Entity
-					»refers«
-				ENDIF
-				» «c.name.toFirstUpper» «c.name.toFirstLower»
-			«ENDFOR»
+			return false;
+		
+		}		
+				
+		if(builtinSelects.map[eClass].toSet.size > 1) {
+			
+			// TODO Test number types
 		}
-		«ENDFOR»
-					
-		// Entities of «s.name»
+		
+		// Test for generic selects
+		val genericSelects = selects.filter[
+			it instanceof Type && (it as Type).datatype instanceof GenericType 
+		].map[(it as Type).datatype as GenericType]
+		
+		var isGenericSelect = !genericSelects.empty
+		// TODO
+		
+	}
+	
+	/**
+	 * True if attribute's type is a one to many relation
+	 */
+	def isOneToManyRelation(Attribute a) {
+		
+		if(a.type instanceof CollectionType) {
+			
+			val t = a.type as CollectionType
+			
+			return t.upperBound > 1 
+				|| t.many 
+				|| t.upperRef != null 
+				|| t.lowerRef != null
+				|| t.refersConcept instanceof Type
+		}
+		
+		false
+	}
+	
+	/**
+	 * If type is an alias type (simple type wrapper)
+	 */
+	def boolean isNamedAlias(ExpressConcept e) {
+		
+		if(e instanceof Type) {
+		
+			val t = e as Type			
+			!(t.datatype instanceof SelectType || t.datatype instanceof EnumType)				
 							
-		«FOR e : s.entities»«e.compileEntity»«ENDFOR»
-		'''
+		} else {
+		
+			false
+		}		
 	}
-	
-	def compileAttribute(Attribute a) {
 
-		'''«IF null!=a.opposite && m_multiOppositeReferencesMap.containsKey(a.opposite)
-				»contains «
-			ELSEIF a.type instanceof ReferenceType || a.type instanceof CollectionType
-				»refers «
-			ENDIF»«
-			IF null!=a.expression
-				»derived «
-			ENDIF»«
-			 
-			a.type.compile» «a.name.toFirstLower» «
-			
-			IF null!=a.opposite && !m_multiOppositeReferencesMap.containsKey(a.opposite)
-				»opposite «a.opposite.name.toFirstLower»«ENDIF»'''		
+	/**
+	 * True, if builtin type reference (primitive or aggregation)
+	 */
+	def boolean isBuiltinAlias(ExpressConcept e) {
+		
+		if(e instanceof Type) {
+		
+			(e as Type).datatype.builtinAlias
+						
+		} else {
+		
+			false
+		}		
 	}
 	
+	
+	def boolean isBuiltinAlias(DataType t) {
+		
+		if(t instanceof CollectionType) {
+			
+			(t as CollectionType).type.builtinAlias
+				
+		} else if(t instanceof ReferenceType) {
+			
+			(t as ReferenceType).instance.builtinAlias
+		} else {
+						
+			t instanceof BuiltInType 				
+		}		
+	}
+	
+
+	/**
+	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
+	 * relation.
+	 */
+	def Set<Attribute> refersOppositeAttribute(Attribute a) {
+		
+		if(null!=a.opposite) {
+			
+		 	newHashSet(a.opposite)
+		} else {
+			
+			if(inverseReferenceMap.containsKey(a)) {
+				
+				inverseReferenceMap.get(a)
+			}
+		}
+	}
+	
+	
+	/**
+	 * Returns the transitively referred concept, if there's any referenced
+	 */
+	def ExpressConcept refersConcept(DataType dataType) {
+		
+		if(dataType instanceof ReferenceType) {
+			
+			(dataType as ReferenceType).instance
+				
+		} else if(dataType instanceof CollectionType) {
+			
+			(dataType as CollectionType).type.refersConcept
+		} else {
+		
+		   null
+		}
+	}
+
+
+	/**
+	 * Returns the parent attribute of a specific data type.
+	 */
 	def parentAttribute(DataType t) {
 
 		var eAttr = t.eContainer
@@ -257,53 +364,297 @@ class XcoreGenerator implements IGenerator {
 		}
 		eAttr as Attribute
 	}
-	
-	
-	def dispatch compile(ReferenceType r) {
-						
-		val parent = r.parentAttribute
-		'''«IF m_multiOppositeReferencesMap.containsKey(parent)
-				»«m_multiOppositeReferencesMap.get(parent)»«
-			ELSEIF m_multiOppositeReferencesMap.containsKey(parent.opposite)
-				»«m_multiOppositeReferencesMap.get(parent.opposite)»«
-			ELSE
-				»«r.instance.name.toFirstUpper»«
-			ENDIF»'''
-	}
-		
-	def dispatch compile(CollectionType c) {
-		
-		val parent = c.parentAttribute
-		'''«IF !#["ARRAY","LIST"].contains(c.name)
-				»un«
-			ENDIF
-			»ordered «
-			IF "SET"==c.name
-			»unique «
-			ENDIF
-			»«c.type.compile»[]'''
-	}
-	
-		
-	def compileEntity(Entity e) {
-		
-		'''
-		@GenModel(documentation="Entity of «e.name»")
-		«IF e.abstract»abstract«ENDIF» class «e.name.toFirstUpper»«IF !e.supertype.empty» extends «e.supertype.map[name].join(', ')» «ENDIF» {
 
-			«»
-					
+		
+	/**
+	 * Pre-processes the scheme before generating any code.
+	 *  - Registering and flattening select types with composite entities
+	 *  - Simplifying selects with unique builtin type
+	 * 
+	 * 
+	 */
+	def preprocess(Schema s) {
+		
+		// Filter for simplified type selects
+		myLog.info("Processing selects...")
+		for(Type t : s.types.filter[it.datatype instanceof SelectType]) {
+			
+			val conceptSet = selectSet(t)
+			myLog.debug("~> \""+t.name+"\" resolves to "+conceptSet.size+" sub concepts")
+		
+			resolvedSelectsMap.put(t, conceptSet)
 		}
-		'''
+				
+		myLog.info("Processing inverse n-m relations ...")
+		for(Entity e : s.entities.filter[attribute.exists[opposite!=null]]) {
+						
+			// Filter for both sided collection types, omit any restriction (cardinalities etc.)
+			for(Attribute a : e.attribute.filter[
+				opposite!=null && oneToManyRelation && opposite.oneToManyRelation 				
+			]) {
+
+				val oppositeEntity = a.opposite.eContainer as ExpressConcept;				
+				myLog.debug("~> "+(a.eContainer as Entity).name+"."+a.name+" <--> "+oppositeEntity.name+"."+a.opposite.name)
+		
+				var inverseAttributeSet = inverseReferenceMap.get(a.opposite)
+				if(null==inverseAttributeSet) {
+					inverseAttributeSet = newHashSet()
+					inverseReferenceMap.put(a.opposite, inverseAttributeSet)
+				}
+				
+				inverseAttributeSet += a
+			}
+		}
+		
+		myLog.info("Pre-compilation phase finished.")
+	}
+		
+
+	// --- GENERATOR CODE ------------------------------------
+
+
+	/**
+	 * Transforms a schema into a package definition.
+	 */
+	def compileSchema(Schema s) 
+'''	
+«compileHeader(s)»
+
+// THIS FILE IS GENERATED. ANY CHANGE WILL BE LOST.
+
+@GenModel(documentation="Generated EXPRESS model of schema «s.name»")
+@XpressModel(name="«s.name»")		
+package «s.name.toLowerCase» 
+
+import org.eclipse.emf.ecore.xml.^type.BooleanObject
+
+annotation "http://www.eclipse.org/OCL/Import" as Import
+annotation "http://www.bitub.de/express/XpressModel" as XpressModel
+		
+// Additional datatype for binary
+type Binary wraps java.util.BitSet
+		
+// Base container of «s.name»
+@GenModel(documentation="Generated container class of «s.name»")
+@XpressModel(entity="new",type="container")
+class «s.name» {
+
+«FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
+«ENDFOR»
+
+}
+
+// --- TYPE DEFINITIONS ------------------------------
+
+«FOR t:s.types»«t.compileConcept»«ENDFOR»
+
+// --- ENTITY DEFINITIONS ----------------------------
+
+«FOR e:s.entities»«e.compileConcept»«ENDFOR»
+	
+// --- END OF «s.name» ---
+'''		
+	
+	/**
+	 * Transforms an entity into a class definition. 
+	 */	
+	def dispatch compileConcept(Entity e) {
+		
+'''
+
+@GenModel(documentation="Entity of «e.name»")
+«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
+
+}
+'''
 	}
 	
-	def dispatch compile(BuiltInType builtin) {
+	/**
+	 * Transforms a type into a class / type definition.
+	 */
+	def dispatch compileConcept(Type t) {
 		
-		'''«builtinTypeMapping.get(builtin.eClass)»'''
+		if(t.datatype instanceof GenericType) {
+			// Wraps String			
+'''
+
+type «t.name.toFirstUpper» wraps String
+'''
+
+		} else if(t.datatype instanceof EnumType) {
+			// Compile enum
+'''
+
+@GenModel(documentation="Enumeration of «t.name»")
+enum «t.name.toFirstUpper» {
+				
+	«t.datatype.compileDatatype»
+}
+'''
+		} else if(t.datatype instanceof SelectType) {
+			
+			// Compile select
+'''
+
+@GenModel(documentation="Select of «t.name»")
+class «t.name.toFirstUpper» {
+
+	«t.datatype.compileDatatype»	
+}
+'''			
+		} else if(t.datatype instanceof BuiltInType) {
+			
+'''
+
+// Type «t.name» is a built-in primitive type (using «de.bitub.step.generator.XcoreGenerator.builtinMappings.get(t.datatype.eClass)»)
+'''			
+						
+		} else if(t.datatype instanceof ReferenceType) {
+			
+'''
+
+// Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
+'''			
+			
+		} else if(t.datatype instanceof CollectionType) {
+			
+'''
+
+// Type «t.name» not generated. It is a named aggregation (using «t.datatype.compileDatatype»)
+'''			
+		} else {
+			
+'''
+
+// WARNING: UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»
+'''			
+		}
+	}
+	
+	/**
+	 * Transforms a Select into a class specification.
+	 */
+	def dispatch compileDatatype(SelectType s) {
+		
+		val conceptSet = resolvedSelectsMap.get(s.eContainer)
+		
+'''   
+   «FOR c : conceptSet.filter[it instanceof Entity]»
+   refers «c.name.toFirstUpper» «c.name.toFirstLower»
+   «ENDFOR»
+   «FOR t : conceptSet.filter[it instanceof Type].map[it as Type]»
+   «IF t.namedAlias && !t.builtinAlias»refers «ENDIF»«t.datatype.referDatatype» «t.name.toFirstLower»
+   «ENDFOR»
+'''
+	}
+
+
+	
+	//// ---- REFERENCE DISPATCH
+	
+	def dispatch referDatatype(EnumType t) {
+		
+'''«(t.eContainer as Type).name.toFirstUpper»'''
+
+	}
+
+	
+	def dispatch referDatatype(ReferenceType r) {
+		
+'''«IF r.instance instanceof Type 
+		&& (r.instance as Type).isNamedAlias»«(r.instance as Type).datatype.compileDatatype»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
+		
+	}
+
+	
+	def dispatch referDatatype(BuiltInType b) {
+		
+'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(b.eClass)»'''
+
+	}	
+
+	
+	def dispatch referDatatype(GenericType g) {
+		
+'''«(g.eContainer as ExpressConcept).name.toFirstUpper»'''
+
+	}
+
+	
+	def dispatch referDatatype(CollectionType c) {
+		
+		c.compileDatatype
+	}
+	
+		
+	def generateNestedCollector(String containerName, CollectionType nestedCol) {
+		
+		// Generate nested class
+		secondOrderCache +=
+'''
+class «containerName.toFirstUpper» {
+	
+	
+}
+'''
+
 	}
 		
-	def dispatch compile(EnumType t) {
+	def dispatch compileDatatype(CollectionType c) {
 		
-		'''«t.literal.map[name].join(", ")»'''
+		// If nested but not datatype
+		if(c.type instanceof CollectionType && !c.type.refersConcept.builtinAlias) {
+			
+			// Builtin type or entity ?
+			val qualifiedName = nameProvider.getFullyQualifiedName(c.eContainer)
+			
+		}
+		
+'''«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF»«IF "SET"==c.name»unique «ENDIF»«c.type.referDatatype»[]'''
+
 	}
+	
+	def dispatch compileDatatype(ReferenceType r) {
+						
+'''«IF r.instance instanceof Type 
+		&& (r.instance as Type).isNamedAlias»«(r.instance as Type).datatype.compileDatatype»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
+		
+	}
+		
+	def dispatch compileDatatype(BuiltInType builtin) {
+		
+'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(builtin.eClass)»'''
+
+	}
+		
+	def dispatch compileDatatype(EnumType t) {
+		
+'''«t.literal.map[name].join(", ")»'''
+
+	}	
+	
+		
+	/**
+	 * Compiles a single attribute.
+	 */
+	def compileAttribute(Attribute a) {
+
+//		'''«IF null!=a.opposite && inverseReferenceMap.containsKey(a.opposite)
+//				»contains «
+//			ELSEIF a.type instanceof ReferenceType || a.type instanceof CollectionType
+//				»refers «
+//			ENDIF»«
+//			IF null!=a.expression
+//				»derived «
+//			ENDIF»«
+//			 
+//			a.type.compileDatatype» «a.name.toFirstLower» «
+//			
+//			IF null!=a.opposite && !inverseReferenceMap.containsKey(a.opposite)
+//				»opposite «a.opposite.name.toFirstLower»«ENDIF»'''		
+	}
+	
+
+		
+
 }		
