@@ -27,8 +27,18 @@ class XCoreNestedCollection {
     	val model = parseHelper.parse(
     		'''
     		SCHEMA Test;
-    		TYPE Nested = LIST [0:5] OF LIST [0:5] OF INTEGER;
+    		TYPE TypeWithNestedPrimitive = LIST [0:5] OF LIST [0:5] OF INTEGER;
     		END_TYPE;
+    		TYPE TypeWithNestedEntity = LIST [0:5] OF LIST [0:5] OF RefEntity;
+    		END_TYPE;
+    		TYPE TypeWithNestedNestedEntity = LIST [0:5] OF LIST [0:5] OF LIST[0:5] OF RefEntity;
+    		END_TYPE;    		
+    		ENTITY RefEntity
+    		END_SCHEMA;
+    		ENTITY HostEntity
+    		  primitive : TypeWithNestedPrimitive
+    		  reference : TypeWithNestedEntity
+    		  reference2: TypeWithNestedNestedEntity
     		END_SCHEMA;
     		''')
     		

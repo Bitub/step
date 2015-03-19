@@ -53,11 +53,11 @@ class XcoreGenerator implements IGenerator {
 	);
 	
 	
-	@Inject
-	IQualifiedNameProvider nameProvider; 
+	@Inject	IQualifiedNameProvider nameProvider; 
 	
 	var resolvedSelectsMap = <Type, Set<ExpressConcept>>newHashMap()
 	var inverseReferenceMap = <Attribute, Set<Attribute>>newHashMap()
+	var nestedAggregationQN = <String,String>newHashMap()
 	var secondOrderCache = ''''''
 	
 	var projectFolder = "<project folder>";
@@ -423,7 +423,7 @@ class XcoreGenerator implements IGenerator {
 // THIS FILE IS GENERATED. ANY CHANGE WILL BE LOST.
 
 @GenModel(documentation="Generated EXPRESS model of schema «s.name»")
-@XpressModel(name="«s.name»")		
+@XpressModel(name="«s.name»",rootContainerClass="«s.name»")		
 package «s.name.toLowerCase» 
 
 import org.eclipse.emf.ecore.xml.^type.BooleanObject
@@ -436,7 +436,7 @@ type Binary wraps java.util.BitSet
 		
 // Base container of «s.name»
 @GenModel(documentation="Generated container class of «s.name»")
-@XpressModel(entity="new",type="container")
+@XpressModel(type="new")
 class «s.name» {
 
 «FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
@@ -452,6 +452,10 @@ class «s.name» {
 
 «FOR e:s.entities»«e.compileConcept»«ENDFOR»
 	
+// --- ADDITIONALLY GENERATED ------------------------
+
+«secondOrderCache»
+	
 // --- END OF «s.name» ---
 '''		
 	
@@ -463,6 +467,7 @@ class «s.name» {
 '''
 
 @GenModel(documentation="Entity of «e.name»")
+@XpressModel(name="«e.name»",type="generated")
 «IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
 
 }
@@ -478,6 +483,7 @@ class «s.name» {
 			// Wraps String			
 '''
 
+@XpressModel(name="«t.name»",type="mapped")
 type «t.name.toFirstUpper» wraps String
 '''
 
@@ -486,6 +492,7 @@ type «t.name.toFirstUpper» wraps String
 '''
 
 @GenModel(documentation="Enumeration of «t.name»")
+@XpressModel(name="«t.name»",type="generated")
 enum «t.name.toFirstUpper» {
 				
 	«t.datatype.compileDatatype»
@@ -497,6 +504,7 @@ enum «t.name.toFirstUpper» {
 '''
 
 @GenModel(documentation="Select of «t.name»")
+@XpressModel(name="«t.name»",type="generated")
 class «t.name.toFirstUpper» {
 
 	«t.datatype.compileDatatype»	
@@ -506,7 +514,8 @@ class «t.name.toFirstUpper» {
 			
 '''
 
-// Type «t.name» is a built-in primitive type (using «de.bitub.step.generator.XcoreGenerator.builtinMappings.get(t.datatype.eClass)»)
+// Type «t.name» is a built-in primitive type (using «builtinMappings.get(t.datatype.eClass)»)
+@XpressModel(name="«t.name»",type="mapped",entity="«builtinMappings.get(t.datatype.eClass)»")
 '''			
 						
 		} else if(t.datatype instanceof ReferenceType) {
@@ -514,19 +523,22 @@ class «t.name.toFirstUpper» {
 '''
 
 // Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
+@XpressModel(name="«t.name»",type="mapped",entity="«(t.datatype as ReferenceType).instance.name»")
 '''			
 			
 		} else if(t.datatype instanceof CollectionType) {
 			
 '''
 
-// Type «t.name» not generated. It is a named aggregation (using «t.datatype.compileDatatype»)
+// Type «t.name» not generated. It is a named aggregation (using «t.datatype.referDatatype»)
+@XpressModel(name="«t.name»",type="mapped",entity="«t.datatype.referDatatype»")
 '''			
 		} else {
 			
 '''
 
 // WARNING: UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»
+@XpressModel(name="«t.name»",type="omitted")
 '''			
 		}
 	}
@@ -552,86 +564,131 @@ class «t.name.toFirstUpper» {
 	
 	//// ---- REFERENCE DISPATCH
 	
-	def dispatch referDatatype(EnumType t) {
+	def dispatch CharSequence referDatatype(EnumType t) 
 		
 '''«(t.eContainer as Type).name.toFirstUpper»'''
-
-	}
+	
 
 	
-	def dispatch referDatatype(ReferenceType r) {
+	def dispatch CharSequence referDatatype(ReferenceType r) 
 		
 '''«IF r.instance instanceof Type 
 		&& (r.instance as Type).isNamedAlias»«(r.instance as Type).datatype.compileDatatype»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
 		
-	}
 
 	
-	def dispatch referDatatype(BuiltInType b) {
+	def dispatch CharSequence referDatatype(BuiltInType b) 
 		
 '''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(b.eClass)»'''
-
-	}	
+	
 
 	
-	def dispatch referDatatype(GenericType g) {
+	def dispatch CharSequence referDatatype(GenericType g) 
 		
 '''«(g.eContainer as ExpressConcept).name.toFirstUpper»'''
+	
 
-	}
-
 	
-	def dispatch referDatatype(CollectionType c) {
-		
-		c.compileDatatype
-	}
-	
-		
-	def generateNestedCollector(String containerName, CollectionType nestedCol) {
-		
-		// Generate nested class
-		secondOrderCache +=
-'''
-class «containerName.toFirstUpper» {
-	
-	
-}
-'''
-
-	}
-		
-	def dispatch compileDatatype(CollectionType c) {
+	def dispatch CharSequence referDatatype(CollectionType c) {
 		
 		// If nested but not datatype
-		if(c.type instanceof CollectionType && !c.type.refersConcept.builtinAlias) {
-			
-			// Builtin type or entity ?
-			val qualifiedName = nameProvider.getFullyQualifiedName(c.eContainer)
-			
-		}
+		var CharSequence referredType 
 		
-'''«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF»«IF "SET"==c.name»unique «ENDIF»«c.type.referDatatype»[]'''
+		if(c.type instanceof CollectionType) {
+		
+			// Replace by nested collector proxy	
+			if(!c.type.builtinAlias) {
+			
+				referredType = generateNestedInnerProxyCollector(c)
+				
+			} else {
+				
+				referredType = c.type.referDatatype+'''[]'''
+				referredType = generateReferencedPrimitiveCollector(referredType.toString)
+			}			
+		} else {
+			
+			 referredType = c.type.referDatatype+'''[]'''
+		}
 
+		return referredType
 	}
 	
-	def dispatch compileDatatype(ReferenceType r) {
+		
+	def generateNestedInnerProxyCollector(CollectionType c) {
+
+		// Builtin type or entity ?
+		val qualifiedName = nameProvider.getFullyQualifiedName(c.eContainer)		
+		
+		// Generate nested class
+		if(nestedAggregationQN.containsKey(qualifiedName.toString)) {
+			return nestedAggregationQN.get(qualifiedName.toString)
+		}
+		
+		val nestedClassName = qualifiedName.toString.replace('.','_').toFirstUpper
+		nestedAggregationQN.put(qualifiedName.toString, nestedClassName)
+				
+		val referDatatype = c.type.referDatatype
+		secondOrderCache +=
+'''
+		
+
+@XpressModel(type="new")
+class «nestedClassName» {
+	
+	«IF !c.type.isBuiltinAlias»refers «ENDIF»«referDatatype» «nameProvider.getFullyQualifiedName(c.type).lastSegment.toLowerCase»
+}
+'''		
+		return nestedClassName+'''[]'''
+	}
+
+	/**
+	 * Generates a type wrapper for primitive multi-dimensional arrays
+	 */	
+	def generateReferencedPrimitiveCollector(String primitiveTypeRef) {
+
+		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
+			
+			return nestedAggregationQN.get(primitiveTypeRef)
+		}
+		
+		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''X''')
+				
+		secondOrderCache +=
+'''
+
+@XpressModel(type="new")
+type «typeWrap» wraps «primitiveTypeRef»
+'''
+		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
+		return typeWrap
+	}
+
+	// --- COMPILATION RULES --------------------------
+		
+	def dispatch CharSequence compileDatatype(CollectionType c)
+								
+'''«IF !c.isBuiltinAlias
+	»«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF
+		»«IF "SET"==c.name»unique «ENDIF»«ENDIF»«c.referDatatype»'''
+
+	
+	
+	def dispatch CharSequence compileDatatype(ReferenceType r)
 						
 '''«IF r.instance instanceof Type 
 		&& (r.instance as Type).isNamedAlias»«(r.instance as Type).datatype.compileDatatype»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
 		
-	}
+	
 		
-	def dispatch compileDatatype(BuiltInType builtin) {
+	def dispatch CharSequence compileDatatype(BuiltInType builtin)
 		
 '''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(builtin.eClass)»'''
-
-	}
 		
-	def dispatch compileDatatype(EnumType t) {
+		
+	def dispatch CharSequence compileDatatype(EnumType t) 
 		
 '''«t.literal.map[name].join(", ")»'''
-
-	}	
 	
 		
 	/**
