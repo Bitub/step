@@ -436,7 +436,7 @@ type Binary wraps java.util.BitSet
 		
 // Base container of «s.name»
 @GenModel(documentation="Generated container class of «s.name»")
-@XpressModel(type="new")
+@XpressModel(kind="new")
 class «s.name» {
 
 «FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
@@ -467,7 +467,7 @@ class «s.name» {
 '''
 
 @GenModel(documentation="Entity of «e.name»")
-@XpressModel(name="«e.name»",type="generated")
+@XpressModel(name="«e.name»",kind="generated")
 «IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
 
 }
@@ -483,7 +483,7 @@ class «s.name» {
 			// Wraps String			
 '''
 
-@XpressModel(name="«t.name»",type="mapped")
+@XpressModel(name="«t.name»",kind="mapped")
 type «t.name.toFirstUpper» wraps String
 '''
 
@@ -492,7 +492,7 @@ type «t.name.toFirstUpper» wraps String
 '''
 
 @GenModel(documentation="Enumeration of «t.name»")
-@XpressModel(name="«t.name»",type="generated")
+@XpressModel(name="«t.name»",kind="generated")
 enum «t.name.toFirstUpper» {
 				
 	«t.datatype.compileDatatype»
@@ -504,7 +504,7 @@ enum «t.name.toFirstUpper» {
 '''
 
 @GenModel(documentation="Select of «t.name»")
-@XpressModel(name="«t.name»",type="generated")
+@XpressModel(name="«t.name»",kind="generated")
 class «t.name.toFirstUpper» {
 
 	«t.datatype.compileDatatype»	
@@ -515,7 +515,7 @@ class «t.name.toFirstUpper» {
 '''
 
 // Type «t.name» is a built-in primitive type (using «builtinMappings.get(t.datatype.eClass)»)
-@XpressModel(name="«t.name»",type="mapped",entity="«builtinMappings.get(t.datatype.eClass)»")
+@XpressModel(name="«t.name»",kind="mapped",datatype="«builtinMappings.get(t.datatype.eClass)»")
 '''			
 						
 		} else if(t.datatype instanceof ReferenceType) {
@@ -523,7 +523,7 @@ class «t.name.toFirstUpper» {
 '''
 
 // Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
-@XpressModel(name="«t.name»",type="mapped",entity="«(t.datatype as ReferenceType).instance.name»")
+@XpressModel(name="«t.name»",kind="mapped",class="«(t.datatype as ReferenceType).instance.name»")
 '''			
 			
 		} else if(t.datatype instanceof CollectionType) {
@@ -531,14 +531,14 @@ class «t.name.toFirstUpper» {
 '''
 
 // Type «t.name» not generated. It is a named aggregation (using «t.datatype.referDatatype»)
-@XpressModel(name="«t.name»",type="mapped",entity="«t.datatype.referDatatype»")
+@XpressModel(name="«t.name»",kind="mapped",«IF t.datatype.builtinAlias»datatype«ELSE»class«ENDIF»="«t.datatype.referDatatype»")
 '''			
 		} else {
 			
 '''
 
 // WARNING: UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»
-@XpressModel(name="«t.name»",type="omitted")
+@XpressModel(name="«t.name»",kind="omitted")
 '''			
 		}
 	}
@@ -633,7 +633,7 @@ class «t.name.toFirstUpper» {
 '''
 		
 
-@XpressModel(type="new")
+@XpressModel(kind="new")
 class «nestedClassName» {
 	
 	«IF !c.type.isBuiltinAlias»refers «ENDIF»«referDatatype» «nameProvider.getFullyQualifiedName(c.type).lastSegment.toLowerCase»
@@ -657,7 +657,7 @@ class «nestedClassName» {
 		secondOrderCache +=
 '''
 
-@XpressModel(type="new")
+@XpressModel(kind="new")
 type «typeWrap» wraps «primitiveTypeRef»
 '''
 		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
