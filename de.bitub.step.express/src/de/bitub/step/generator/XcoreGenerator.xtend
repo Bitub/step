@@ -42,6 +42,7 @@ class XcoreGenerator implements IGenerator {
 		
 	val static Logger myLog = Logger.getLogger(XcoreGenerator);
 	
+	// Builtin mapping of primitive data types
 	val static builtinMappings =  <EClass, String>newHashMap(
 		ExpressPackage.Literals.INTEGER_TYPE -> "int",
 		ExpressPackage.Literals.NUMBER_TYPE -> "double",
@@ -55,11 +56,16 @@ class XcoreGenerator implements IGenerator {
 	
 	@Inject	IQualifiedNameProvider nameProvider; 
 	
+	// Flattened concept set of selects
 	var resolvedSelectsMap = <Type, Set<ExpressConcept>>newHashMap()
+	// Inverse references
 	var inverseReferenceMap = <Attribute, Set<Attribute>>newHashMap()
+	// Nested aggregation qualified names
 	var nestedAggregationQN = <String,String>newHashMap()
+	// Second stage cache (any additional concept needed beside first stage)
 	var secondOrderCache = ''''''
 	
+	// Current project folder
 	var projectFolder = "<project folder>";
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
@@ -103,10 +109,10 @@ class XcoreGenerator implements IGenerator {
 // UNCOMMENT THESE LINES TO HAVE ECLIPSE CDO WORKING.
 
 //	rootExtendsInterface="org.eclipse.emf.cdo.CDOObject", 
-//	rootExtendsClass="org.eclipse.emf.internal.cdo.CDOObjectImpl", 
+//	rootExtendsclassRef="org.eclipse.emf.internal.cdo.CDOObjectImpl", 
 //	importerID="org.eclipse.emf.importer.ecore", 
 //	featureDelegation="Dynamic", 
-//	providerRootExtendsClass="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"
+//	providerRootExtendsclassRef="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"
 )	
 '''		
 	
@@ -268,6 +274,68 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	/**
+	 * True if a refers to an inverse relation.
+	 */
+	def isInverseRelation(Attribute a) {
+		
+		inverseReferenceMap.containsKey(a) || null!=a.opposite
+	}
+	
+	/** Get inverse attribute */
+	def Attribute getAnyInverseAttribute(Attribute a) {
+		
+		if(null!=a.opposite) {
+			
+			return a.opposite
+		} else {
+			
+			val inverseSet = inverseReferenceMap.get(a)
+			if(!inverseSet.empty) {
+			
+				return inverseSet.findFirst[it!=null]	
+			} else {
+				
+				return null
+			}
+		}
+	}
+	
+	def Set<Attribute> getInverseAttributeSet(Attribute a) {
+		
+		if(null!=a.opposite) {
+			
+			return newHashSet( a.opposite )
+		} else {
+			
+			val inverseSet = inverseReferenceMap.get(a)
+			if(!inverseSet.empty) {
+			
+				return inverseSet	
+			} else {
+				
+				return newHashSet
+			}
+		}
+	}
+	
+	
+	/**
+	 * True, if attribute declares the inverse relation
+	 */
+	def isDeclaringInverseAttribute(Attribute a) {
+		
+		null!=a.opposite
+	}
+	
+	/**
+	 * True, if derived.
+	 */
+	def isDerivedAttribute(Attribute a) {
+		
+		null!=a.expression
+	}
+	
+	/**
 	 * If type is an alias type (simple type wrapper)
 	 */
 	def boolean isNamedAlias(ExpressConcept e) {
@@ -385,17 +453,16 @@ class XcoreGenerator implements IGenerator {
 			resolvedSelectsMap.put(t, conceptSet)
 		}
 				
-		myLog.info("Processing inverse n-m relations ...")
+		myLog.info("Processing inverse relations ...")
 		for(Entity e : s.entities.filter[attribute.exists[opposite!=null]]) {
 						
 			// Filter for both sided collection types, omit any restriction (cardinalities etc.)
-			for(Attribute a : e.attribute.filter[
-				opposite!=null && oneToManyRelation && opposite.oneToManyRelation 				
-			]) {
+			for(Attribute a : e.attribute) {
 
 				val oppositeEntity = a.opposite.eContainer as ExpressConcept;				
 				myLog.debug("~> "+(a.eContainer as Entity).name+"."+a.name+" <--> "+oppositeEntity.name+"."+a.opposite.name)
 		
+				// Add opposite versus declaring attribute
 				var inverseAttributeSet = inverseReferenceMap.get(a.opposite)
 				if(null==inverseAttributeSet) {
 					inverseAttributeSet = newHashSet()
@@ -423,7 +490,7 @@ class XcoreGenerator implements IGenerator {
 // THIS FILE IS GENERATED. ANY CHANGE WILL BE LOST.
 
 @GenModel(documentation="Generated EXPRESS model of schema «s.name»")
-@XpressModel(name="«s.name»",rootContainerClass="«s.name»")		
+@XpressModel(name="«s.name»",rootContainerclassRef="«s.name»")		
 package «s.name.toLowerCase» 
 
 import org.eclipse.emf.ecore.xml.^type.BooleanObject
@@ -515,7 +582,7 @@ class «t.name.toFirstUpper» {
 '''
 
 // Type «t.name» is a built-in primitive type (using «builtinMappings.get(t.datatype.eClass)»)
-@XpressModel(name="«t.name»",kind="mapped",datatype="«builtinMappings.get(t.datatype.eClass)»")
+@XpressModel(name="«t.name»",kind="mapped",datatypeRef="«builtinMappings.get(t.datatype.eClass)»")
 '''			
 						
 		} else if(t.datatype instanceof ReferenceType) {
@@ -523,7 +590,7 @@ class «t.name.toFirstUpper» {
 '''
 
 // Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
-@XpressModel(name="«t.name»",kind="mapped",class="«(t.datatype as ReferenceType).instance.name»")
+@XpressModel(name="«t.name»",kind="mapped",classRef="«(t.datatype as ReferenceType).instance.name»")
 '''			
 			
 		} else if(t.datatype instanceof CollectionType) {
@@ -531,7 +598,7 @@ class «t.name.toFirstUpper» {
 '''
 
 // Type «t.name» not generated. It is a named aggregation (using «t.datatype.referDatatype»)
-@XpressModel(name="«t.name»",kind="mapped",«IF t.datatype.builtinAlias»datatype«ELSE»class«ENDIF»="«t.datatype.referDatatype»")
+@XpressModel(name="«t.name»",kind="mapped",«IF t.datatype.builtinAlias»datatype«ELSE»classRef«ENDIF»="«t.datatype.referDatatype»")
 '''			
 		} else {
 			
@@ -692,9 +759,17 @@ type «typeWrap» wraps «primitiveTypeRef»
 	
 		
 	/**
-	 * Compiles a single attribute.
+	 * TODO Compiles a single attribute.
 	 */
 	def compileAttribute(Attribute a) {
+		
+'''«IF a.derivedAttribute
+	»derived «
+	ENDIF»«IF !a.type.builtinAlias
+	»«IF a.oneToManyRelation && a.inverseRelation»contains «ELSE»refers «ENDIF»«
+	ENDIF»...
+	
+'''
 
 //		'''«IF null!=a.opposite && inverseReferenceMap.containsKey(a.opposite)
 //				»contains «
