@@ -57,11 +57,16 @@ class XcoreGenerator implements IGenerator {
 	@Inject	IQualifiedNameProvider nameProvider; 
 	
 	// Flattened concept set of selects
-	var resolvedSelectsMap = <Type, Set<ExpressConcept>>newHashMap()
+	var resolvedSelectsMap = <Type, Set<ExpressConcept>>newHashMap
 	// Inverse references
-	var inverseReferenceMap = <Attribute, Set<Attribute>>newHashMap()
-	// Nested aggregation qualified names
+	var inverseReferenceMap = <Attribute, Set<Attribute>>newHashMap
+	// Nested aggregation as QN to Xcore class name
 	var nestedAggregationQN = <String,String>newHashMap()
+	// Nested proxies as Attribute to <Class name of proxy, name of opposite Xcore attribute>
+	var nestedProxiesQN = <Attribute, Pair<String, String>>newHashMap
+	// Maps the type aliases
+	var aliasConceptMap = <Type,ExpressConcept>newHashMap
+	
 	// Second stage cache (any additional concept needed beside first stage)
 	var secondOrderCache = ''''''
 	
@@ -90,9 +95,7 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def compile(Resource resource) {
 				
-		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
-		
-		schema.preprocess
+		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;		
 		schema.compileSchema
 	}
 		
@@ -255,6 +258,43 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	/**
+	 * 
+	 */
+	def ExpressConcept resolveConcept(Type t) {
+		
+		if(t.datatype instanceof ReferenceType) {
+
+			(t.datatype as ReferenceType).instance			
+			
+		} else if(t.datatype instanceof CollectionType) {
+
+			t.datatype.refersConcept
+								
+		} else {
+			
+			t	
+		}
+	}
+	
+	def CharSequence getMappingAnnotation(Type t) {
+	
+		if(t instanceof BuiltInType) {
+			
+			'''@XpressModel(name="«t.name»",kind="mapped",datatypeRef="«builtinMappings.get(t.datatype.eClass)»")'''
+		} else if (t.datatype instanceof ReferenceType) {
+			
+			'''@XpressModel(name="«t.name»",kind="mapped",classRef="«(t.datatype as ReferenceType).instance.name»")'''
+		} else if (t.datatype instanceof CollectionType) {
+			
+			'''@XpressModel(name="«t.name»",kind="mapped",«IF t.datatype.builtinAlias»datatypeRef«ELSE»classRef«ENDIF»="«t.datatype.referDatatype»")'''
+		} else {
+			
+			'''@XpressModel(name="«t.name»",kind="omitted")'''
+		}
+	} 
+	
+	
+	/**
 	 * True if attribute's type is a one to many relation
 	 */
 	def isOneToManyRelation(Attribute a) {
@@ -267,10 +307,18 @@ class XcoreGenerator implements IGenerator {
 				|| t.many 
 				|| t.upperRef != null 
 				|| t.lowerRef != null
-				|| t.refersConcept instanceof Type
+				|| t.refersConcept instanceof Type // implies Select type
 		}
 		
 		false
+	}
+	
+	/**
+	 * True, if a is part of an inverse relation with many-to-many relation.
+	 */
+	def isInverseManyToManyRelation(Attribute a) {
+		
+		a.inverseRelation && a.oneToManyRelation && a.anyInverseAttribute.oneToManyRelation
 	}
 	
 	/**
@@ -297,6 +345,18 @@ class XcoreGenerator implements IGenerator {
 				
 				return null
 			}
+		}
+	}
+	
+	def boolean isLeftNonUniqueRelation(Attribute a)
+	{
+		if(null!=a.opposite) {
+			
+			return inverseReferenceMap.get(a.opposite).size > 1
+		} else {
+			
+			val knownDeclaring = inverseReferenceMap.get(a)
+			return knownDeclaring.size > 1
 		}
 	}
 	
@@ -454,6 +514,7 @@ class XcoreGenerator implements IGenerator {
 		}
 				
 		myLog.info("Processing inverse relations ...")
+		
 		for(Entity e : s.entities.filter[attribute.exists[opposite!=null]]) {
 						
 			// Filter for both sided collection types, omit any restriction (cardinalities etc.)
@@ -465,13 +526,16 @@ class XcoreGenerator implements IGenerator {
 				// Add opposite versus declaring attribute
 				var inverseAttributeSet = inverseReferenceMap.get(a.opposite)
 				if(null==inverseAttributeSet) {
-					inverseAttributeSet = newHashSet()
+					inverseAttributeSet = newHashSet
 					inverseReferenceMap.put(a.opposite, inverseAttributeSet)
 				}
 				
-				inverseAttributeSet += a
+				inverseAttributeSet += a				
 			}
 		}
+		
+		myLog.info("~> Found "+inverseReferenceMap.size+" overall relations with "+ 
+			inverseReferenceMap.values.filter[size > 1].size+" selects on right hand side.")
 		
 		myLog.info("Pre-compilation phase finished.")
 	}
@@ -483,7 +547,10 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Transforms a schema into a package definition.
 	 */
-	def compileSchema(Schema s) 
+	def compileSchema(Schema s) {
+	
+		s.preprocess
+		 
 '''	
 «compileHeader(s)»
 
@@ -525,6 +592,8 @@ class «s.name» {
 	
 // --- END OF «s.name» ---
 '''		
+	}
+	
 	
 	/**
 	 * Transforms an entity into a class definition. 
@@ -537,6 +606,7 @@ class «s.name» {
 @XpressModel(name="«e.name»",kind="generated")
 «IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
 
+  «FOR a : e.attribute»«a.compileAttribute»«ENDFOR»
 }
 '''
 	}
@@ -578,34 +648,33 @@ class «t.name.toFirstUpper» {
 }
 '''			
 		} else if(t.datatype instanceof BuiltInType) {
-			
+	
 '''
 
 // Type «t.name» is a built-in primitive type (using «builtinMappings.get(t.datatype.eClass)»)
-@XpressModel(name="«t.name»",kind="mapped",datatypeRef="«builtinMappings.get(t.datatype.eClass)»")
 '''			
 						
 		} else if(t.datatype instanceof ReferenceType) {
-			
+
+			aliasConceptMap.put(t, t.datatype.refersConcept)			
 '''
 
 // Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
-@XpressModel(name="«t.name»",kind="mapped",classRef="«(t.datatype as ReferenceType).instance.name»")
 '''			
 			
 		} else if(t.datatype instanceof CollectionType) {
-			
+
+			aliasConceptMap.put(t, t)			
 '''
 
 // Type «t.name» not generated. It is a named aggregation (using «t.datatype.referDatatype»)
-@XpressModel(name="«t.name»",kind="mapped",«IF t.datatype.builtinAlias»datatype«ELSE»classRef«ENDIF»="«t.datatype.referDatatype»")
 '''			
 		} else {
 			
+			aliasConceptMap.put(t, null)
 '''
 
 // WARNING: UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»
-@XpressModel(name="«t.name»",kind="omitted")
 '''			
 		}
 	}
@@ -682,7 +751,7 @@ class «t.name.toFirstUpper» {
 	}
 	
 		
-	def generateNestedInnerProxyCollector(CollectionType c) {
+	def String generateNestedInnerProxyCollector(CollectionType c) {
 
 		// Builtin type or entity ?
 		val qualifiedName = nameProvider.getFullyQualifiedName(c.eContainer)		
@@ -712,14 +781,14 @@ class «nestedClassName» {
 	/**
 	 * Generates a type wrapper for primitive multi-dimensional arrays
 	 */	
-	def generateReferencedPrimitiveCollector(String primitiveTypeRef) {
+	def String generateReferencedPrimitiveCollector(String primitiveTypeRef) {
 
 		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
 			
 			return nestedAggregationQN.get(primitiveTypeRef)
 		}
 		
-		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''X''')
+		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''Array''')
 				
 		secondOrderCache +=
 '''
@@ -730,6 +799,91 @@ type «typeWrap» wraps «primitiveTypeRef»
 		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
 		return typeWrap
 	}
+	
+	/**
+	 * Generates a single proxy class for an inverse relation name.
+	 */
+	def String generateSingleProxy(Attribute declaring, Attribute inverse, String proxyInterface) {
+		
+		val declaringEntity = declaring.eContainer as ExpressConcept
+		val inverseEntity = declaring.opposite.eContainer as ExpressConcept
+		val proxyName = "Proxy"+declaringEntity.name.toFirstUpper+inverseEntity.name.toFirstUpper
+		
+		// TODO - Aliases substitution, annotations ?
+		secondOrderCache +=
+'''
+
+@GenModel(documentation="Inverse proxy helper between «declaringEntity.name» and «inverseEntity.name»")
+@XpressModel(kind="new")
+class «proxyName» «IF proxyInterface.length>1»extends «proxyInterface»«ENDIF» {
+
+	// Reference to «inverseEntity.name»
+	refers «inverseEntity.name.toFirstUpper» «declaring.name.toFirstLower» opposite «inverse.name.toFirstLower»
+	// Containment on declaring side of «declaringEntity.name»
+	container «declaringEntity.name.toFirstUpper» «inverse.name.toFirstLower» opposite «declaring.name.toFirstLower»	
+}
+'''
+	}
+	
+	/**
+	 * Generate a proxy and returns class reference.
+	 */
+	def String getProxyRef(Attribute a) {
+		
+		// TODO
+		
+		val declaringInverse = if (a.declaringInverseAttribute) a else a.anyInverseAttribute
+		val inverseAttributes = inverseReferenceMap.get(declaringInverse)
+		
+		if(nestedProxiesQN.containsKey(a)) {
+			return nestedProxiesQN.get(a).key
+		}
+					
+		var qnProxy = ""	
+		if(declaringInverse.leftNonUniqueRelation) {
+			
+			// First build proxy interface QN
+			val selectType = (declaringInverse.opposite.type as ReferenceType).instance as Type
+			val proxyInterfaceName = 			
+				"Proxy"+(declaringInverse.opposite.eContainer as Entity).name.toFirstUpper+selectType.name.toFirstUpper
+				
+			secondOrderCache +=
+'''
+
+@XpressModel(kind="new")
+interface «proxyInterfaceName» {
+	
+	op EObject get«declaringInverse.opposite.name.toFirstUpper»()
+	refers «(declaringInverse.opposite.eContainer as Entity).name.toFirstUpper» «declaringInverse.name.toFirstLower» opposite «declaringInverse.opposite.name.toFirstLower»
+}
+'''
+			
+			for(Attribute ia : inverseAttributes) {
+									
+				// TODO
+			}
+		}
+		
+		return qnProxy
+	}
+	
+	/**
+	 * Returns the local QN of opposite attribute, if there's any.
+	 */
+	def String getOppositeRef(Attribute a) {
+		
+		if(a.inverseRelation) {
+			if(a.isInverseManyToManyRelation) {
+				
+				return nestedProxiesQN.get(a).value
+				
+			} else  {
+				
+				return a.anyInverseAttribute.name				
+			}
+		}
+	}
+	
 
 	// --- COMPILATION RULES --------------------------
 		
@@ -756,7 +910,8 @@ type «typeWrap» wraps «primitiveTypeRef»
 	def dispatch CharSequence compileDatatype(EnumType t) 
 		
 '''«t.literal.map[name].join(", ")»'''
-	
+
+	// --- COMPILATION OF ATTRIBUTES	
 		
 	/**
 	 * TODO Compiles a single attribute.
@@ -766,27 +921,15 @@ type «typeWrap» wraps «primitiveTypeRef»
 '''«IF a.derivedAttribute
 	»derived «
 	ENDIF»«IF !a.type.builtinAlias
-	»«IF a.oneToManyRelation && a.inverseRelation»contains «ELSE»refers «ENDIF»«
-	ENDIF»...
+	»«IF a.inverseManyToManyRelation»contains «ELSE»«IF !a.type.builtinAlias»refers «ENDIF»«ENDIF»«
+	ENDIF»«a.type.compileDatatype» «a.name.toFirstLower» «IF a.inverseRelation
+	»opposite «a.oppositeRef.toFirstLower»«ENDIF»
 	
 '''
 
-//		'''«IF null!=a.opposite && inverseReferenceMap.containsKey(a.opposite)
-//				»contains «
-//			ELSEIF a.type instanceof ReferenceType || a.type instanceof CollectionType
-//				»refers «
-//			ENDIF»«
-//			IF null!=a.expression
-//				»derived «
-//			ENDIF»«
-//			 
-//			a.type.compileDatatype» «a.name.toFirstLower» «
-//			
-//			IF null!=a.opposite && !inverseReferenceMap.containsKey(a.opposite)
-//				»opposite «a.opposite.name.toFirstLower»«ENDIF»'''		
 	}
 	
 
-		
+			
 
 }		
