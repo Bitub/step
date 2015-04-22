@@ -10,62 +10,21 @@
 	<name>de.bitub.step Build</name>
 	
 	<properties>
-		<tycho-version>0.21.0</tycho-version>
-		<tycho-extras-version>0.21.0</tycho-extras-version>
+		<tycho-version>0.22.0</tycho-version>
+		<tycho-extras-version>0.22.0</tycho-extras-version>
 		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>	
 		<xtext.version>2.7.2</xtext.version>	
+		<updatesiteLocal>${user.home}/.p2/repository/${targetPlatform}</updatesiteLocal>
 	</properties>
 
 	<scm>
-		<connection>scm:git:step.git</connection>
+		<connection>scm:git:https://github.com/Bitub/step.git</connection>
 	</scm>
 	
-	<!-- Profiles, default "local, platform-luna" -->
+	<!-- Profiles, default "platform-luna" -->
 	<profiles>
-	
-	  <profile>
-		  <id>local</id>
-		  <activation>
-			<activeByDefault>true</activeByDefault>
-			<property>
-			  <name>usProfile</name>
-			  <value>local</value>
-			</property>			
-		  </activation>
-		  <properties>
-			<updatesiteLocal>${user.home}/.p2/repository/${targetPlatform}</updatesiteLocal>									
-		  </properties>	  
-	  </profile>
-	  
-	  <profile>
-		<id>githubRemote</id>
-		<activation>
-			<property>
-			  <name>usProfile</name>
-			  <value>gitub</value>
-			</property>
-		</activation>		
-		<properties>
-			<updatesiteLocal>/var/www/updatesites/${targetPlatform}</updatesiteLocal>	
-	    </properties>
-		
-	  </profile>
-
-	  <profile>
-		<id>bitubRemote</id>
-		<activation>
-			<property>
-			  <name>usProfile</name>
-			  <value>bitub</value>
-			</property>
-		</activation>		
-		<properties>
-			<updatesiteLocal>/var/www/updatesites/${targetPlatform}</updatesiteLocal>	
-	    </properties>
-		
-	  </profile>
-	  
+		  
 	  <profile>
 		  <id>platform-luna</id>
 		  <activation>
@@ -296,7 +255,6 @@
 				  </execution>
 				</executions>
 				<configuration>
-				<!-- Check wether changes are uncommited  -->
 				  <doCheck>false</doCheck>
 				<!--  <doUpdate>true</doUpdate> -->
 				  <shortRevisionLength>5</shortRevisionLength>
