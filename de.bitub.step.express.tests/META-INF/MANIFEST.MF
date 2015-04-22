@@ -8,11 +8,12 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: de.bitub.step.express,
  de.bitub.step.express.ui,
  org.eclipse.core.runtime,
+ org.eclipse.core.resources,
  org.eclipse.xtext.junit4,
  org.eclipse.ui.workbench;resolution:=optional,
  org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional,
- org.eclipse.emf.ecore.xcore;bundle-version="1.2.1",
- org.eclipse.emf.ecore.xcore.lib;bundle-version="1.1.0"
+ org.eclipse.emf.ecore.xcore;bundle-version="[1.2.0,2.0.0)",
+ org.eclipse.emf.ecore.xcore.lib;bundle-version="[1.1.0,2.0.0)"
 Import-Package: org.apache.log4j,
  org.junit;version="4.5.0",
  org.junit.runner;version="4.5.0",

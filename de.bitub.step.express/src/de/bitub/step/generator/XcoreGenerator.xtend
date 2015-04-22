@@ -102,22 +102,23 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Compiles the header / annotation information on top of the Xcore file.
 	 */
-	def compileHeader(Schema s) 
-'''
-@Ecore(nsPrefix="«s.name»",nsURI="http://example.org/«s.name»")
-@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
-@GenModel(
-	modelDirectory="«projectFolder»/src-gen"
-	 
-// UNCOMMENT THESE LINES TO HAVE ECLIPSE CDO WORKING.
-
-//	rootExtendsInterface="org.eclipse.emf.cdo.CDOObject", 
-//	rootExtendsclassRef="org.eclipse.emf.internal.cdo.CDOObjectImpl", 
-//	importerID="org.eclipse.emf.importer.ecore", 
-//	featureDelegation="Dynamic", 
-//	providerRootExtendsclassRef="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"
-)	
-'''		
+	def compileHeader(Schema s) { 
+		'''
+		@Ecore(nsPrefix="«s.name»",nsURI="http://example.org/«s.name»")
+		@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
+		@GenModel(
+			modelDirectory="«projectFolder»/src-gen"
+			 
+		// UNCOMMENT THESE LINES TO HAVE ECLIPSE CDO WORKING.
+		
+		//	rootExtendsInterface="org.eclipse.emf.cdo.CDOObject", 
+		//	rootExtendsclassRef="org.eclipse.emf.internal.cdo.CDOObjectImpl", 
+		//	importerID="org.eclipse.emf.importer.ecore", 
+		//	featureDelegation="Dynamic", 
+		//	providerRootExtendsclassRef="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"
+		)	
+		'''		
+	}
 	
 	/**
 	 * Determines the set of express concepts represented by given Select statement.
@@ -243,7 +244,7 @@ class XcoreGenerator implements IGenerator {
 		}		
 				
 		if(builtinSelects.map[eClass].toSet.size > 1) {
-			
+		
 			// TODO Test number types
 		}
 		
@@ -355,23 +356,36 @@ class XcoreGenerator implements IGenerator {
 		if(alias instanceof BuiltInType) {
 			
 			// End point is a builtin datatype
-			'''@XpressModel(name="«t.name»",kind="mapped",datatypeRef="«builtinMappings.get((alias as BuiltInType).eClass)»") '''
+			'''@XpressModel(name="«t.name»",kind="mapped",datatypeRef="«t.datatype.referDatatype»")
+			'''
 		} else if (alias instanceof ReferenceType) {
 			
-			// End point is a reference to an entity
-			'''@XpressModel(name="«t.name»",kind="mapped",classRef="«(alias as ReferenceType).instance.name.toFirstUpper»") '''
+			val qn = nameProvider.getFullyQualifiedName(t)
+			if(nestedAggregationQN.containsKey(qn.toString)) {
+								
+				'''@XpressModel(name="«t.name»",kind="nested",classRef="«nestedAggregationQN.get(qn.toString)»[]")
+				'''
+			} else {
+
+				// End point is a reference to an entity
+				'''@XpressModel(name="«t.name»",kind="mapped",classRef="«t.datatype.referDatatype»")
+				'''			
+			}
 		} else if (alias instanceof GenericType) {
 			
 			// End point is a generic datatype wrapper
-			'''@XpressModel(name="«t.name»",kind="generic",datatypeRef="«(alias.eContainer as Type).name.toFirstUpper»") '''
+			'''@XpressModel(name="«t.name»",kind="generic",datatypeRef="«alias.referDatatype»")
+			'''
 		} else if (alias instanceof SelectType && aliasConceptMap.containsKey(t)) {
 			
 			// End point is a SelectType
-			'''@XpressModel(name="«t.name»",kind="mapped",classRef="«(alias.eContainer as Type).name.toFirstUpper»") '''
+			'''@XpressModel(name="«t.name»",kind="mapped",classRef="«alias.referDatatype»")
+			'''
 		} else if (aliasConceptMap.containsKey(t)) {
 			
 			// End point has been omitted (model validation error?)
-			'''@XpressModel(name="«t.name»",kind="omitted") '''
+			'''@XpressModel(name="«t.name»",kind="omitted")
+			'''
 		} else {
 			
 			// Nothing to annotate
@@ -570,18 +584,19 @@ class XcoreGenerator implements IGenerator {
 	 * 
 	 * 
 	 */
-	def preprocess(Schema s) {
+	protected def preprocess(Schema s) {
 		
 		// Filter for simplified type selects
-		myLog.info("Processing selects...")
+		myLog.info("Processing select types ...")
 		for(Type t : s.types.filter[it.datatype instanceof SelectType]) {
 			
 			val conceptSet = selectSet(t)
-			myLog.debug("~> \""+t.name+"\" resolves to "+conceptSet.size+" sub concepts")
+			myLog.debug("~> Type definition of \""+t.name+"\" resolved to "+conceptSet.size+" sub concept(s).")
 		
 			resolvedSelectsMap.put(t, conceptSet)
 		}
 				
+		myLog.info("Finished. Found "+resolvedSelectsMap.size+" select(s) in schema.")
 		myLog.info("Processing inverse relations ...")
 		
 		for(Entity e : s.entities.filter[attribute.exists[opposite!=null]]) {
@@ -603,10 +618,8 @@ class XcoreGenerator implements IGenerator {
 			}
 		}
 		
-		myLog.info("~> Found "+inverseReferenceMap.size+" overall relations with "+ 
-			inverseReferenceMap.values.filter[size > 1].size+" selects on right hand side.")
-		
-		myLog.info("Pre-compilation phase finished.")
+		myLog.info("Finished. Found "+inverseReferenceMap.size+" relation(s) with "+ 
+			inverseReferenceMap.values.filter[size > 1].size+" non-unique left hand side (select on right hand).")
 	}
 		
 
@@ -626,7 +639,7 @@ class XcoreGenerator implements IGenerator {
 // THIS FILE IS GENERATED. ANY CHANGE WILL BE LOST.
 
 @GenModel(documentation="Generated EXPRESS model of schema «s.name»")
-@XpressModel(name="«s.name»",rootContainerclassRef="«s.name»")		
+@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
 package «s.name.toLowerCase» 
 
 import org.eclipse.emf.ecore.xml.^type.BooleanObject
@@ -669,15 +682,19 @@ class «s.name» {
 	 */	
 	def dispatch compileConcept(Entity e) {
 		
-'''
-
-@GenModel(documentation="Entity of «e.name»")
-@XpressModel(name="«e.name»",kind="generated")
-«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
-
-  «FOR a : e.attribute»«a.compileAttribute»«ENDFOR»
-}
-'''
+		'''
+		
+		@GenModel(documentation="Class definition of «e.name»")
+		@XpressModel(name="«e.name»",kind="generated")
+		«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
+		
+		  «FOR a : e.attribute»
+		  @GenModel(documentation="Attribute definition of «a.name»")
+		  «a.compileAttribute»
+		  
+		  «ENDFOR»
+		}
+		'''
 	}
 	
 	/**
@@ -687,64 +704,64 @@ class «s.name» {
 		
 		if(t.datatype instanceof GenericType) {
 			// Wraps String			
-'''
-
-@XpressModel(name="«t.name»",kind="mapped")
-type «t.name.toFirstUpper» wraps String
-'''
+			'''
+			
+			@XpressModel(name="«t.name»",kind="mapped")
+			type «t.name.toFirstUpper» wraps String
+			'''
 
 		} else if(t.datatype instanceof EnumType) {
 			// Compile enum
-'''
-
-@GenModel(documentation="Enumeration of «t.name»")
-@XpressModel(name="«t.name»",kind="generated")
-enum «t.name.toFirstUpper» {
-				
-	«t.datatype.compileDatatype»
-}
-'''
+			'''
+			
+			@GenModel(documentation="Enumeration of «t.name»")
+			@XpressModel(name="«t.name»",kind="generated")
+			enum «t.name.toFirstUpper» {
+							
+				«t.datatype.compileDatatype»
+			}
+			'''
 		} else if(t.datatype instanceof SelectType) {
 			
 			// Compile select
-'''
-
-@GenModel(documentation="Select of «t.name»")
-@XpressModel(name="«t.name»",kind="generated")
-class «t.name.toFirstUpper» {
-
-	«t.datatype.compileDatatype»	
-}
-'''			
+			'''
+			
+			@GenModel(documentation="Select of «t.name»")
+			@XpressModel(name="«t.name»",kind="generated")
+			class «t.name.toFirstUpper» {
+			
+				«t.datatype.compileDatatype»	
+			}
+			'''			
 		} else if(t.datatype instanceof BuiltInType) {
 	
-'''
-
-// Type «t.name» is a built-in primitive type (using «builtinMappings.get(t.datatype.eClass)»)
-'''			
+			'''
+			
+			// Type «t.name» is a built-in primitive type (using «builtinMappings.get(t.datatype.eClass)»)
+			'''			
 						
 		} else if(t.datatype instanceof ReferenceType) {
 
 			aliasConceptMap.put(t, t.datatype.refersConcept)			
-'''
-
-// Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
-'''			
+			'''
+			
+			// Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
+			'''			
 			
 		} else if(t.datatype instanceof CollectionType) {
 
 			aliasConceptMap.put(t, t)			
-'''
-
-// Type «t.name» not generated. It is a named aggregation (using «t.datatype.referDatatype»)
-'''			
+			'''
+			
+			// Type «t.name» not generated. It is a named aggregation (using «t.datatype.referDatatype»)
+			'''			
 		} else {
 			
 			aliasConceptMap.put(t, null)
-'''
-
-// WARNING: UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»
-'''			
+			'''
+			
+			// WARNING: UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»
+			'''			
 		}
 	}
 	
@@ -755,20 +772,20 @@ class «t.name.toFirstUpper» {
 		
 		val conceptSet = resolvedSelectsMap.get(s.eContainer)
 		
-''' 
-	@GenModel(documentation="Gets the current set member.")  
-	op String ^get()
-	@GenModel(documentation="Sets the value and member")
-	op void ^set(String member, String value) {
-	}
-	
-   «FOR c : conceptSet.filter[it instanceof Entity]»
-   	«c.compileInlineAnnotation»refers «c.name.toFirstUpper» «c.name.toFirstLower»
-   «ENDFOR»
-   «FOR t : conceptSet.filter[it instanceof Type].map[it as Type]»
-   	«t.compileInlineAnnotation»«IF t.namedAlias && !t.builtinAlias»refers «ENDIF»«t.datatype.referDatatype» «t.name.toFirstLower»
-   «ENDFOR»
-'''
+		''' 
+			@GenModel(documentation="Gets the current set member.")  
+			op String ^get()
+			@GenModel(documentation="Sets the value and member")
+			op void ^set(String member, String value) {
+			}
+			
+		   «FOR c : conceptSet.filter[it instanceof Entity]»
+			«c.compileInlineAnnotation»refers «c.name.toFirstUpper» «c.name.toFirstLower»
+		   «ENDFOR»
+		   «FOR t : conceptSet.filter[it instanceof Type].map[it as Type]»
+			«t.compileInlineAnnotation»«IF t.namedAlias && !t.builtinAlias»refers «ENDIF»«t.datatype.referDatatype» «t.name.toFirstLower»
+		   «ENDFOR»
+		'''
 	}
 
 
@@ -777,7 +794,7 @@ class «t.name.toFirstUpper» {
 	
 	def dispatch CharSequence referDatatype(EnumType t) { 
 		
-'''«(t.eContainer as Type).name.toFirstUpper»'''
+		'''«(t.eContainer as Type).name.toFirstUpper»'''
 	
 	}
 	
@@ -786,33 +803,31 @@ class «t.name.toFirstUpper» {
 		val parentAttribute = r?.parentAttribute
 		val alias = r.refersTransitiveDatatype
 	
-'''«IF alias.builtinAlias
-		»«alias.compileDatatype»«
-	ELSE
-		»«
-		IF parentAttribute?.inverseManyToManyRelation
-			»«parentAttribute.proxyRef»«
-		ELSE
-			»«IF alias instanceof ReferenceType
-				»«alias.instance.name.toFirstUpper
-			»«ELSE
-				»«alias.referDatatype
-			»«ENDIF»«
-		ENDIF»«
-	ENDIF»'''	
-//'''«IF r.instance instanceof Type && (r.instance as Type).isNamedAlias»«(r.instance as Type).datatype.compileDatatype»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
-		
+		'''«IF alias.builtinAlias
+				»«alias.compileDatatype»«
+			ELSE
+				»«
+				IF parentAttribute?.inverseManyToManyRelation
+					»«parentAttribute.proxyRef»«
+				ELSE
+					»«IF alias instanceof ReferenceType
+						»«alias.instance.name.toFirstUpper
+					»«ELSE
+						»«alias.referDatatype
+					»«ENDIF»«
+				ENDIF»«
+			ENDIF»'''	
 	}
 	
 	def dispatch CharSequence referDatatype(BuiltInType b) { 
 		
-'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(b.eClass)»'''
+		'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(b.eClass)»'''
 	
 	}
 	
 	def dispatch CharSequence referDatatype(GenericType g) { 
 		
-'''«(g.eContainer as ExpressConcept).name.toFirstUpper»'''
+		'''«(g.eContainer as ExpressConcept).name.toFirstUpper»'''
 	
 	}
 	
@@ -826,12 +841,11 @@ class «t.name.toFirstUpper» {
 			// Replace by nested collector proxy	
 			if(!c.type.builtinAlias) {
 			
-				referredType = generateNestedInnerProxyCollector(c)
+				referredType = generateCollector_NestedInnerProxy(c)+'''[]'''
 				
 			} else {
-				
-				referredType = c.type.referDatatype+'''[]'''
-				referredType = generateReferencedPrimitiveCollector(referredType.toString)
+								
+				referredType = generateCollector_ReferencedPrimitive(c.type.referDatatype+'''[]''')
 			}			
 		} else {
 			
@@ -841,13 +855,25 @@ class «t.name.toFirstUpper» {
 		return referredType
 	}
 	
-	def isPrimitiveAggregation(CollectionType c) {
+	def dispatch boolean isNestedAggregation(DataType c) {
 		
-		// TODO
+		false
 	}
 	
+	def dispatch boolean isNestedAggregation(ReferenceType c) {
 		
-	def String generateNestedInnerProxyCollector(CollectionType c) {
+		(c.instance instanceof Type) && (c.instance as Type).datatype.nestedAggregation
+	}
+	
+	def dispatch boolean isNestedAggregation(CollectionType c) {
+		
+		c.type instanceof CollectionType && (c.type as CollectionType).type instanceof CollectionType
+	}
+		
+	/**
+	 * Generates a nested inner proxy for the delegation of multi-dimensional references.
+	 */
+	protected def String generateCollector_NestedInnerProxy(CollectionType c) {
 
 		// Builtin type or entity ?
 		val qualifiedName = nameProvider.getFullyQualifiedName(c.eContainer)		
@@ -862,22 +888,25 @@ class «t.name.toFirstUpper» {
 				
 		val referDatatype = c.type.referDatatype
 		secondOrderCache +=
-'''
+		'''
+				
 		
-
-@XpressModel(kind="new")
-class «nestedClassName» {
-	
-	«IF !c.type.isBuiltinAlias»refers «ENDIF»«referDatatype» «nameProvider.getFullyQualifiedName(c.type).lastSegment.toLowerCase»
-}
-'''		
-		return nestedClassName+'''[]'''
+		@XpressModel(kind="new")
+		class «nestedClassName» {
+			
+			«IF !c.type.isBuiltinAlias
+				»«IF c.isNestedAggregation»contains «ELSE»refers «ENDIF»«
+			ENDIF
+				»«referDatatype» «nameProvider.getFullyQualifiedName(c.type).lastSegment.toLowerCase»
+		}
+		'''		
+		return nestedClassName
 	}
 
 	/**
 	 * Generates a type wrapper for primitive multi-dimensional arrays
 	 */	
-	def String generateReferencedPrimitiveCollector(String primitiveTypeRef) {
+	protected def String generateCollector_ReferencedPrimitive(String primitiveTypeRef) {
 
 		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
 			
@@ -887,11 +916,11 @@ class «nestedClassName» {
 		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''Array''')
 				
 		secondOrderCache +=
-'''
-
-@XpressModel(kind="new")
-type «typeWrap» wraps «primitiveTypeRef»
-'''
+		'''
+		
+		@XpressModel(kind="new")
+		type «typeWrap» wraps «primitiveTypeRef»
+		'''
 		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
 		return typeWrap
 	}
@@ -899,7 +928,7 @@ type «typeWrap» wraps «primitiveTypeRef»
 	/**
 	 * Generates a single proxy class for an inverse relation name.
 	 */
-	def String generateSingleProxy(Attribute declaring, Attribute inverse, String proxyInterface) {
+	protected def String generateProxy(Attribute declaring, Attribute inverse, String proxyInterface) {
 		
 		val declaringEntity = declaring.eContainer as ExpressConcept
 		val inverseEntity = declaring.opposite.eContainer as ExpressConcept
@@ -908,19 +937,20 @@ type «typeWrap» wraps «primitiveTypeRef»
 		val hasProxyInterface = !proxyInterface.trim.empty
 		
 		secondOrderCache +=
-'''
-
-@GenModel(documentation="Inverse proxy helper between «declaringEntity.name» and «inverseEntity.name»")
-@XpressModel(kind="new")
-class «proxyName» «IF hasProxyInterface»extends «proxyInterface»«ENDIF» {
-
-	«IF !hasProxyInterface»// Reference to «inverseEntity.name»
-	«inverseEntity.compileInlineAnnotation»refers «inverseEntity.refersAlias.name.toFirstUpper» «declaring.name.toFirstLower» opposite «inverse.name.toFirstLower»
-	«ENDIF»
-	// Containment on declaring side of «declaringEntity.name»
-	«declaringEntity.compileInlineAnnotation»container «declaringEntity.refersAlias.name.toFirstUpper» «inverse.name.toFirstLower» opposite «declaring.name.toFirstLower»	
-}
-'''
+		'''
+		
+		@GenModel(documentation="Inverse proxy helper between «declaringEntity.name» and «inverseEntity.name»")
+		@XpressModel(kind="new")
+		class «proxyName» «IF hasProxyInterface»extends «proxyInterface»«ENDIF» {
+		
+			«IF !hasProxyInterface»// Reference to «inverseEntity.name»
+			«inverseEntity.compileInlineAnnotation
+			»refers «inverseEntity.refersAlias.name.toFirstUpper» «declaring.name.toFirstLower» opposite «inverse.name.toFirstLower»
+			«ENDIF»
+			// Containment on declaring side of «declaringEntity.name»
+			«declaringEntity.compileInlineAnnotation»container «declaringEntity.refersAlias.name.toFirstUpper» «inverse.name.toFirstLower» opposite «declaring.name.toFirstLower»	
+		}
+		'''
 		return proxyName
 	}
 	
@@ -957,21 +987,23 @@ class «proxyName» «IF hasProxyInterface»extends «proxyInterface»«ENDIF» 
 			
 			// Write to second stage cache				
 			secondOrderCache +=
-'''
+			
+			'''
+			
+			@XpressModel(kind="new")
+			interface «proxyInterfaceName» {
+				
+				// Blueprint of inverse relation, implemented by subclassing
+				op EObject get«inverseAttribute.name.toFirstUpper»()
+				// Non-unique counter part, using concept QN as reference name
+				«inverseConcept.compileInlineAnnotation»refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
+			}
+			'''
 
-@XpressModel(kind="new")
-interface «proxyInterfaceName» {
-	
-	// Blueprint of inverse relation, implemented by subclassing
-	op EObject get«inverseAttribute.name.toFirstUpper»()
-	// Non-unique counter part, using concept QN as reference name
-	«inverseConcept.compileInlineAnnotation»refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
-}
-'''
 			// Generate proxies for all 
 			for(Attribute ia : declaringInverseSet) {
 									
-				val proxyClass = generateSingleProxy(ia, inverseAttribute, proxyInterfaceName)
+				val proxyClass = generateProxy(ia, inverseAttribute, proxyInterfaceName)
 				nestedProxiesQN.put(ia, proxyClass -> inverseAttribute.name.toFirstLower)				
 			}
 			
@@ -980,7 +1012,7 @@ interface «proxyInterfaceName» {
 		} else {
 			
 			// Unique relation
-			qnClassRef = generateSingleProxy(declaringInverse, declaringInverse.opposite, "")
+			qnClassRef = generateProxy(declaringInverse, declaringInverse.opposite, "")
 			nestedProxiesQN.put(declaringInverse, qnClassRef -> declaringInverse.opposite.name.toFirstLower)
 			nestedProxiesQN.put(declaringInverse.opposite, qnClassRef -> declaringInverse.name.toFirstLower)
 		}
@@ -1008,25 +1040,31 @@ interface «proxyInterfaceName» {
 
 	// --- COMPILATION RULES --------------------------
 		
-	def dispatch CharSequence compileDatatype(CollectionType c)
+	def dispatch CharSequence compileDatatype(CollectionType c) {
 								
-'''«IF !c.isBuiltinAlias
-	»«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF
-		»«IF "SET"==c.name»unique «ENDIF»«ENDIF»«c.referDatatype»'''
+		'''«IF !c.isBuiltinAlias
+				»«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF
+				»«IF "SET"==c.name»unique «ENDIF»«
+			ENDIF»«c.referDatatype»'''
 
+	}
 	
-	
-	def dispatch CharSequence compileDatatype(ReferenceType r)
+	def dispatch CharSequence compileDatatype(ReferenceType r) {
 						
-'''«IF r.instance instanceof Type 
-		&& (r.instance as Type).isNamedAlias»«(r.instance as Type).datatype.compileDatatype»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
+		'''«IF r.instance instanceof Type
+				»«IF (r.instance as Type).isNamedAlias
+					»«(r.instance as Type).datatype.referDatatype
+				»«ENDIF
+			»«ELSE
+				»«r.instance.name.toFirstUpper»«ENDIF»'''		
+	}
 		
+	def dispatch CharSequence compileDatatype(BuiltInType builtin) {
+		
+		'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(builtin.eClass)»'''
+		
+	}
 	
-		
-	def dispatch CharSequence compileDatatype(BuiltInType builtin)
-		
-'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(builtin.eClass)»'''
-		
 		
 	def dispatch CharSequence compileDatatype(EnumType t) {
 		
@@ -1037,8 +1075,7 @@ interface «proxyInterfaceName» {
 			nameList += name+"="+(i++)
 		}		
 			
-'''«nameList.join(", ")»'''
-
+		'''«nameList.join(", ")»'''
 	}
 
 	// --- COMPILATION OF ATTRIBUTES	
@@ -1048,19 +1085,20 @@ interface «proxyInterfaceName» {
 	 */
 	def compileAttribute(Attribute a) {
 		
-'''«IF !a.type.builtinAlias
-	»«IF a.inverseManyToManyRelation»@XpressModel(kind="proxy") contains «
-		ELSE
-		»«a.type.refersConcept.compileInlineAnnotation
-		»«IF !a.type.builtinAlias»refers «ENDIF»«
-		ENDIF
-		»«IF a.derivedAttribute»derived «ENDIF
-	»«ENDIF
-	»«a.type.compileDatatype» «a.name.toFirstLower» «
-	IF a.inverseRelation»opposite «a.oppositeRef.toFirstLower»«ENDIF»
-	
-'''
-
+		'''«IF !a.type.builtinAlias»«
+				IF a.inverseManyToManyRelation
+					»@XpressModel(kind="proxy") 
+					contains «
+				ELSE
+					»«a.type.refersConcept.compileInlineAnnotation
+					»«IF !a.type.builtinAlias»«IF a.type.nestedAggregation»contains «ELSE»refers «ENDIF»«ENDIF»«
+				ENDIF
+				»«IF a.derivedAttribute»derived «ENDIF
+			»«ELSE
+				»«a.type.refersConcept.compileInlineAnnotation
+			»«ENDIF
+			»«a.type.compileDatatype» «a.name.toFirstLower» «
+			IF a.inverseRelation»opposite «a.oppositeRef.toFirstLower»«ENDIF»'''
 	}
 	
 

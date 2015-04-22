@@ -1,4 +1,4 @@
-package de.bitub.step.express.tests.generating
+package de.bitub.step.express.tests.xcoregen
 
 import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
@@ -15,51 +15,44 @@ import static org.junit.Assert.*
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
-class XCoreSimpleRelationship {
+class XCoreEnum {
 	
 	@Inject XcoreGenerator underTest
     @Inject ParseHelper<Schema> parseHelper
     
     @Test
-    def void testNestedCollection() {
+    def void testGenerateEnum() {
     	
     	val model = parseHelper.parse(
     		'''
-    		SCHEMA XCoreSimpleInverseRelationsTest;
-    		
-    		ENTITY EntityA;
-    		  RelationA : EntityB;
-    		END_ENTITY;
-    		
-    		ENTITY EntityB;
-    		  RelationB : EntityA;
-    		END_ENTITY;
+			SCHEMA XCoreEnumGenerator;
 
-    		ENTITY EntityC;
-    		INVERSE				
-    		  RelationC : EntityD FOR RelationD;
-    		END_ENTITY;
-    		
-    		ENTITY EntityD;
-    		  RelationD : EntityC;
-    		END_ENTITY;
+			TYPE PartEnum = ENUMERATION OF
+				(BRACE
+				,CHORD
+				,COLLAR
+				,MEMBER
+				,MULLION
+				,PLATE
+				,POST
+				,PURLIN
+				,RAFTER
+				,STRINGER
+				,STRUT
+				,STUD
+				,USERDEFINED
+				,NOTDEFINED);
+			END_TYPE;
 
-    		ENTITY EntityE;
-    		INVERSE
-    		  RelationE : SET [0:?] OF EntityF FOR RelationF;
-    		END_ENTITY;
-    		
-    		ENTITY EntityF;
-    		  RelationF : EntityE;
-    		END_ENTITY;
-    		    		
-    		END_SCHEMA;
+			END_SCHEMA;
     		''')
     		
     	val fsa = new InMemoryFileSystemAccess()
         underTest.doGenerate(model.eResource, fsa)
 		
-		assertEquals(1, fsa.textFiles.size)
+		assertEquals(1, fsa.textFiles.size)		
+		
+		//ResourcesPlugin.getWorkspace().getRoot().getLocationURI().toASCIIString()
 		
 		println(fsa.textFiles.values.findFirst[true])
     } 

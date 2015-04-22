@@ -1,12 +1,9 @@
-package de.bitub.step.express.tests.generating
+package de.bitub.step.express.tests.xcoregen
 
 import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.Schema
 import de.bitub.step.generator.XcoreGenerator
-import org.eclipse.emf.ecore.resource.ResourceSet
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
-import org.eclipse.emf.ecore.xcore.validation.XcoreResourceValidator
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
@@ -15,15 +12,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
-import org.osgi.resource.Resource
-import org.eclipse.emf.common.util.URI
-import java.io.CharArrayReader
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
 class XCoreNestedCollection {
 		
-	@Inject XcoreResourceValidator xcoreResourceValidator	
 	@Inject XcoreGenerator underTest
     @Inject ParseHelper<Schema> parseHelper
     
@@ -34,20 +27,27 @@ class XCoreNestedCollection {
     		'''
     		SCHEMA XCoreNestedCollectionsTest;
     		
-    		TYPE TypeWithNestedPrimitive = LIST [0:5] OF LIST [0:5] OF INTEGER;
+    		TYPE TypeWithNestedPrimitive = LIST [0:?] OF LIST [0:?] OF INTEGER;
+    		END_TYPE;
+
+    		TYPE TypeWithEntityList = LIST [0:?] OF EntityB;
     		END_TYPE;
     		
-    		TYPE TypeWithNestedEntity = LIST [0:5] OF LIST [0:5] OF RefEntity;
+    		TYPE TypeWithNestedEntityList = LIST [0:?] OF LIST [0:?] OF EntityB;
     		END_TYPE;
     		
-    		TYPE TypeWithNestedNestedEntity = LIST [0:5] OF LIST [0:5] OF LIST[0:5] OF RefEntity;
+    		TYPE TypeWithNestedNestedEntityList = LIST [0:?] OF LIST [0:?] OF LIST[0:?] OF EntityB;
     		END_TYPE;    		
     		
     		
-    		ENTITY HostEntity;
-    		  nestedPrimitiveList : TypeWithNestedPrimitive;
-    		  nestedEntityList : TypeWithNestedEntity;
-    		  nestedNestedEntityList : TypeWithNestedNestedEntity;
+    		ENTITY EntityA;
+    		  NestedPrimitiveList : TypeWithNestedPrimitive;
+    		  EntityList : TypeWithEntityList;
+    		  NestedEntityList : TypeWithNestedEntityList;
+    		  NestedNestedEntityList : TypeWithNestedNestedEntityList;
+    		END_ENTITY;
+    		
+    		ENTITY EntityB;
     		END_ENTITY;
     		  
     		END_SCHEMA;
@@ -57,11 +57,7 @@ class XCoreNestedCollection {
         underTest.doGenerate(model.eResource, fsa)
 		
 		assertEquals(1, fsa.textFiles.size)
-		
-//		var rs = new ResourceSetImpl();
-//        var xtextResource = rs.getResource(URI.createURI("test"), false)
-//        xtextResource.load( fsa.readBinaryFile(fsa.binaryFiles.keySet.findFirst[it!=null] ) )
-		
+					
 		println(fsa.textFiles.values.findFirst[true])
     } 
 }
