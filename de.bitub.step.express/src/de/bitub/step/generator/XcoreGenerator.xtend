@@ -34,9 +34,7 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 /**
- * Generates code from your model files on save. 
- * 
- * see http://www.eclipse.org/Xtext/documentation.html#TutorialCodeGeneration
+ * Generates Xcore specifications from EXPRESS models.
  */
 class XcoreGenerator implements IGenerator {
 		
@@ -312,7 +310,7 @@ class XcoreGenerator implements IGenerator {
 			
 			if( (t as ReferenceType).instance instanceof Type) {
 				
-				t.refersTransitiveDatatype
+				((t as ReferenceType).instance as Type).refersTransitiveDatatype
 			} else {
 				
 				t
@@ -977,7 +975,7 @@ class «s.name» {
 
 			val inverseConcept = declaringInverse.opposite.eContainer as ExpressConcept
 			val inverseAttribute = declaringInverse.opposite
-			val selectType = (inverseAttribute.type as ReferenceType).instance as Type
+			val selectType = (inverseAttribute.type.refersTransitiveDatatype as SelectType).eContainer as Type
 			
 			// Generate proxy interface name as "ProxyEntityToSelect"
 			val proxyInterfaceName = "Proxy" + inverseConcept.name.toFirstUpper + selectType.name.toFirstUpper
@@ -1087,8 +1085,7 @@ class «s.name» {
 		
 		'''«IF !a.type.builtinAlias»«
 				IF a.inverseManyToManyRelation
-					»@XpressModel(kind="proxy") 
-					contains «
+					»@XpressModel(kind="proxy") contains «
 				ELSE
 					»«a.type.refersConcept.compileInlineAnnotation
 					»«IF !a.type.builtinAlias»«IF a.type.nestedAggregation»contains «ELSE»refers «ENDIF»«ENDIF»«
