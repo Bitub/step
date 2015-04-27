@@ -44,7 +44,7 @@ class XcoreGenerator implements IGenerator {
 	val static builtinMappings =  <EClass, String>newHashMap(
 		ExpressPackage.Literals.INTEGER_TYPE -> "int",
 		ExpressPackage.Literals.NUMBER_TYPE -> "double",
-		ExpressPackage.Literals.LOGICAL_TYPE -> "BooleanObject",
+		ExpressPackage.Literals.LOGICAL_TYPE -> "Boolean",
 		ExpressPackage.Literals.BOOLEAN_TYPE -> "boolean",
 		ExpressPackage.Literals.BINARY_TYPE -> "Binary",
 		ExpressPackage.Literals.REAL_TYPE -> "double",
@@ -343,12 +343,6 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def dispatch CharSequence compileInlineAnnotation(Type t) {
 	
-		// If no alias exists, no annotation
-		if(!aliasConceptMap.containsKey(t)) {
-		
-			return ''''''	
-		}
-		
 		val alias = t.refersTransitiveDatatype
 		 
 		if(alias instanceof BuiltInType) {
@@ -540,6 +534,28 @@ class XcoreGenerator implements IGenerator {
 		}		
 	}
 	
+	/**
+	 * Whether a datatype is referable (non-datatype in Java terms).
+	 */
+	def isReferable(DataType t) {
+		
+		val datatype = t.refersTransitiveDatatype
+		
+		if(datatype instanceof ReferenceType) {
+
+			// Entity only
+			true
+
+		} else if(datatype instanceof SelectType) {
+			
+			// The only class-wrapped type		
+			true
+			
+		} else {
+			
+			false
+		}
+	}
 
 	/**
 	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
@@ -631,47 +647,47 @@ class XcoreGenerator implements IGenerator {
 	
 		s.preprocess
 		 
-'''	
-«compileHeader(s)»
-
-// THIS FILE IS GENERATED. ANY CHANGE WILL BE LOST.
-
-@GenModel(documentation="Generated EXPRESS model of schema «s.name»")
-@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
-package «s.name.toLowerCase» 
-
-import org.eclipse.emf.ecore.xml.^type.BooleanObject
-
-annotation "http://www.eclipse.org/OCL/Import" as Import
-annotation "http://www.bitub.de/express/XpressModel" as XpressModel
+		'''	
+		«compileHeader(s)»
 		
-// Additional datatype for binary
-type Binary wraps java.util.BitSet
+		// THIS FILE IS GENERATED. ANY CHANGE WILL BE LOST.
 		
-// Base container of «s.name»
-@GenModel(documentation="Generated container class of «s.name»")
-@XpressModel(kind="new")
-class «s.name» {
-
-«FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
-«ENDFOR»
-
-}
-
-// --- TYPE DEFINITIONS ------------------------------
-
-«FOR t:s.types»«t.compileConcept»«ENDFOR»
-
-// --- ENTITY DEFINITIONS ----------------------------
-
-«FOR e:s.entities»«e.compileConcept»«ENDFOR»
-	
-// --- ADDITIONALLY GENERATED ------------------------
-
-«secondOrderCache»
-	
-// --- END OF «s.name» ---
-'''		
+		@GenModel(documentation="Generated EXPRESS model of schema «s.name»")
+		@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
+		package «s.name.toLowerCase» 
+		
+		import org.eclipse.emf.ecore.EObject
+		
+		annotation "http://www.eclipse.org/OCL/Import" as Import
+		annotation "http://www.bitub.de/express/XpressModel" as XpressModel
+				
+		// Additional datatype for binary
+		type Binary wraps java.util.BitSet
+				
+		// Base container of «s.name»
+		@GenModel(documentation="Generated container class of «s.name»")
+		@XpressModel(kind="new")
+		class «s.name» {
+		
+		«FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
+		«ENDFOR»
+		
+		}
+		
+		// --- TYPE DEFINITIONS ------------------------------
+		
+		«FOR t:s.types»«t.compileConcept»«ENDFOR»
+		
+		// --- ENTITY DEFINITIONS ----------------------------
+		
+		«FOR e:s.entities»«e.compileConcept»«ENDFOR»
+			
+		// --- ADDITIONALLY GENERATED ------------------------
+		
+		«secondOrderCache»
+			
+		// --- END OF «s.name» ---
+		'''		
 	}
 	
 	
@@ -796,6 +812,11 @@ class «s.name» {
 	
 	}
 	
+	def dispatch CharSequence referDatatype(SelectType t) {
+		
+		'''«(t.eContainer as Type).name.toFirstUpper»'''
+	}
+	
 	def dispatch CharSequence referDatatype(ReferenceType r) { 
 		
 		val parentAttribute = r?.parentAttribute
@@ -853,19 +874,28 @@ class «s.name» {
 		return referredType
 	}
 	
+	/**
+	 * Whether the current data type is translated to a nested aggregation.
+	 */	
 	def dispatch boolean isNestedAggregation(DataType c) {
 		
 		false
 	}
-	
+
+	/**
+	 * Whether the current reference type is translated to a nested aggregation.
+	 */	
 	def dispatch boolean isNestedAggregation(ReferenceType c) {
 		
 		(c.instance instanceof Type) && (c.instance as Type).datatype.nestedAggregation
 	}
 	
+	/**
+	 * Whether the current collection type is translated to a nested aggregation.
+	 */
 	def dispatch boolean isNestedAggregation(CollectionType c) {
 		
-		c.type instanceof CollectionType && (c.type as CollectionType).type instanceof CollectionType
+		c.type instanceof CollectionType 
 	}
 		
 	/**
@@ -893,7 +923,7 @@ class «s.name» {
 		class «nestedClassName» {
 			
 			«IF !c.type.isBuiltinAlias
-				»«IF c.isNestedAggregation»contains «ELSE»refers «ENDIF»«
+				»«IF c.type.isNestedAggregation»contains «ELSE»refers «ENDIF»«
 			ENDIF
 				»«referDatatype» «nameProvider.getFullyQualifiedName(c.type).lastSegment.toLowerCase»
 		}
@@ -1049,12 +1079,11 @@ class «s.name» {
 	
 	def dispatch CharSequence compileDatatype(ReferenceType r) {
 						
-		'''«IF r.instance instanceof Type
-				»«IF (r.instance as Type).isNamedAlias
-					»«(r.instance as Type).datatype.referDatatype
-				»«ENDIF
+		'''«IF r.instance instanceof Type && (r.instance as Type).isNamedAlias
+				»«(r.instance as Type).datatype.referDatatype
 			»«ELSE
-				»«r.instance.name.toFirstUpper»«ENDIF»'''		
+				»«r.instance.name.toFirstUpper
+			»«ENDIF»'''		
 	}
 		
 	def dispatch CharSequence compileDatatype(BuiltInType builtin) {
@@ -1087,15 +1116,27 @@ class «s.name» {
 				IF a.inverseManyToManyRelation
 					»@XpressModel(kind="proxy") contains «
 				ELSE
-					»«a.type.refersConcept.compileInlineAnnotation
-					»«IF !a.type.builtinAlias»«IF a.type.nestedAggregation»contains «ELSE»refers «ENDIF»«ENDIF»«
+					»«a.type.refersConcept?.compileInlineAnnotation
+					»«IF !a.type.builtinAlias
+						»«IF a.type.nestedAggregation
+							»contains «
+						ELSE
+							»«IF a.type.referable
+								»refers «
+							ENDIF
+						»«ENDIF
+					»«ENDIF»«
 				ENDIF
-				»«IF a.derivedAttribute»derived «ENDIF
 			»«ELSE
-				»«a.type.refersConcept.compileInlineAnnotation
+				»«a.type.refersConcept?.compileInlineAnnotation
 			»«ENDIF
+			»«IF a.derivedAttribute
+				»derived «
+			ENDIF
 			»«a.type.compileDatatype» «a.name.toFirstLower» «
-			IF a.inverseRelation»opposite «a.oppositeRef.toFirstLower»«ENDIF»'''
+			IF a.inverseRelation
+				»opposite «a.oppositeRef.toFirstLower
+			»«ENDIF»'''
 	}
 	
 
