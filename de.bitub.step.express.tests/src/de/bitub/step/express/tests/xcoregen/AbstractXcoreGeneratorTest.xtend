@@ -81,7 +81,7 @@ abstract class AbstractXcoreGeneratorTest {
 		xtextResource.load(new ByteArrayInputStream( xcoreModel.toString.bytes ), newHashMap)
 		
 		val packageInstance = xtextResource.contents.findFirst[it instanceof XPackage] as XPackage;
-
+		
 		var succeeded = true
 		if(null!=packageInstance) {			
 			myLog.info("Validating generated Xcore model <"+packageInstance.name+"> ...")

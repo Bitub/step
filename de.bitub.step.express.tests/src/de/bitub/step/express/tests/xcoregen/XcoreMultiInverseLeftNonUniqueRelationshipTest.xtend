@@ -8,35 +8,35 @@ import org.junit.runner.RunWith
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
-class XcoreInverseLeftNonUniqueRelationshipTest extends AbstractXcoreGeneratorTest {
+class XcoreMultiInverseLeftNonUniqueRelationshipTest extends AbstractXcoreGeneratorTest {
 	
     @Test
-    def void testInverseLeftNonUniqueRelationship() {
+    def void testMultiInverseLeftNonUniqueRelationship() {
     	
     	val model = 
     		'''
-			SCHEMA XCoreInverseLeftNonUniqueRelationshipTest;
+			SCHEMA XCoreMultiInverseLeftNonUniqueRelationshipTest;
 			
-
-			TYPE RightHandSingleBranch = SELECT
-				(EntitySingleA
-				,EntitySingleB);
+			TYPE RightHandMultiBranch = SELECT
+				(EntityMultiA
+				,EntityMultiB);
 			END_TYPE;
 
-			ENTITY EntitySingleA;
-			INVERSE
-			  RelationA : EntitySingleC FOR RelationC;
-			END_ENTITY;
-			
-			ENTITY EntitySingleB;
-			INVERSE
-			  RelationB : EntitySingleC FOR RelationC;
-			END_ENTITY;
-			
-			ENTITY EntitySingleC;
-			  RelationC : RightHandSingleBranch;
-			END_ENTITY;			
 
+			ENTITY EntityMultiA;
+			INVERSE
+			  RelationA : LIST [0:?] OF EntityMultiC FOR RelationC;
+			END_ENTITY;
+			
+			ENTITY EntityMultiB;
+			INVERSE
+			  RelationB : LIST [0:?] OF EntityMultiC FOR RelationC;
+			END_ENTITY;
+			
+			ENTITY EntityMultiC;
+			  RelationC : LIST [0:?] OF RightHandMultiBranch;
+			END_ENTITY;
+			
 			END_SCHEMA;
     		'''
     		
