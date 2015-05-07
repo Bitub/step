@@ -64,9 +64,11 @@ class XcoreGenerator implements IGenerator {
 	var nestedProxiesQN = <Attribute, Pair<String, String>>newHashMap
 	// Maps the type aliases
 	var aliasConceptMap = <Type,ExpressConcept>newHashMap
+	// Inverse super type subsitution
+//	var inverseSupertypeMap = <Attribute, 
 	
 	// Second stage cache (any additional concept needed beside first stage)
-	var secondOrderCache = ''''''
+	var secondStageCache = ''''''
 	
 	// Current project folder
 	var projectFolder = "<project folder>";
@@ -442,14 +444,13 @@ class XcoreGenerator implements IGenerator {
 	
 	def boolean isLeftNonUniqueRelation(Attribute a)
 	{
-		if(null!=a.opposite) {
-			
-			return inverseReferenceMap.get(a.opposite).size > 1
-		} else {
-			
-			val knownDeclaring = inverseReferenceMap.get(a)
-			return knownDeclaring.size > 1
-		}
+		val knownDeclaring = 
+			if(null!=a.opposite) 
+				inverseReferenceMap.get(a.opposite) 
+			else 
+				inverseReferenceMap.get(a)
+				 
+		return if(null==knownDeclaring) false else knownDeclaring.size > 1
 	}
 	
 	def Set<Attribute> getInverseAttributeSet(Attribute a) {
@@ -620,7 +621,9 @@ class XcoreGenerator implements IGenerator {
 
 				val oppositeEntity = a.opposite.eContainer as ExpressConcept;				
 				myLog.debug("~> "+(a.eContainer as Entity).name+"."+a.name+" <--> "+oppositeEntity.name+"."+a.opposite.name)
-		
+						
+				// TODO MARK Inverse super-type references for adding ops
+				
 				// Add opposite versus declaring attribute
 				var inverseAttributeSet = inverseReferenceMap.get(a.opposite)
 				if(null==inverseAttributeSet) {
@@ -684,7 +687,7 @@ class XcoreGenerator implements IGenerator {
 			
 		// --- ADDITIONALLY GENERATED ------------------------
 		
-		«secondOrderCache»
+		«secondStageCache»
 			
 		// --- END OF «s.name» ---
 		'''		
@@ -826,7 +829,7 @@ class XcoreGenerator implements IGenerator {
 				»«alias.compileDatatype»«
 			ELSE
 				»«
-				IF parentAttribute?.inverseManyToManyRelation
+				IF parentAttribute?.inverseManyToManyRelation || parentAttribute?.leftNonUniqueRelation
 					»«parentAttribute.proxyRef»«
 				ELSE
 					»«IF alias instanceof ReferenceType
@@ -915,7 +918,7 @@ class XcoreGenerator implements IGenerator {
 		nestedAggregationQN.put(qualifiedName.toString, nestedClassName)
 				
 		val referDatatype = c.type.referDatatype
-		secondOrderCache +=
+		secondStageCache +=
 		'''
 				
 		
@@ -943,7 +946,7 @@ class XcoreGenerator implements IGenerator {
 		
 		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''Array''')
 				
-		secondOrderCache +=
+		secondStageCache +=
 		'''
 		
 		@XpressModel(kind="new")
@@ -960,18 +963,20 @@ class XcoreGenerator implements IGenerator {
 		
 		val declaringEntity = declaring.eContainer as ExpressConcept
 		val inverseEntity = declaring.opposite.eContainer as ExpressConcept
+		
 		// Generate proxy name as "ProxyEntityFromEntityTo"
 		val proxyName = "Proxy"+declaringEntity.name.toFirstUpper+inverseEntity.name.toFirstUpper
 		val hasProxyInterface = !proxyInterface.trim.empty
 		
-		secondOrderCache +=
+		secondStageCache +=
 		'''
 		
 		@GenModel(documentation="Inverse proxy helper between «declaringEntity.name» and «inverseEntity.name»")
-		@XpressModel(kind="new")
+		@XpressModel(kind="new"«IF hasProxyInterface»,select="«declaringEntity.name»"«ENDIF»)
 		class «proxyName» «IF hasProxyInterface»extends «proxyInterface»«ENDIF» {
 		
-			«IF !hasProxyInterface»// Reference to «inverseEntity.name»
+		«IF !hasProxyInterface
+		»	// Reference to «inverseEntity.name»
 			«inverseEntity.compileInlineAnnotation
 			»refers «inverseEntity.refersAlias.name.toFirstUpper» «declaring.name.toFirstLower» opposite «inverse.name.toFirstLower»
 			«ENDIF»
@@ -985,7 +990,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Generate a proxy and returns class reference.
 	 */
-	def String getProxyRef(Attribute a) {
+	protected def String getProxyRef(Attribute a) {
 		
 		// Determine declaring inverse
 		
@@ -1005,6 +1010,8 @@ class XcoreGenerator implements IGenerator {
 
 			val inverseConcept = declaringInverse.opposite.eContainer as ExpressConcept
 			val inverseAttribute = declaringInverse.opposite
+			
+			myLog.debug(" ~~> Declaring side of left non-unique relation refers to "+inverseAttribute.type.refersTransitiveDatatype)
 			val selectType = (inverseAttribute.type.refersTransitiveDatatype as SelectType).eContainer as Type
 			
 			// Generate proxy interface name as "ProxyEntityToSelect"
@@ -1014,14 +1021,14 @@ class XcoreGenerator implements IGenerator {
 			nestedProxiesQN.put(inverseAttribute, proxyInterfaceName -> inverseConcept.name.toFirstLower )
 			
 			// Write to second stage cache				
-			secondOrderCache +=
+			secondStageCache +=
 			
 			'''
 			
 			@XpressModel(kind="new")
 			interface «proxyInterfaceName» {
 				
-				// Blueprint of inverse relation, implemented by subclassing
+				// Blueprint of inverse relation, implemented by sub classing
 				op EObject get«inverseAttribute.name.toFirstUpper»()
 				// Non-unique counter part, using concept QN as reference name
 				«inverseConcept.compileInlineAnnotation»refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
@@ -1054,7 +1061,7 @@ class XcoreGenerator implements IGenerator {
 	def String getOppositeRef(Attribute a) {
 		
 		if(a.inverseRelation) {
-			if(a.isInverseManyToManyRelation) {
+			if(a.inverseManyToManyRelation || a.leftNonUniqueRelation) {
 				
 				return nestedProxiesQN.get(a).value
 				
@@ -1074,22 +1081,16 @@ class XcoreGenerator implements IGenerator {
 				»«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF
 				»«IF "SET"==c.name»unique «ENDIF»«
 			ENDIF»«c.referDatatype»'''
-
 	}
 	
 	def dispatch CharSequence compileDatatype(ReferenceType r) {
 						
-		'''«IF r.instance instanceof Type && (r.instance as Type).isNamedAlias
-				»«(r.instance as Type).datatype.referDatatype
-			»«ELSE
-				»«r.instance.name.toFirstUpper
-			»«ENDIF»'''		
+		'''«r.referDatatype»'''		
 	}
 		
 	def dispatch CharSequence compileDatatype(BuiltInType builtin) {
 		
-		'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(builtin.eClass)»'''
-		
+		'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(builtin.eClass)»'''		
 	}
 	
 		
@@ -1113,7 +1114,7 @@ class XcoreGenerator implements IGenerator {
 	def compileAttribute(Attribute a) {
 		
 		'''«IF !a.type.builtinAlias»«
-				IF a.inverseManyToManyRelation
+				IF a.inverseManyToManyRelation || a.leftNonUniqueRelation
 					»@XpressModel(kind="proxy") contains «
 				ELSE
 					»«a.type.refersConcept?.compileInlineAnnotation
@@ -1132,7 +1133,7 @@ class XcoreGenerator implements IGenerator {
 			»«ENDIF
 			»«IF a.derivedAttribute
 				»derived «
-			ENDIF
+			ENDIF // TODO Substitute Super type references
 			»«a.type.compileDatatype» «a.name.toFirstLower» «
 			IF a.inverseRelation
 				»opposite «a.oppositeRef.toFirstLower
