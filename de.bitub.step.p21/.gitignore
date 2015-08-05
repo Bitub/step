@@ -1,0 +1,8 @@
+# Ignore generated sources
+
+/generated/
+/generated-sources/
+/target/
+
+# Ignore documentation folder
+/docs/
