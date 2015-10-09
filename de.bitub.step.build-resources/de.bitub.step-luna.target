@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="de.bitub.step" sequenceNumber="30">
+<?pde version="3.8"?><target name="de.bitub.step" sequenceNumber="32">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.mylyn.commons.sdk.feature.group" version="3.12.0.v20140605-1728"/>
@@ -53,6 +53,17 @@
 <unit id="org.eclipse.xtext.redist.feature.group" version="2.7.3.v201411190455"/>
 <unit id="org.eclipse.xtend.gwt.feature.group" version="2.7.3.v201411190455"/>
 <repository location="http://download.itemis.com/updates/releases"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.openifctools.stringconverter.f.feature.group" version="1.0.0.201504181854"/>
+<repository location="http://bitub.github.io/step-p2-stringconverter/p2/"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.antlr.antlr4-runtime-osgi.source" version="4.5.0"/>
+<unit id="org.antlr.antlr4-runtime-osgi" version="4.5.0"/>
+<unit id="org.abego.treelayout.org.abego.treelayout.core" version="1.0.1"/>
+<unit id="org.abego.treelayout.org.abego.treelayout.core.source" version="1.0.1"/>
+<repository location="http://bitub.github.io/step-p2-antlr4/p2"/>
 </location>
 </locations>
 </target>
