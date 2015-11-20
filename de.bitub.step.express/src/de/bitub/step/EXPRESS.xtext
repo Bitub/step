@@ -8,14 +8,22 @@
  * Contributors:
  *  Torsten Krämer - initial implementation and initial documentation
  *  Bernold Kraft - Changes, cross-reference resolving
+ *  Sebastian Riemschüssel - add documentation
  */
-
 grammar de.bitub.step.EXPRESS with org.eclipse.xtext.common.Terminals hidden(WS, EXP_COMMENT)
 
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 generate express "http://www.bitub.de/step/EXPRESS"
 
-// Root entity
+/**
+ * Root entity is schema itself. It stores all top-level elements, which are:
+ * <ul>
+ * 	<li>TYPE</li>
+ * 	<li>ENTITY</li>
+ * 	<li>FUNCTION</li>
+ *  <li>RULE</li>
+ * </ul> 
+ */
 Schema:
 	'SCHEMA' name=ID SEMICOLON
 	types+=Type*
@@ -24,26 +32,25 @@ Schema:
 	rules+=Rule*
 	'END_SCHEMA' SEMICOLON;
 
-// Qualified IDs
+	// Qualified IDs are only used inside WHERE rules and DERIVED attributes
 QualifiedMember returns ecore::EString:
 	('SELF\\')? ID ('.' ID)*;
 
-// Named types
+	// Named types
 ExpressConcept:
 	Type | Entity;
 
-// Custom type definition
+	// Custom type definition
 Type:
 	'TYPE' name=ID '=' datatype=DataType SEMICOLON
 	('WHERE' (whereRule+=WhereRule SEMICOLON)+)?
 	'END_TYPE' SEMICOLON;
 
 Entity:
-	'ENTITY' name=ID	
-	((abstract?='ABSTRACT')? 'SUPERTYPE' 'OF' '(' 
-		('ONEOF' '(' disjointSubtype+=[Entity|ID] (',' disjointSubtype+=[Entity|ID])* ')' |
-			subtype+=[Entity|ID] (',' subtype+=[Entity|ID])*) ')')?
-			
+	'ENTITY' name=ID
+	((abstract?='ABSTRACT')? 'SUPERTYPE' 'OF' '('
+	('ONEOF' '(' disjointSubtype+=[Entity|ID] (',' disjointSubtype+=[Entity|ID])* ')' |
+	subtype+=[Entity|ID] (',' subtype+=[Entity|ID])*) ')')?
 	('SUBTYPE' 'OF' '(' supertype+=[Entity|ID] (',' supertype+=[Entity|ID])* ')')?
 	SEMICOLON
 	(attribute+=Attribute SEMICOLON)*
@@ -53,14 +60,14 @@ Entity:
 	('WHERE' (whereRule+=WhereRule SEMICOLON)+)?
 	'END_ENTITY' SEMICOLON;
 
-// Black box statements which should not be parsed deeply
+	// Black box statements which should not be parsed deeply
 Blackbox:
-  (ID | '<' | '>' | '=' | ':' | '?' | '(' | ')' | ']' | '[' | '\\' | '-' | '+' | '*' | '\'' | STRING | ',' | '|'
-  | '.' | INT | '/' | 'SELF\\' )+;
+	(ID | '<' | '>' | '=' | ':' | '?' | '(' | ')' | ']' | '[' | '\\' | '-' | '+' | '*' | '\'' | STRING | ',' | '|'
+	| '.' | INT | '/' | 'SELF\\')+;
 
-// Attributes
+	// Attributes
 // Nur in Derive wird ein optionaler Select über die Vaterklasse mit
-// SELF\Klasse.attriubt ausgeführt.; Hier aber mit aufgenommen
+// SELF\ENTITY.attribut ausgeführt.; Hier aber mit aufgenommen
 Attribute:
 	(self?='SELF\\' (qualifier+=ID '.')+)? name=ID ':' (optional?='OPTIONAL')? (type=DataType);
 
@@ -112,8 +119,7 @@ UniqueRule:
 	(name=ID ':')? attributes+=ID (',' attributes+=ID)*;
 
 BuiltInType:
-	BinaryType | LogicalType | BooleanType | RealType | NumberType | IntegerType | StringType
-;
+	BinaryType | LogicalType | BooleanType | RealType | NumberType | IntegerType | StringType;
 
 DataType:
 	ReferenceType | CollectionType | EnumType | SelectType | BuiltInType | GenericType;
@@ -125,44 +131,107 @@ ReferenceType:
 GenericType:
 	{GenericType} 'GENERIC' (':' typelabel=ID)?;
 
+	/** 
+ 	 * Handle collections part of data type.
+ 	 * 
+ 	 * <pre>
+	 * 	<code>
+	 * LIST [1:?] OF UNIQUE IfcOrientedEdge;
+	 * LIST [2:?] OF LIST [2:?] OF IfcCartesianPoint;
+	 * 
+	 * ARRAY [0:UpperIndexOnControlPoints] OF REAL := IfcCartesianPoint
+	 * 
+	 * SET [1:?] OF IfcPropertySetDefinition;
+	 * 	</code>
+	 * </pre>
+	 * 
+	 * IFC4 schema is not using BAG.
+ 	 */
 CollectionType:
-	name=('LIST' | 'ARRAY' | 'BAG' | 'SET') 
+	name=('LIST' | 'ARRAY' | 'BAG' | 'SET')
 	('[' (lowerBound=INT | lowerRef=[Attribute|ID]) (':' (upperBound=INT | upperRef=[Attribute|ID] | many?='?'))? ']')?
 	('OF')? (opt?='OPTIONAL')? (unique?='UNIQUE')? type=DataType;
 
+	/** 
+ 	 * Handle String part of data type
+ 	 * <pre>
+	 * @code{
+	 * STRING(22) FIXED
+	 * }
+	 * </pre>
+ 	 */
 StringType:
 	{StringType} 'STRING' ('(' size=INT ')' (fixed?='FIXED')?)?;
 
+	/** 
+ 	 * Handle binary part of data type
+ 	 * <pre>
+	 * 	<code>
+	 * BINARY(32)
+	 * 	</code>
+	 * </pre>
+ 	 */
 BinaryType:
 	{BinaryType} 'BINARY' ('(' size=INT ')')?;
 
+	/** 
+ 	 * Handle simple built-in data types
+ 	 * <pre>
+	 * @code{
+	 * LOGICAL
+	 * BOOLEAN
+	 * REAL
+	 * NUMBER
+	 * INTEGER
+	 * }
+	 * </pre>
+ 	 */
 LogicalType:
 	{LogicalType} 'LOGICAL';
 
 BooleanType:
 	{BooleanType} 'BOOLEAN';
-	
+
 RealType:
 	{RealType} 'REAL';
-	
+
 NumberType:
 	{NumberType} 'NUMBER';
-	
+
 IntegerType:
 	{IntegerType} 'INTEGER';
 
+	/**
+	 * Handle enumeration part of given data type.
+	 * 
+	 * <pre>
+	 * <code>
+	 * ENUMERATION OF (SITE, FACTORY, NOTDEFINED)
+	 * </code>
+	 * </pre>
+	 */
 EnumType:
-	'ENUMERATION' 'OF' '(' literal+=LiteralType (',' literal+=LiteralType)* ')';
-	
+	'ENUMERATION' 'OF' '(' literals+=LiteralType (',' literals+=LiteralType)* ')';
+
 LiteralType:
 	name=ID;
 
+	/**
+	 * Handle select part of given data type.
+	 * 
+	 * <pre>
+	 * @code{
+	 * SELECT(IfcOrganization, IfcPerson, IfcPersonAndOrganization) 	 
+	 * }
+	 * </pre>
+	 */
 SelectType:
 	'SELECT' '(' select+=[ExpressConcept|ID] (',' select+=[ExpressConcept|ID])* ')';
 
 Line:
 	{Line} (text+=(ANY_OTHER))* SEMICOLON;
 
+	// TODO: unused parser rule
 Select:
 	('SELF\\')? ID;
 
@@ -184,9 +253,6 @@ CaseStatement:
 CaseAction:
 	value+=QualifiedMember (',' value+=QualifiedMember)* ':' statement=Statement;
 
-	// Eigentlich: ReturnStatement: {ReturnStatement} 'RETURN' ('(' expression=Freitext ')')? ;  
-// geht auch nicht: ReturnStatement: {ReturnStatement} 'RETURN' ('(' ('?')? ')')?; // ('(' expression=Freitext ')')? ;
-// Hack, geht:  
 ReturnStatement:
 	{ReturnStatement} 'RETURN' (expression=Blackbox)?;
 
@@ -211,11 +277,6 @@ AttributeVar:
 Index:
 	IndexTerminal;
 
-	//Index: INT;
-//Index: value=IndexExpr;
-//
-//IndexExpr: IndexTerminal ({IndexOperation.left=current} op=('+'|'-') right=IndexExpr); 
-//IndexTerminal returns IndexExpr:  {VarLiteral} value=ID | {IntLiteral} value=INT | '(' IndexExpr ')';
 IndexTerminal:
 	{VarLiteral} value=ID | {IntLiteral} value=INT;
 
