@@ -52,7 +52,7 @@ class EXPRESSOutlineTreeProvider extends DefaultOutlineTreeProvider {
 			(e.datatype as SelectType).select.forEach[ s | createNode(parentNode, s)]
 		}
 		if(e.datatype instanceof EnumType) {
-			(e.datatype as EnumType).literal.forEach[ term | createNode(parentNode, term)];	
+			(e.datatype as EnumType).literals.forEach[ term | createNode(parentNode, term)];	
 		}			
 	}
 	
