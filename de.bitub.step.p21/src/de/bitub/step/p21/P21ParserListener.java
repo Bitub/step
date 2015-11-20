@@ -41,6 +41,7 @@ import de.bitub.step.p21.StepParser.SimpleEntityInstanceContext;
 import de.bitub.step.p21.StepParser.StringContext;
 import de.bitub.step.p21.StepParser.TypedContext;
 import de.bitub.step.p21.StepParser.UntypedContext;
+import de.bitub.step.p21.header.Header;
 import de.bitub.step.p21.mapper.StepToModel;
 import de.bitub.step.p21.mapper.StepToModelImpl;
 import de.bitub.step.p21.util.StepUntypedToEcore;
@@ -83,9 +84,9 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   private int curParameterIndex = -1;
   Deque<Integer> parameterIndexStack = new ArrayDeque<Integer>();
 
-  private boolean isDataSection = false;
-
   private Mode mode = Mode.HEADER;
+
+  public Header header = null;
 
   private boolean isInList;
   private List<Object> eList = null;
@@ -113,7 +114,23 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
     return this.util.getIfc4();
   }
 
+  @Override
+  public void enterHeaderSection(HeaderSectionContext ctx)
+  {
+    // set header mode if not already set
+    //
+    if (mode != Mode.HEADER) {
+      mode = Mode.HEADER;
+    }
+
+    // create header class to collect all information
+    //
+    header = new Header();
+  }
+
   /**
+   * Set all header entities from processed header section.
+   * (Could by improved.)
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * 
@@ -123,86 +140,77 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void exitHeaderSection(HeaderSectionContext ctx)
   {
+    // get all parameters for the header
+    //
     List<ParameterContext> fileDescriptionParameters = ctx.fileDesciption.parameterList().parameters;
     List<ParameterContext> fileNameParameters = ctx.fileName.parameterList().parameters;
     List<ParameterContext> fileSchemaParameters = ctx.fileSchema.parameterList().parameters;
 
+    // needed header entities
+    //
+    Header.FileDescription fileDescription = header.fileDescription;
+    Header.FileName fileName = header.fileName;
+    Header.FileSchema fileSchema = header.fileSchema;
+
+    // set file description header
+    //
     if (!ctx.fileDesciption.parameterList().isEmpty()) {
 
-      List<String> description = new ArrayList<String>();
-      String implementationLevel = "";
-      Integer conformanceClass = -1;
-      Integer versionNumber = -1;
-
       if (fileDescriptionParameters.get(0).untyped().list() != null) {
-
         for (ParameterContext parameterContext : fileDescriptionParameters.get(0).untyped().list().parameters) {
-          description.add(parameterContext.untyped().string().getText());
+          fileDescription.description.add(parameterContext.untyped().string().getText());
         }
       }
 
       if (fileDescriptionParameters.get(1).untyped().string() != null) {
-        implementationLevel = fileDescriptionParameters.get(1).untyped().string().getText();
-
-        String[] splittedImplementationLevel = implementationLevel.split(";");
-        versionNumber = Integer.valueOf(splittedImplementationLevel[0]);
-        conformanceClass = Integer.valueOf(splittedImplementationLevel[1]);
+        fileDescription.implementationLevel = fileDescriptionParameters.get(1).untyped().string().getText();
       }
     }
 
+    // set file name header
+    //
     if (!ctx.fileName.parameterList().isEmpty()) {
 
-      String name = "";
-      String timeStamp = "";
-      List<String> author = new ArrayList<String>(); // name  and mailing adress
-      List<String> organization = new ArrayList<String>();
-      String preprocessorVersion = "";
-      String originatingSystem = "";
-      String authorization = "";
-
       if (fileNameParameters.get(0).untyped().string() != null) {
-        name = fileNameParameters.get(0).untyped().string().getText();
+        fileName.name = fileNameParameters.get(0).untyped().string().getText();
       }
 
       if (fileNameParameters.get(1).untyped().string() != null) {
-        timeStamp = fileNameParameters.get(1).untyped().string().getText();
+        fileName.setTimeStamp(fileNameParameters.get(1).untyped().string().getText());
       }
 
       if (fileNameParameters.get(2).untyped().list() != null) {
-
         for (ParameterContext parameterContext : fileNameParameters.get(2).untyped().list().parameters) {
-          author.add(parameterContext.untyped().string().getText());
+          fileName.author.add(parameterContext.untyped().string().getText());
         }
       }
 
       if (fileNameParameters.get(3).untyped().list() != null) {
-
         for (ParameterContext parameterContext : fileNameParameters.get(3).untyped().list().parameters) {
-          organization.add(parameterContext.untyped().string().getText());
+          fileName.organization.add(parameterContext.untyped().string().getText());
         }
       }
 
       if (fileNameParameters.get(4).untyped().string() != null) {
-        preprocessorVersion = fileNameParameters.get(4).untyped().string().getText();
+        fileName.preprocessorVersion = fileNameParameters.get(4).untyped().string().getText();
       }
 
       if (fileNameParameters.get(5).untyped().string() != null) {
-        originatingSystem = fileNameParameters.get(5).untyped().string().getText();
+        fileName.originatingSystem = fileNameParameters.get(5).untyped().string().getText();
       }
 
       if (fileNameParameters.get(6).untyped().string() != null) {
-        authorization = fileNameParameters.get(6).untyped().string().getText();
+        fileName.authorization = fileNameParameters.get(6).untyped().string().getText();
       }
     }
 
+    // set file schema header
+    //
     if (!ctx.fileSchema.parameterList().isEmpty()) {
 
-      List<String> schemaIdentifiers = new ArrayList<String>(); // IFC2X3, IFCX4
-
       if (fileSchemaParameters.get(0).untyped().list() != null) {
-
         for (ParameterContext parameterContext : fileSchemaParameters.get(0).untyped().list().parameters) {
-          schemaIdentifiers.add(parameterContext.untyped().string().getText());
+          fileSchema.schemaIdentifiers.add(parameterContext.untyped().string().getText());
         }
       }
     }
@@ -218,8 +226,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void enterDataSection(DataSectionContext ctx)
   {
-    this.isDataSection = true;
-    this.mode = Mode.DATA;
+    mode = Mode.DATA;
   }
 
   /**
@@ -245,8 +252,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void exitString(StringContext ctx)
   {
-    if (isDataSection && this.curObject != null) {
-
+    if (mode == Mode.DATA && this.curObject != null) {
       StepUntypedToEcore.eString(curParameterIndex, curObject, ctx.getText(), util);
     }
   }
@@ -261,7 +267,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void exitReal(RealContext ctx)
   {
-    if (isDataSection && this.curObject != null) {
+    if (mode == Mode.DATA && this.curObject != null) {
       if (!isInList) {
 
         StepUntypedToEcore.eReal(curParameterIndex, curObject, ctx.getText(), util);
@@ -388,7 +394,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void exitUntyped(UntypedContext ctx)
   {
-    if (isDataSection && this.curObject != null) {
+    if (mode == Mode.DATA && this.curObject != null) {
 
       if (ctx.ENTITY_INSTANCE_NAME() != null && !isInList) {
 
@@ -579,7 +585,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void enterSimpleEntityInstance(SimpleEntityInstanceContext ctx)
   {
-    if (isDataSection) {
+    if (mode == Mode.DATA) {
 
       // save ID (#12) of current row
       //

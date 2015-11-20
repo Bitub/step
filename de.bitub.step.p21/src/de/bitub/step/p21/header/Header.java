@@ -10,7 +10,9 @@
  */
 package de.bitub.step.p21.header;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -23,21 +25,85 @@ import javax.xml.bind.DatatypeConverter;
  */
 public class Header
 {
-  class FileDescription
+  public FileDescription fileDescription = null;
+  public FileName fileName = null;
+  public FileSchema fileSchema = null;
+
+  public Header()
   {
-    String description;
-    String implementationLevel;
+    fileDescription = this.new FileDescription();
+    fileName = this.new FileName();
+    fileSchema = this.new FileSchema();
   }
 
-  class FileName
+  public class FileDescription
   {
-    String name;
-    Date timeStamp; // not empty date format ISO 8601
-    String author;
-    String organization;
-    String preprocessorVersion;
-    String originatingSystem;
-    String authorization;
+    // LIST [1:?] OF STRING (256);
+    //
+    public List<String> description = new ArrayList<>();
+
+    // STRING (256)
+    //
+    public String implementationLevel;
+
+    /**
+     * Get conformance class from implementation level.
+     * Possible values are 1 and 2.
+     * 
+     * @return
+     */
+    public Integer conformanceClass()
+    {
+      return Integer.valueOf(implementationLevel.split(";")[1]);
+    }
+
+    /**
+     * Get version number from implementation level.
+     * Possible values are 1, 2 and 3.
+     * 
+     * @return
+     */
+    public Integer versionNumber()
+    {
+      return Integer.valueOf(implementationLevel.split(";")[0]);
+    }
+
+    @Override
+    public String toString()
+    {
+      return "FileDescription [description=" + description + ", implementationLevel=" + implementationLevel + "]";
+    }
+  }
+
+  public class FileName
+  {
+    // STRING (256)
+    //
+    public String name = "";
+
+    // STRING (256)
+    //
+    Date timeStamp = null; // not empty date format ISO 8601
+
+    // LIST [1:?] OF STRING (256);
+    //
+    public List<String> author = new ArrayList<>();
+
+    // LIST [1:?] OF STRING (256);
+    //    
+    public List<String> organization = new ArrayList<>();
+
+    // STRING (256)
+    //
+    public String preprocessorVersion = "";
+
+    // STRING (256)
+    //
+    public String originatingSystem = "";
+
+    // STRING (256)
+    //
+    public String authorization = "";
 
     public Date getTimeStamp()
     {
@@ -48,12 +114,30 @@ public class Header
     {
       this.timeStamp = DatatypeConverter.parseDateTime(timeStamp).getTime();
     }
+
+    @Override
+    public String toString()
+    {
+      return "FileName [name=" + name + ", timeStamp=" + timeStamp + ", author=" + author + ", organization=" + organization
+          + ", preprocessorVersion=" + preprocessorVersion + ", originatingSystem=" + originatingSystem + ", authorization="
+          + authorization + "]";
+    }
   }
 
-  class FileSchema
+  public class FileSchema
   {
-    String schemaName; // not empty
+    // LIST [1:?] OF UNIQUE STRING(1024);
+    // 
+    public List<String> schemaIdentifiers = new ArrayList<>(); // e.g. IFC2X3, IFCX4
+
+    @Override
+    public String toString()
+    {
+      return "FileSchema [schemaIdentifiers=" + schemaIdentifiers + "]";
+    }
   }
+
+  // !!!!!!!!!!!! NOT USED IN ANY IFC VERSION !!!!!!!!!!!!!!!!!
 
   class FilePopulation
   {
@@ -71,4 +155,11 @@ public class Header
   {
     String context;
   }
+
+  @Override
+  public String toString()
+  {
+    return "Header [\nfileDescription=" + fileDescription + ",\n fileName=" + fileName + ",\n fileSchema=" + fileSchema + "\n]";
+  }
+
 }
