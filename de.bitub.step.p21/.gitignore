@@ -3,6 +3,7 @@
 /generated/
 /generated-sources/
 /target/
+/src-gen/
 
 # Ignore documentation folder
 /docs/
