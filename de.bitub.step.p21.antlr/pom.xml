@@ -15,43 +15,46 @@
 	<name>STEP Parser Grammar</name>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-clean-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>gen-clean</id>
-						<phase>clean</phase>
-						<!-- Clean up generated files in all projects -->
-						<configuration>
-							<filesets combine.children="append">
-								<fileset>
-									<directory>${basedir}/src-gen/</directory>
-								</fileset>
-							</filesets>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>gen-clean</id>
+							<phase>clean</phase>
+							<!-- Clean up generated files in all projects -->
+							<configuration>
+								<filesets combine.children="append">
+									<fileset>
+										<directory>${basedir}/src-gen/</directory>
+									</fileset>
+								</filesets>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
 
-			<plugin>
-				<groupId>org.antlr</groupId>
-				<artifactId>antlr4-maven-plugin</artifactId>
-				<version>4.5</version>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>antlr4</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<outputDirectory>${basedir}/src-gen/</outputDirectory>
-					<goal>antlr4</goal>
-				</configuration>
-			</plugin>
-		</plugins>
+				<plugin>
+					<groupId>org.antlr</groupId>
+					<artifactId>antlr4-maven-plugin</artifactId>
+					<version>4.5</version>
+					<executions>
+						<execution>
+							<phase>generate-sources</phase>
+							<goals>
+								<goal>antlr4</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<outputDirectory>${basedir}/src-gen/</outputDirectory>
+						<goal>antlr4</goal>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 	</build>
 </project>
