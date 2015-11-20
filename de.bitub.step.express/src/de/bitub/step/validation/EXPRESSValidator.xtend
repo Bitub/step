@@ -7,10 +7,13 @@
  * 
  * Contributors:
  *  Bernold Kraft - initial implementation and initial documentation
+ *  Sebastian Riemschüssel - simple entity name checks 
  */
-
 package de.bitub.step.validation
-//import org.eclipse.xtext.validation.Check
+
+import org.eclipse.xtext.validation.Check
+import de.bitub.step.express.Entity
+import de.bitub.step.express.ExpressPackage
 
 /**
  * Custom validation rules. 
@@ -19,14 +22,13 @@ package de.bitub.step.validation
  */
 class EXPRESSValidator extends AbstractEXPRESSValidator {
 
-//  public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					MyDslPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
+	public static val INVALID_NAME = 'invalidName'
+
+	@Check
+	def checkEntityStartsWithCapital(Entity entity) {
+
+		if (!Character.isUpperCase(entity.name.charAt(0))) {
+			warning('Name should start with a capital', ExpressPackage.Literals.EXPRESS_CONCEPT__NAME, INVALID_NAME)
+		}
+	}
 }
