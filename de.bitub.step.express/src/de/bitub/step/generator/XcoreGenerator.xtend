@@ -1069,7 +1069,7 @@ class «s.name» {
 		var nameList = <String>newArrayList
 		var i = 0
 		
-		for(String name : t.literal.map[name]) {
+		for(String name : t.literals.map[name]) {
 			nameList += name+"="+(i++)
 		}		
 			
