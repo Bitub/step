@@ -154,18 +154,16 @@ public class StepToModelImpl implements StepToModel
    */
   private EObject createBy(String keyword)
   {
-    EClass eClass = (EClass) this.get(keyword);
-    LOGGER.warning(eClass + "");
-
     EObject eObject = null;
+
     try {
+      EClass eClass = (EClass) this.get(keyword);
       eObject = EcoreUtil.create(eClass);
     }
-    catch (IllegalArgumentException e) {
+    catch (IllegalArgumentException | ClassCastException e) {
       e.printStackTrace();
     }
-//    StepToModelImpl.printAttributeValues(eObject);
-
+    
     return eObject;
   }
 
