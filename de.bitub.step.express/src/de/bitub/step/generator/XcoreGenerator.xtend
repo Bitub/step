@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import java.util.List
 
 /**
  * Generates Xcore specifications from EXPRESS models.
@@ -64,8 +65,8 @@ class XcoreGenerator implements IGenerator {
 	var nestedProxiesQN = <Attribute, Pair<String, String>>newHashMap
 	// Maps the type aliases
 	var aliasConceptMap = <Type,ExpressConcept>newHashMap
-	// Inverse super type subsitution
-//	var inverseSupertypeMap = <Attribute, 
+	// Inverse super type substitution
+	var inverseSupertypeMap = <Entity, List<Attribute>>newHashMap
 	
 	// Second stage cache (any additional concept needed beside first stage)
 	var secondStageCache = ''''''
@@ -415,31 +416,38 @@ class XcoreGenerator implements IGenerator {
 		a.inverseRelation && a.oneToManyRelation && a.anyInverseAttribute.oneToManyRelation
 	}
 	
+	
 	/**
 	 * True if a refers to an inverse relation.
 	 */
-	def isInverseRelation(Attribute a) {
+	protected def isInverseRelation(Attribute a) {
 		
 		inverseReferenceMap.containsKey(a) || null!=a.opposite
 	}
 	
 	/** Get inverse attribute */
-	def Attribute getAnyInverseAttribute(Attribute a) {
+	protected def Attribute getAnyInverseAttribute(Attribute a) {
 		
-		if(null!=a.opposite) {
-			
-			return a.opposite
-		} else {
-			
-			val inverseSet = inverseReferenceMap.get(a)
-			if(!inverseSet.empty) {
-			
-				return inverseSet.findFirst[it!=null]	
-			} else {
+		return 
+			if(null!=a.opposite) 
+				a.opposite 
+			else
+				inverseReferenceMap.get(a)?.findFirst[it!=null]
 				
-				return null
-			}
-		}
+//		if(null!=a.opposite) {
+//			
+//			return a.opposite
+//		} else {
+//			
+//			val inverseSet = inverseReferenceMap.get(a)
+//			if(!inverseSet.empty) {
+//			
+//				return inverseSet.findFirst[it!=null]	
+//			} else {
+//				
+//				return null
+//			}
+//		}
 	}
 	
 	def boolean isLeftNonUniqueRelation(Attribute a)
@@ -622,7 +630,18 @@ class XcoreGenerator implements IGenerator {
 				val oppositeEntity = a.opposite.eContainer as ExpressConcept;				
 				myLog.debug("~> "+(a.eContainer as Entity).name+"."+a.name+" <--> "+oppositeEntity.name+"."+a.opposite.name)
 						
-				// TODO MARK Inverse super-type references for adding ops
+				// Inverse super-type references 
+				val refConcept = a.opposite.type.refersConcept
+				if( refConcept instanceof Entity && !refConcept.equals(e) ) {
+					
+					// TODO Inheritance checking
+					var aList = inverseSupertypeMap.get(e)
+					if(null==aList) {
+						aList = newArrayList
+						inverseSupertypeMap.put(refConcept as Entity, aList)
+					}
+					aList += a
+				}
 				
 				// Add opposite versus declaring attribute
 				var inverseAttributeSet = inverseReferenceMap.get(a.opposite)
@@ -705,6 +724,11 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(name="«e.name»",kind="generated")
 		«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
 		
+		  «IF inverseSupertypeMap.containsKey(e)
+		  »«FOR a : inverseSupertypeMap.get(e)
+			  »op «a.type.compileDatatype» get«a.name.toFirstUpper»()«
+			ENDFOR»«
+		  ENDIF»
 		  «FOR a : e.attribute»
 		  @GenModel(documentation="Attribute definition of «a.name»")
 		  «a.compileAttribute»
@@ -790,12 +814,6 @@ class XcoreGenerator implements IGenerator {
 		val conceptSet = resolvedSelectsMap.get(s.eContainer)
 		
 		''' 
-			@GenModel(documentation="Gets the current set member.")  
-			op String ^get()
-			@GenModel(documentation="Sets the value and member")
-			op void ^set(String member, String value) {
-			}
-			
 		   «FOR c : conceptSet.filter[it instanceof Entity]»
 			«c.compileInlineAnnotation»refers «c.name.toFirstUpper» «c.name.toFirstLower»
 		   «ENDFOR»
@@ -821,9 +839,12 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	def dispatch CharSequence referDatatype(ReferenceType r) { 
-		
+		//TODO
 		val parentAttribute = r?.parentAttribute
+//		val inverseAttributes = parentAttribute?.inverseAttributeSet		
 		val alias = r.refersTransitiveDatatype
+//		inverseSupertypeMap.get(alias.refersConcept)?.filter[inverseAttributes.contains(it)]
+//		val isInverseSupertype = inverseSupertypeMap?.get(alias.refersConcept).exists[inverseAttributes.contains(it)]
 	
 		'''«IF alias.builtinAlias
 				»«alias.compileDatatype»«
@@ -833,7 +854,11 @@ class XcoreGenerator implements IGenerator {
 					»«parentAttribute.proxyRef»«
 				ELSE
 					»«IF alias instanceof ReferenceType
-						»«alias.instance.name.toFirstUpper
+//						»«IF isInverseSupertype 
+//							»«(inverseAttribute.eContainer as Entity).name.toFirstUpper
+//						»«ELSE
+							»«alias.instance.name.toFirstUpper
+//						»«ENDIF
 					»«ELSE
 						»«alias.referDatatype
 					»«ENDIF»«
@@ -961,7 +986,7 @@ class XcoreGenerator implements IGenerator {
 	 */
 	protected def String generateProxy(Attribute declaring, Attribute inverse, String proxyInterface) {
 		
-		val declaringEntity = declaring.eContainer as ExpressConcept
+		val declaringEntity = declaring.eContainer as ExpressConcept		
 		val inverseEntity = declaring.opposite.eContainer as ExpressConcept
 		
 		// Generate proxy name as "ProxyEntityFromEntityTo"
@@ -1010,11 +1035,9 @@ class XcoreGenerator implements IGenerator {
 
 			val inverseConcept = declaringInverse.opposite.eContainer as ExpressConcept
 			val inverseAttribute = declaringInverse.opposite
-			
-			myLog.debug(" ~~> Declaring side of left non-unique relation refers to "+inverseAttribute.type.refersTransitiveDatatype)
-			val selectType = (inverseAttribute.type.refersTransitiveDatatype as SelectType).eContainer as Type
-			
+						
 			// Generate proxy interface name as "ProxyEntityToSelect"
+			val selectType = inverseAttribute.type.refersConcept
 			val proxyInterfaceName = "Proxy" + inverseConcept.name.toFirstUpper + selectType.name.toFirstUpper
 
 			// Map QN of inverse attribute
@@ -1133,7 +1156,7 @@ class XcoreGenerator implements IGenerator {
 			»«ENDIF
 			»«IF a.derivedAttribute
 				»derived «
-			ENDIF // TODO Substitute Super type references
+			ENDIF
 			»«a.type.compileDatatype» «a.name.toFirstLower» «
 			IF a.inverseRelation
 				»opposite «a.oppositeRef.toFirstLower
