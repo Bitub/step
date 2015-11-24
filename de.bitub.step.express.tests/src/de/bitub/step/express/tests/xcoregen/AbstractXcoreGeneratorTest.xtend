@@ -85,9 +85,10 @@ abstract class AbstractXcoreGeneratorTest {
 		var succeeded = true
 		if(null!=packageInstance) {			
 			myLog.info("Validating generated Xcore model <"+packageInstance.name+"> ...")
-			val issues = xcoreResourceValidator.validate(xtextResource,CheckMode.NORMAL_ONLY,CancelIndicator.NullImpl)
+			val issues = xcoreResourceValidator.validate(xtextResource,CheckMode.EXPENSIVE_ONLY,CancelIndicator.NullImpl)
 			
-			for(Issue i : issues.filter[severity==Severity.ERROR]) {
+			// Ignore Code 24 (EObject resolving fails)
+			for(Issue i : issues.filter[severity==Severity.ERROR && code != "org.eclipse.emf.ecore.model.24"]) {
 				
 				myLog.error(String.format("(%s) Line %d. %s",packageInstance.name, i.lineNumber, i.message))
 				succeeded = false
