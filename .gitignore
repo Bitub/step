@@ -37,7 +37,7 @@ target/
 
 
 de.bitub.step.express/schemas/
-de.bitub.step.p21/.classpath
-de.bitub.step.p21/.project
-*.classpath
+de.bitub.step.p21/docs/
 *.project
+*.classpath
+de.bitub.step.p21.antlr/src-gen/
