@@ -25,7 +25,6 @@ import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
 import de.bitub.step.generator.util.XcoreUtil
 import java.util.Date
-import java.util.List
 import java.util.Set
 import javax.inject.Inject
 import org.apache.log4j.Logger
@@ -41,7 +40,7 @@ class XcoreGenerator implements IGenerator {
 		
 	val static Logger LOGGER = Logger.getLogger(XcoreGenerator);
 		
-	@Inject	IQualifiedNameProvider nameProvider;
+	@Inject extension IQualifiedNameProvider
 	@Inject ExpressInterpreter interpreter;
 	@Inject FunctionGenerator functionGenerator;
 	@Inject XcoreUtil util;
@@ -58,7 +57,7 @@ class XcoreGenerator implements IGenerator {
 		
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
 							
-		de.bitub.step.generator.XcoreGenerator.LOGGER.info("Generating XCore representation of "+schema.name)
+		XcoreGenerator.LOGGER.info("Generating XCore representation of "+schema.name)
 				
 		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
 	}
@@ -284,7 +283,7 @@ class XcoreGenerator implements IGenerator {
 			'''
 		} else if (alias instanceof ReferenceType) {
 			
-			val qn = nameProvider.getFullyQualifiedName(t)
+			val qn = t.fullyQualifiedName
 			if(interpreter.nestedAggregationQN.containsKey(qn.toString)) {
 								
 				'''@XpressModel(name="«t.name»",kind="nested",classRef="«interpreter.nestedAggregationQN.get(qn.toString)»[]")
@@ -736,7 +735,7 @@ class XcoreGenerator implements IGenerator {
 	protected def String generateCollector_NestedInnerProxy(CollectionType c) {
 
 		// Builtin type or entity ?
-		val qualifiedName = nameProvider.getFullyQualifiedName(c.eContainer)		
+		val qualifiedName = c.eContainer.fullyQualifiedName
 		
 		// Generate nested class
 		if(interpreter.nestedAggregationQN.containsKey(qualifiedName.toString)) {
@@ -757,7 +756,7 @@ class XcoreGenerator implements IGenerator {
 			«IF !util.isBuiltinAlias(c.type)
 				»«IF c.type.isNestedAggregation»contains «ELSE»refers «ENDIF»«
 			ENDIF
-				»«referDatatype» «nameProvider.getFullyQualifiedName(c.type).lastSegment.toLowerCase»
+				»«referDatatype» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
 		}
 		'''		
 		return nestedClassName
