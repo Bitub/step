@@ -111,6 +111,95 @@ class ExpressInterpreter {
 			].size + " non-unique left hand side (select on right hand).")
 	}
 
+	/**
+	 * True if a refers to an inverse relation.
+	 */
+	def isInverseRelation(Attribute a) {
+
+		inverseReferenceMap.containsKey(a) || null != a.opposite
+	}
+
+	/**
+	 * Returns the local QN of opposite attribute, if there's any.
+	 */
+	def String getOppositeRef(Attribute a) {
+
+		if (a.inverseRelation) {
+			if (a.inverseManyToManyRelation || a.leftNonUniqueRelation) {
+
+				return nestedProxiesQN.get(a).value
+
+			} else {
+
+				return a.anyInverseAttribute.name
+			}
+		}
+	}
+
+	/** 
+	 * Get inverse attribute
+	 */
+	def Attribute getAnyInverseAttribute(Attribute a) {
+
+		return if (null != a.opposite)
+			a.opposite
+		else
+			inverseReferenceMap.get(a)?.findFirst[it != null]
+	}
+
+	def boolean isLeftNonUniqueRelation(Attribute a) {
+		val knownDeclaring = if (null != a.opposite)
+				inverseReferenceMap.get(a.opposite)
+			else
+				inverseReferenceMap.get(a)
+
+		return if(null == knownDeclaring) false else knownDeclaring.size > 1
+	}
+
+	/**
+	 * True, if a is part of an inverse relation with many-to-many relation.
+	 */
+	def isInverseManyToManyRelation(Attribute a) {
+
+		a.inverseRelation && util.isOneToManyRelation(a) && util.isOneToManyRelation(a.anyInverseAttribute)
+	}
+
+	def Set<Attribute> getInverseAttributeSet(Attribute a) {
+
+		if (null != a.opposite) {
+
+			return newHashSet(a.opposite)
+		} else {
+
+			val inverseSet = inverseReferenceMap.get(a)
+			if (!inverseSet.empty) {
+
+				return inverseSet
+			} else {
+
+				return newHashSet
+			}
+		}
+	}
+
+	/**
+	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
+	 * relation.
+	 */
+	def Set<Attribute> refersOppositeAttribute(Attribute a) {
+
+		if (null != a.opposite) {
+
+			newHashSet(a.opposite)
+		} else {
+
+			if (inverseReferenceMap.containsKey(a)) {
+
+				inverseReferenceMap.get(a)
+			}
+		}
+	}
+
 	/** ~~~~~~~~~~~~~~~~~~~~~~~~~ PRIVATE METHODS ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	//
 	/**

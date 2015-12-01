@@ -316,80 +316,80 @@ class XcoreGenerator implements IGenerator {
 		}
 	} 
 	
-	/**
-	 * True, if a is part of an inverse relation with many-to-many relation.
-	 */
-	def isInverseManyToManyRelation(Attribute a) {
-		
-		a.inverseRelation && util.isOneToManyRelation(a) && util.isOneToManyRelation(a.anyInverseAttribute)
-	}
+//	/**
+//	 * True, if a is part of an inverse relation with many-to-many relation.
+//	 */
+//	def isInverseManyToManyRelation(Attribute a) {
+//		
+//		a.inverseRelation && util.isOneToManyRelation(a) && util.isOneToManyRelation(a.anyInverseAttribute)
+//	}
 	
-	/**
-	 * True if a refers to an inverse relation.
-	 */
-	protected def isInverseRelation(Attribute a) {
-		
-		interpreter.inverseReferenceMap.containsKey(a) || null!=a.opposite
-	}
+//	/**
+//	 * True if a refers to an inverse relation.
+//	 */
+//	protected def isInverseRelation(Attribute a) {
+//		
+//		interpreter.inverseReferenceMap.containsKey(a) || null!=a.opposite
+//	}
+//	
+//	/** 
+//	 * Get inverse attribute
+//	 */
+//	protected def Attribute getAnyInverseAttribute(Attribute a) {
+//		
+//		return 
+//			if(null!=a.opposite) 
+//				a.opposite 
+//			else
+//				interpreter.inverseReferenceMap.get(a)?.findFirst[it!=null]
+//	}
+//	
+//	def boolean isLeftNonUniqueRelation(Attribute a)
+//	{
+//		val knownDeclaring = 
+//			if(null!=a.opposite) 
+//				interpreter.inverseReferenceMap.get(a.opposite) 
+//			else 
+//				interpreter.inverseReferenceMap.get(a)
+//				 
+//		return if(null==knownDeclaring) false else knownDeclaring.size > 1
+//	}
 	
-	/** 
-	 * Get inverse attribute
-	 */
-	protected def Attribute getAnyInverseAttribute(Attribute a) {
-		
-		return 
-			if(null!=a.opposite) 
-				a.opposite 
-			else
-				interpreter.inverseReferenceMap.get(a)?.findFirst[it!=null]
-	}
-	
-	def boolean isLeftNonUniqueRelation(Attribute a)
-	{
-		val knownDeclaring = 
-			if(null!=a.opposite) 
-				interpreter.inverseReferenceMap.get(a.opposite) 
-			else 
-				interpreter.inverseReferenceMap.get(a)
-				 
-		return if(null==knownDeclaring) false else knownDeclaring.size > 1
-	}
-	
-	def Set<Attribute> getInverseAttributeSet(Attribute a) {
-		
-		if(null!=a.opposite) {
-			
-			return newHashSet( a.opposite )
-		} else {
-			
-			val inverseSet = interpreter.inverseReferenceMap.get(a)
-			if(!inverseSet.empty) {
-			
-				return inverseSet	
-			} else {
-				
-				return newHashSet
-			}
-		}
-	}
+//	def Set<Attribute> getInverseAttributeSet(Attribute a) {
+//		
+//		if(null!=a.opposite) {
+//			
+//			return newHashSet( a.opposite )
+//		} else {
+//			
+//			val inverseSet = interpreter.inverseReferenceMap.get(a)
+//			if(!inverseSet.empty) {
+//			
+//				return inverseSet	
+//			} else {
+//				
+//				return newHashSet
+//			}
+//		}
+//	}
 
-	/**
-	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
-	 * relation.
-	 */
-	def Set<Attribute> refersOppositeAttribute(Attribute a) {
-		
-		if(null!=a.opposite) {
-			
-		 	newHashSet(a.opposite)
-		} else {
-			
-			if(interpreter.inverseReferenceMap.containsKey(a)) {
-				
-				interpreter.inverseReferenceMap.get(a)
-			}
-		}
-	}
+//	/**
+//	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
+//	 * relation.
+//	 */
+//	def Set<Attribute> refersOppositeAttribute(Attribute a) {
+//		
+//		if(null!=a.opposite) {
+//			
+//		 	newHashSet(a.opposite)
+//		} else {
+//			
+//			if(interpreter.inverseReferenceMap.containsKey(a)) {
+//				
+//				interpreter.inverseReferenceMap.get(a)
+//			}
+//		}
+//	}
 		
 	/**
 	 * Pre-processes the scheme before generating any code.
@@ -653,7 +653,7 @@ class XcoreGenerator implements IGenerator {
 				»«alias.compileDatatype»«
 			ELSE
 				»«
-				IF parentAttribute?.inverseManyToManyRelation || parentAttribute?.leftNonUniqueRelation
+				IF parentAttribute != null && (interpreter.isInverseManyToManyRelation(parentAttribute) || interpreter.isLeftNonUniqueRelation(parentAttribute))
 					»«parentAttribute.proxyRef»«
 				ELSE
 					»«IF alias instanceof ReferenceType
@@ -822,7 +822,7 @@ class XcoreGenerator implements IGenerator {
 		
 		// Determine declaring inverse
 		
-		val declaringInverse = if (util.isDeclaringInverseAttribute(a)) a else a.anyInverseAttribute
+		val declaringInverse = if (util.isDeclaringInverseAttribute(a)) a else interpreter.getAnyInverseAttribute(a)
 		val declaringInverseSet = interpreter.inverseReferenceMap.get(declaringInverse.opposite)
 		
 		// Get mapping if existing
@@ -832,7 +832,7 @@ class XcoreGenerator implements IGenerator {
 			
 		// Generate if not
 		var qnClassRef = ""					
-		if(declaringInverse.leftNonUniqueRelation) {
+		if(interpreter.isLeftNonUniqueRelation(declaringInverse)) {
 			
 			// Non-unique relation (SELECT on right hand side
 
@@ -881,22 +881,22 @@ class XcoreGenerator implements IGenerator {
 		return qnClassRef
 	}
 	
-	/**
-	 * Returns the local QN of opposite attribute, if there's any.
-	 */
-	def String getOppositeRef(Attribute a) {
-		
-		if(a.inverseRelation) {
-			if(a.inverseManyToManyRelation || a.leftNonUniqueRelation) {
-				
-				return interpreter.nestedProxiesQN.get(a).value
-				
-			} else  {
-				
-				return a.anyInverseAttribute.name				
-			}
-		}
-	}
+//	/**
+//	 * Returns the local QN of opposite attribute, if there's any.
+//	 */
+//	def String getOppositeRef(Attribute a) {
+//		
+//		if(a.inverseRelation) {
+//			if(a.inverseManyToManyRelation || a.leftNonUniqueRelation) {
+//				
+//				return interpreter.nestedProxiesQN.get(a).value
+//				
+//			} else  {
+//				
+//				return a.anyInverseAttribute.name				
+//			}
+//		}
+//	}
 	
 
 	// --- COMPILATION RULES --------------------------
@@ -940,7 +940,7 @@ class XcoreGenerator implements IGenerator {
 	def compileAttribute(Attribute a) {
 		
 		'''«IF !util.isBuiltinAlias(a.type)»«
-				IF a.inverseManyToManyRelation || a.leftNonUniqueRelation
+				IF interpreter.isInverseManyToManyRelation(a) || interpreter.isLeftNonUniqueRelation(a)
 					»@XpressModel(kind="proxy") contains «
 				ELSE
 					»«util.refersConcept(a.type)?.compileInlineAnnotation
@@ -961,8 +961,8 @@ class XcoreGenerator implements IGenerator {
 				»derived «
 			ENDIF
 			»«a.type.compileDatatype» «a.name.toFirstLower» «
-			IF a.inverseRelation
-				»opposite «a.oppositeRef.toFirstLower
+			IF interpreter.isInverseRelation(a)
+				»opposite «interpreter.getOppositeRef(a).toFirstLower
 			»«ENDIF»'''
 	}
 	
