@@ -63,6 +63,13 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//LocalVar/type"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//LocalVar/expression"/>
     </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//FunctionExpression">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//FunctionExpression/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/arguments"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/return"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/loacls"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/statements"/>
+    </genClasses>
     <genClasses ecoreClass="EXPRESS.ecore#//Function">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Function/name"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Function/params"/>

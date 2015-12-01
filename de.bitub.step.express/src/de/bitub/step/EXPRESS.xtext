@@ -95,10 +95,22 @@ ConstantVal:
 LocalVar:
 	varname+=ID (',' varname+=ID)* ':' type=DataType (':=' expression=Line)?;
 
+/**
+ * Stand-alone Function Expression, with arguments, return type, defined local variables 
+ * and statements inside function body.
+ * 
+ * @version 2 
+ */
+FunctionExpression:
+	'FUNCTION' name=ID arguments=ParameterList ':' return=DataType SEMICOLON
+	('LOCAL' (loacls+=LocalVar SEMICOLON)+ 'END_LOCAL' SEMICOLON)?
+	(statements+=Statement SEMICOLON)*
+	'END_FUNCTION' SEMICOLON;
+
 Function:
 	'FUNCTION' name=ID params=ParameterList ':' returnType=DataType SEMICOLON
 	// beliebige Declartion (z.Bsp. Entity) können hier noch stehen  
-	('CONSTANT' (constants+=ConstantVal SEMICOLON)+ 'END_CONSTANT' SEMICOLON)?
+	('CONSTANT' (constants+=ConstantVal SEMICOLON)+ 'END_CONSTANT' SEMICOLON)? // unused feature in IFC4
 	('LOCAL' (localVar+=LocalVar SEMICOLON)+ 'END_LOCAL' SEMICOLON)?
 	(statements+=Statement SEMICOLON)*
 	'END_FUNCTION' SEMICOLON;
