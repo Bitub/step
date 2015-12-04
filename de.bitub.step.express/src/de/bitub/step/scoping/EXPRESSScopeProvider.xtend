@@ -49,7 +49,7 @@ class EXPRESSScopeProvider extends AbstractDeclarativeScopeProvider {
 		if (dataType instanceof ReferenceType) {
 
 			if (dataType.instance instanceof Entity) {
-				Scopes.scopeFor((dataType.instance as Entity).attribute, IScope.NULLSCOPE);
+				Scopes.scopeFor((dataType.instance as Entity).attributes, IScope.NULLSCOPE);
 			}
 		} else {
 
@@ -78,7 +78,7 @@ class EXPRESSScopeProvider extends AbstractDeclarativeScopeProvider {
 
 	def void recursiveSuperExecute(List<Attribute> candidates, Entity entity) {
 
-		candidates += entity.attribute
+		candidates += entity.attributes
 		entity.supertype.forEach[supertype|recursiveSuperExecute(candidates, supertype)];
 	}
 }

@@ -53,9 +53,9 @@ Entity:
 	subtype+=[Entity|ID] (',' subtype+=[Entity|ID])*) ')')?
 	('SUBTYPE' 'OF' '(' supertype+=[Entity|ID] (',' supertype+=[Entity|ID])* ')')?
 	SEMICOLON
-	(attribute+=Attribute SEMICOLON)*
-	('DERIVE' (attribute+=DerivedAttribute SEMICOLON)+)?
-	('INVERSE' (attribute+=InverseAttribute SEMICOLON)+)?
+	(attributes+=Attribute SEMICOLON)*
+	('DERIVE' (attributes+=DerivedAttribute SEMICOLON)+)?
+	('INVERSE' (attributes+=InverseAttribute SEMICOLON)+)?
 	('UNIQUE' (uniqueRule+=UniqueRule SEMICOLON)+)?
 	('WHERE' (whereRule+=WhereRule SEMICOLON)+)?
 	'END_ENTITY' SEMICOLON;
@@ -67,7 +67,7 @@ Blackbox:
 
 	// Attributes
 // Nur in Derive wird ein optionaler Select über die Vaterklasse mit
-// SELF\ENTITY.attribut ausgeführt.; Hier aber mit aufgenommen
+// SELF\ENTITY.attribut ausgeführt.; Hier aber mit aufgenommen (IfcGeometricRepresentationSubContext)
 Attribute:
 	(self?='SELF\\' (qualifier+=ID '.')+)? name=ID ':' (optional?='OPTIONAL')? (type=DataType);
 

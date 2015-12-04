@@ -29,7 +29,7 @@
         upperBound="-1" eType="#//Entity"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="supertype" unique="false"
         upperBound="-1" eType="#//Entity"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="attribute" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributes" upperBound="-1"
         eType="#//Attribute" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="uniqueRule" upperBound="-1"
         eType="#//UniqueRule" containment="true"/>
