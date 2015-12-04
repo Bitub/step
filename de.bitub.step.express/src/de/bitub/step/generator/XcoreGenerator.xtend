@@ -26,21 +26,22 @@ import de.bitub.step.express.Type
 import de.bitub.step.generator.util.XcoreUtil
 import java.util.Date
 import java.util.Set
-import javax.inject.Inject
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import com.google.inject.Inject
 
 /**
  * Generates Xcore specifications from EXPRESS models.
  */
 class XcoreGenerator implements IGenerator {
 		
-	val static Logger LOGGER = Logger.getLogger(XcoreGenerator);
+	@Inject private static Logger LOGGER;
 		
 	@Inject extension IQualifiedNameProvider
+	
 	@Inject ExpressInterpreter interpreter;
 	@Inject FunctionGenerator functionGenerator;
 	@Inject XcoreUtil util;
@@ -52,13 +53,13 @@ class XcoreGenerator implements IGenerator {
 	// Current project folder
 	//
 	var projectFolder = "<project folder>";
-		
+
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		
+
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
-							
-		XcoreGenerator.LOGGER.info("Generating XCore representation of "+schema.name)
-				
+
+		LOGGER.info("Generating XCore representation of "+schema.name)
+
 		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
 	}
 	
@@ -81,7 +82,8 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Compiles the header / annotation information on top of the Xcore file.
 	 */
-	def compileHeader(Schema s) '''
+	def compileHeader(Schema s) 
+		'''
 		@Ecore(nsPrefix="«s.name»",nsURI="http://example.org/«s.name»")
 		@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
 		@GenModel(
@@ -94,15 +96,13 @@ class XcoreGenerator implements IGenerator {
 		//	importerID="org.eclipse.emf.importer.ecore", 
 		//	featureDelegation="Dynamic", 
 		//	providerRootExtendsclassRef="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"
-		)	
-	'''
-	
-	
+		)
+		'''
+		
 	/**
 	 * Check whether there are any entity concepts inside set.
 	 */
-	def static isEntityCompositeSelect(Set<ExpressConcept> selects) {
-	
+	def static isEntityCompositeSelect(Set<ExpressConcept> selects) {	
 		selects.exists[it instanceof Entity]	
 	}
 	
@@ -112,53 +112,59 @@ class XcoreGenerator implements IGenerator {
 	def static boolean isUniqueCollectionSelect(Iterable<CollectionType> aggregationTypes) {
 		
 		// Check unique aggregation type
-		if(aggregationTypes.map[name].toSet.size > 1) {
-			
+		//
+		if(aggregationTypes.map[name].toSet.size > 1) {			
 			return false
 		}
 		
-		val nonNullLowerBound = aggregationTypes.findFirst[lowerBound > 0]
+		val nonNullLowerBound = aggregationTypes.findFirst[lowerBound > 0];
+		
 		// If there any non-null lower bound
-		if(null!=nonNullLowerBound 
-			&& aggregationTypes.filter[lowerBound != nonNullLowerBound.lowerBound ].size > 1
-		) {
+		//
+		if(null!=nonNullLowerBound && aggregationTypes.filter[lowerBound != nonNullLowerBound.lowerBound ].size > 1) {
+			
 			// False, if there are multiple lower bounds
+			//
 			return false;
 		}
 
 		val nonNullUpperBound = aggregationTypes.findFirst[upperBound > 0]
+		
 		// If there any non-null upper bound
-		if(null!=nonNullLowerBound 
-			&& aggregationTypes.filter[upperBound != nonNullUpperBound.upperBound ].size > 1
-		) {
+		//
+		if(null!=nonNullLowerBound && aggregationTypes.filter[upperBound != nonNullUpperBound.upperBound ].size > 1) {
+			
 			// False if there are multiple upper bounds
+			//
 			return false;
 		}
 		
 		val nestedCollections = aggregationTypes.filter[it.type instanceof CollectionType];
+		
 		if(!nestedCollections.empty) {
+			
 			// If there are nested aggregations
+			//
 			if(nestedCollections.size < aggregationTypes.size) {
-				
-				return false
-				
+		
+				return false			
 			} else {
+				
 				// Check nested aggregation
+				//
 				return isUniqueCollectionSelect(nestedCollections.map[type as CollectionType])
 			}
 		}
 				
-		val typeSet = aggregationTypes.map[it.type.eClass].toSet
-		if(typeSet.size>1) {
-			
+		val typeSet = aggregationTypes.map[it.type.eClass].toSet;
+		
+		if(typeSet.size>1) {			
 			return false
 		}
 		
 		// Check if concept
-		if(aggregationTypes
-			.filter[it.type instanceof ExpressConcept]
-			.map[(it.type as ExpressConcept).name].toSet.size > 1
-		) {
+		//
+		if(aggregationTypes.filter[it.type instanceof ExpressConcept].map[(it.type as ExpressConcept).name].toSet.size > 1) {
 			return false
 		}
 		
@@ -171,9 +177,10 @@ class XcoreGenerator implements IGenerator {
 	def static isUniqueAliasSelect(Set<ExpressConcept> selects) {
 		
 		// Filter for aggregations
-		val aggregationTypes = selects.filter[
-			it instanceof Type && (it as Type).datatype instanceof CollectionType
-		].map[(it as Type).datatype as CollectionType];
+		//
+		val aggregationTypes = selects
+			.filter[it instanceof Type && (it as Type).datatype instanceof CollectionType]
+			.map[(it as Type).datatype as CollectionType];
 		
 		var isAggregationSelect = !aggregationTypes.empty
 		if(isAggregationSelect) {
@@ -194,18 +201,18 @@ class XcoreGenerator implements IGenerator {
 		
 		}		
 				
-		if(builtinSelects.map[eClass].toSet.size > 1) {
-		
-			// TODO Test number types
-		}
-		
-		// Test for generic selects
-		val genericSelects = selects.filter[
-			it instanceof Type && (it as Type).datatype instanceof GenericType 
-		].map[(it as Type).datatype as GenericType]
-		
-		var isGenericSelect = !genericSelects.empty
-		// TODO
+//		if(builtinSelects.map[eClass].toSet.size > 1) {
+//		
+//			// TODO Test number types
+//		}
+//		
+//		// Test for generic selects
+//		val genericSelects = selects.filter[
+//			it instanceof Type && (it as Type).datatype instanceof GenericType 
+//		].map[(it as Type).datatype as GenericType]
+//		
+//		var isGenericSelect = !genericSelects.empty
+//		 TODO
 		
 	}
 	
@@ -236,7 +243,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Returns the transitive associated datatype.
 	 */
-	def DataType refersTransitiveDatatype(DataType t) {
+	def dispatch DataType refersTransitiveDatatype(DataType t) {
 		
 		if(t  instanceof ReferenceType) {
 			
@@ -256,7 +263,7 @@ class XcoreGenerator implements IGenerator {
 		}
 	}
 	
-	def DataType refersTransitiveDatatype(Type t) {
+	def dispatch DataType refersTransitiveDatatype(Type t) {
 		
 		t.datatype.refersTransitiveDatatype
 	}
@@ -315,143 +322,8 @@ class XcoreGenerator implements IGenerator {
 			''''''
 		}
 	} 
-	
-//	/**
-//	 * True, if a is part of an inverse relation with many-to-many relation.
-//	 */
-//	def isInverseManyToManyRelation(Attribute a) {
-//		
-//		a.inverseRelation && util.isOneToManyRelation(a) && util.isOneToManyRelation(a.anyInverseAttribute)
-//	}
-	
-//	/**
-//	 * True if a refers to an inverse relation.
-//	 */
-//	protected def isInverseRelation(Attribute a) {
-//		
-//		interpreter.inverseReferenceMap.containsKey(a) || null!=a.opposite
-//	}
-//	
-//	/** 
-//	 * Get inverse attribute
-//	 */
-//	protected def Attribute getAnyInverseAttribute(Attribute a) {
-//		
-//		return 
-//			if(null!=a.opposite) 
-//				a.opposite 
-//			else
-//				interpreter.inverseReferenceMap.get(a)?.findFirst[it!=null]
-//	}
-//	
-//	def boolean isLeftNonUniqueRelation(Attribute a)
-//	{
-//		val knownDeclaring = 
-//			if(null!=a.opposite) 
-//				interpreter.inverseReferenceMap.get(a.opposite) 
-//			else 
-//				interpreter.inverseReferenceMap.get(a)
-//				 
-//		return if(null==knownDeclaring) false else knownDeclaring.size > 1
-//	}
-	
-//	def Set<Attribute> getInverseAttributeSet(Attribute a) {
-//		
-//		if(null!=a.opposite) {
-//			
-//			return newHashSet( a.opposite )
-//		} else {
-//			
-//			val inverseSet = interpreter.inverseReferenceMap.get(a)
-//			if(!inverseSet.empty) {
-//			
-//				return inverseSet	
-//			} else {
-//				
-//				return newHashSet
-//			}
-//		}
-//	}
-
-//	/**
-//	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
-//	 * relation.
-//	 */
-//	def Set<Attribute> refersOppositeAttribute(Attribute a) {
-//		
-//		if(null!=a.opposite) {
-//			
-//		 	newHashSet(a.opposite)
-//		} else {
-//			
-//			if(interpreter.inverseReferenceMap.containsKey(a)) {
-//				
-//				interpreter.inverseReferenceMap.get(a)
-//			}
-//		}
-//	}
-		
-	/**
-	 * Pre-processes the scheme before generating any code.
-	 *  - Registering and flattening select types with composite entities
-	 *  - Simplifying selects with unique builtin type
-	 * 
-	 * 
-	 */
-//	protected def preprocess(Schema s) {
-//		
-//		// Filter for simplified type selects
-//		myLog.info("Processing select types ...")
-//		for(Type t : s.types.filter[it.datatype instanceof SelectType]) {
-//			
-//			val conceptSet = selectSet(t)
-//			myLog.debug("~> Type definition of \""+t.name+"\" resolved to "+conceptSet.size+" sub concept(s).")
-//		
-//			interpreter.resolvedSelectsMap.put(t, conceptSet)
-//		}
-//				
-//		myLog.info("Finished. Found "+interpreter.resolvedSelectsMap.size+" select(s) in schema.")
-//		myLog.info("Processing inverse relations ...")
-//		
-//		for(Entity e : s.entities.filter[attribute.exists[opposite!=null]]) {
-//						
-//			// Filter for both sided collection types, omit any restriction (cardinalities etc.)
-//			for(Attribute a : e.attribute.filter[opposite!=null]) {
-//
-//				val oppositeEntity = a.opposite.eContainer as ExpressConcept;				
-//				myLog.debug("~> "+(a.eContainer as Entity).name+"."+a.name+" <--> "+oppositeEntity.name+"."+a.opposite.name)
-//						
-//				// Inverse super-type references 
-//				val refConcept = util.refersConcept(a.opposite.type)
-//				if( refConcept instanceof Entity && !refConcept.equals(e) ) {
-//					
-//					// TODO Inheritance checking
-//					var aList = interpreter.inverseSupertypeMap.get(e)
-//					if(null==aList) {
-//						aList = newArrayList
-//						interpreter.inverseSupertypeMap.put(refConcept as Entity, aList)
-//					}
-//					aList += a
-//				}
-//				
-//				// Add opposite versus declaring attribute
-//				var inverseAttributeSet = interpreter.inverseReferenceMap.get(a.opposite)
-//				if(null==inverseAttributeSet) {
-//					inverseAttributeSet = newHashSet
-//					interpreter.inverseReferenceMap.put(a.opposite, inverseAttributeSet)
-//				}
-//				
-//				inverseAttributeSet += a				
-//			}
-//		}
-//		
-//		myLog.info("Finished. Found "+interpreter.inverseReferenceMap.size+" relation(s) with "+ 
-//			interpreter.inverseReferenceMap.values.filter[size > 1].size+" non-unique left hand side (select on right hand).")
-//	}
-		
 
 	// --- GENERATOR CODE ------------------------------------
-
 
 	/**
 	 * Transforms a schema into a package definition.
@@ -485,10 +357,14 @@ class XcoreGenerator implements IGenerator {
 		@GenModel(documentation="Generated container class of «s.name»")
 		@XpressModel(kind="new")
 		class «s.name» {
-		
+					
 		«FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
 		«ENDFOR»
 		
+		// persisted SELECTS
+		
+		«FOR t:s.types.filter[datatype instanceof SelectType]»  contains «t.name.toFirstUpper»[] «t.name.toFirstLower»
+		«ENDFOR»
 		}
 		
 		// --- TYPE DEFINITIONS ------------------------------
@@ -526,7 +402,7 @@ class XcoreGenerator implements IGenerator {
 			  »// FIXME op «a.type.compileDatatype» get«a.name.toFirstUpper»()«
 			ENDFOR»«
 		  ENDIF»
-		  «FOR a : e.attribute»
+		  «FOR a : e.attributes»
 		  
 		  «IF !util.isDerivedAttribute(a)»
 		  @GenModel(documentation="Attribute definition of «a.name»")
@@ -881,24 +757,6 @@ class XcoreGenerator implements IGenerator {
 		return qnClassRef
 	}
 	
-//	/**
-//	 * Returns the local QN of opposite attribute, if there's any.
-//	 */
-//	def String getOppositeRef(Attribute a) {
-//		
-//		if(a.inverseRelation) {
-//			if(a.inverseManyToManyRelation || a.leftNonUniqueRelation) {
-//				
-//				return interpreter.nestedProxiesQN.get(a).value
-//				
-//			} else  {
-//				
-//				return a.anyInverseAttribute.name				
-//			}
-//		}
-//	}
-	
-
 	// --- COMPILATION RULES --------------------------
 		
 	def dispatch CharSequence compileDatatype(CollectionType c) {
@@ -966,15 +824,6 @@ class XcoreGenerator implements IGenerator {
 			»«ENDIF»'''
 	}
 	
-
-	def isInverseOppositeAttributeContainerAbstract(Attribute a){
-				
-		val cont = a.eContainer as Entity;
-		if(cont.isAbstract){
-			System.out.println("ATTR" + a.eContainer);			
-		}
-		return cont.isAbstract;
-	}
 	
 	// --- COMPILATION OF FUNCTIONS
 	

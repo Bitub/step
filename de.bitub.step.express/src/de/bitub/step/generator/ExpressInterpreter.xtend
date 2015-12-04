@@ -17,7 +17,8 @@ class ExpressInterpreter {
 	@Inject XcoreUtil util;
 
 	/** ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	val static Logger LOGGER = Logger.getLogger(ExpressInterpreter);
+	//
+	var static Logger LOGGER = Logger.getLogger(ExpressInterpreter);
 
 	/** ~~~~~~~~~~~~~~~~~~~~~~~~~ PUBLIC MEMBERS ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	// Flattened concept set of selects
@@ -66,42 +67,42 @@ class ExpressInterpreter {
 		LOGGER.info("Finished. Found " + resolvedSelectsMap.size + " select(s) in schema.")
 		LOGGER.info("Processing inverse relations ...")
 
-		for (Entity e : schema.entities.filter[attribute.exists[opposite != null]]) {
+		for (Entity entity : schema.entities.filter[attributes.exists[opposite != null]]) {
 
 			// Filter for both sided collection types, omit any restriction (cardinalities etc.)
 			//
-			for (Attribute a : e.attribute.filter[opposite != null]) {
+			for (Attribute attribute : entity.attributes.filter[opposite != null]) {
 
-				val oppositeEntity = a.opposite.eContainer as ExpressConcept
+				val oppositeEntity = attribute.opposite.eContainer as ExpressConcept
 
 				LOGGER.debug(
-					"~> " + (a.eContainer as Entity).name + "." + a.name + " <--> " + oppositeEntity.name + "." +
-						a.opposite.name)
+					"~> " + (attribute.eContainer as Entity).name + "." + attribute.name + " <--> " + oppositeEntity.name + "." +
+						attribute.opposite.name)
 
 				// Inverse super-type references
 				//
-				val refConcept = util.refersConcept(a.opposite.type)
-				if (refConcept instanceof Entity && !refConcept.equals(e)) {
+				val refConcept = util.refersConcept(attribute.opposite.type)
+				if (refConcept instanceof Entity && !refConcept.equals(entity)) {
 
 					// TODO (Bernold Kraft) Inheritance checking
 					//
-					var aList = inverseSupertypeMap.get(e)
+					var aList = inverseSupertypeMap.get(entity)
 					if (null == aList) {
 						aList = newArrayList
 						inverseSupertypeMap.put(refConcept as Entity, aList)
 					}
-					aList += a
+					aList += attribute
 				}
 
 				// Add opposite versus declaring attribute
 				//
-				var inverseAttributeSet = inverseReferenceMap.get(a.opposite)
+				var inverseAttributeSet = inverseReferenceMap.get(attribute.opposite)
 				if (null == inverseAttributeSet) {
 					inverseAttributeSet = newHashSet
-					inverseReferenceMap.put(a.opposite, inverseAttributeSet)
+					inverseReferenceMap.put(attribute.opposite, inverseAttributeSet)
 				}
 
-				inverseAttributeSet += a
+				inverseAttributeSet += attribute
 			}
 		}
 
@@ -211,14 +212,16 @@ class ExpressInterpreter {
 
 		if (t instanceof Type) {
 			if (t.datatype instanceof SelectType) {
+				
+				var selectType = t.datatype as SelectType;
 
 				// Self evaluation
-				var set = (t.datatype as SelectType).select.filter [
+				var set = selectType.select.filter [
 					!(it instanceof Type && (it as Type).datatype instanceof SelectType)
 				].toSet;
 
-				// Recursion
-				(t.datatype as SelectType).select.filter [
+				// Recursion (filter all SELECTs)
+				selectType.select.filter [
 					it instanceof Type && (it as Type).datatype instanceof SelectType
 				].forEach[uniqueTypeSet += selectSet(it)]
 
