@@ -14,16 +14,40 @@ import de.bitub.step.express.Attribute
 import de.bitub.step.express.BuiltInType
 import de.bitub.step.express.CollectionType
 import de.bitub.step.express.DataType
+import de.bitub.step.express.Entity
+import de.bitub.step.express.EnumType
 import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
-import de.bitub.step.express.EnumType
+
+import static extension org.eclipse.xtext.EcoreUtil2.*
 
 /**
  * Class with helper methods.
  */
 class XcoreUtil {
+
+	/**
+	 * Get the antity container for the given attribute.
+	 */
+	def static containingEntity(Attribute attribute) {
+		attribute.getContainerOfType(typeof(Entity))
+	}
+
+	/**
+	 * Get all derived attributes of the given entity.
+	 */
+	def static derived(Entity entity) {
+		entity.attributes.filter[it.expression != null]
+	}
+
+	/**
+	 * Get all inverse attributes of the given entity.
+	 */
+	def static inverse(Entity entity) {
+		entity.attributes.filter[it.opposite != null]
+	}
 
 	/**
 	 * Whether the current data type is translated to a nested aggregation.
@@ -128,6 +152,15 @@ class XcoreUtil {
 		}
 	}
 
+	def isInverseOppositeAttributeContainerAbstract(Attribute a) {
+
+		val cont = a.eContainer as Entity;
+		if (cont.isAbstract) {
+			System.out.println("ATTR" + a.eContainer);
+		}
+		return cont.isAbstract;
+	}
+
 	/**
 	 * Returns the transitively referred concept, if there's any referenced
 	 */
@@ -175,7 +208,7 @@ class XcoreUtil {
 		} else {
 
 			false
-		}		
+		}
 	}
 
 	/**
