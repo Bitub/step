@@ -11,3 +11,5 @@ Require-Bundle: de.bitub.step.p21.antlr;bundle-version="1.0.0",
  org.buildingsmart.ifc4;bundle-version="0.1.0"
 Export-Package: de.bitub.step.p21;uses:="org.eclipse.emf.ecore",
  de.bitub.step.p21.util
+Import-Package: org.buildingsmart.ifc4,
+ org.buildingsmart.ifc4.impl

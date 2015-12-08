@@ -10,14 +10,19 @@
  */
 package de.bitub.step.p21;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
+import javax.swing.text.StyledEditorKit.BoldAction;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.eclipse.emf.common.util.EList;
@@ -106,7 +111,25 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
    */
   public P21ParserListener()
   {
-    LOGGER.setLevel(Level.CONFIG);
+    FileHandler fh;
+
+    try {
+      // This block configure the logger with handler and formatter
+      //
+      fh = new FileHandler("ifc-files/" + this.getClass().getName() + ".log");
+      SimpleFormatter formatter = new SimpleFormatter();
+      fh.setFormatter(formatter);
+
+      LOGGER.setLevel(Level.ALL);
+      LOGGER.addHandler(fh);
+      LOGGER.setUseParentHandlers(false);
+    }
+    catch (SecurityException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public EObject getContainer()
@@ -239,7 +262,22 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void exitInteger(IntegerContext ctx)
   {
-    StepUntypedToEcore.eInteger(curParameterIndex, curObject, ctx.getText(), util);
+    if (!isInList) {
+
+      StepUntypedToEcore.eInteger(curParameterIndex, curObject, ctx.getText(), util);
+    } else {
+
+      try {
+        LOGGER.warning(String.format("String in %s - %s  ", this.eList, ctx.getText()));
+
+        if (eList != null) {
+          this.eList.add(Integer.parseInt(ctx.getText()));
+        }
+      }
+      catch (ArrayStoreException exception) { // FIXME how to handle that
+        exception.printStackTrace();
+      }
+    }
   }
 
   /**
@@ -253,7 +291,22 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   public void exitString(StringContext ctx)
   {
     if (mode == Mode.DATA && this.curObject != null) {
-      StepUntypedToEcore.eString(curParameterIndex, curObject, ctx.getText(), util);
+      if (!isInList) {
+
+        StepUntypedToEcore.eString(curParameterIndex, curObject, ctx.getText(), util);
+      } else {
+
+        try {
+          LOGGER.warning(String.format("String in %s - %s  ", this.eList, ctx.getText()));
+
+          if (eList != null) {
+            this.eList.add(ctx.getText());
+          }
+        }
+        catch (ArrayStoreException exception) { // FIXME how to handle that
+          exception.printStackTrace();
+        }
+      }
     }
   }
 
@@ -274,7 +327,11 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
       } else {
 
         try {
-          this.eList.add(Double.parseDouble(ctx.getText()));
+          LOGGER.warning(String.format("double in %s - %s  ", this.eList, ctx.getText()));
+
+          if (eList != null) {
+            this.eList.add(Double.parseDouble(ctx.getText()));
+          }
         }
         catch (ArrayStoreException exception) { // FIXME how to handle that
           exception.printStackTrace();
@@ -283,7 +340,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
     }
   }
 
-  private void resolveReference(String referenceId)
+  private EObject resolveReference(String referenceId)
   {
     // this is a backwards reference, which already holds the right object
     //
@@ -293,7 +350,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
       try {
         StepUntypedToEcore.setEStructuralFeature(curParameterIndex, curObject, referencedObject, util);
-        LOGGER.info("Set resolvable REFERENCE: " + referenceId + " -> " + referencedObject);
+        LOGGER.info("Set resolvable REFERENCE: " + referenceId + " -> " + referencedObject.eClass().getName());
       }
       catch (ClassCastException exception) {
         LOGGER.warning("ClassCastException: Un-resolvable REFERENCE: " + referenceId + ": " + exception.getMessage());
@@ -301,6 +358,8 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
       catch (Exception e) {
         LOGGER.warning("Exception Un-resolvable REFERENCE: " + referenceId + ": " + e.getMessage());
       }
+
+      return referencedObject;
 
     } else {
 
@@ -336,6 +395,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
             LOGGER.warning("Exception Un-resolvable REFERENCE: " + referenceId + ": " + e.getMessage());
           }
         }
+        return preCreated;
       } else {
 
         EObject placeholder = forwards.get(referenceId);
@@ -349,6 +409,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
         catch (Exception exception) {
           LOGGER.warning("Un-resolvable REFERENCE: " + referenceId + ": " + exception.getMessage());
         }
+        return placeholder;
       }
     }
   }
@@ -396,11 +457,22 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   {
     if (mode == Mode.DATA && this.curObject != null) {
 
-      if (ctx.ENTITY_INSTANCE_NAME() != null && !isInList) {
-
+      if (ctx.ENTITY_INSTANCE_NAME() != null) {
         String referenceId = ctx.ENTITY_INSTANCE_NAME().getText();
-        this.addDependantId(referenceId);
-        this.resolveReference(referenceId);
+
+        if (!isInList) {
+          this.addDependantId(referenceId);
+          this.resolveReference(referenceId);
+        } else {
+          LOGGER.warning("AHHH " + this.curObject + " " + this.idToEntity.get(referenceId));
+
+          try {
+            this.eList.add(this.idToEntity.get(referenceId));
+          }
+          catch (ArrayStoreException | IllegalArgumentException exception) {
+            LOGGER.warning(exception.getStackTrace().toString());
+          }
+        }
       }
 
       if (ctx.ENUMERATION() != null) {
@@ -458,7 +530,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
     String innerKeyword = ctx.keyword().STANDARD_KEYWORD().getText();
 
     if (this.curObject != null) { // IfcMeasureWithUnit
-
+      LOGGER.warning("CUR_TYPED " + this.curObject.toString());
       // calculate index where to put current typed value
       //
       EList<EStructuralFeature> eStructuralFeatures = curObject.eClass().getEAllStructuralFeatures();
@@ -474,8 +546,8 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
         // the SELECT class which is referenced
         //
-        EClass eReferencedType = eReference.getEReferenceType(); // IfcValue
-        EObject eReferenedInstance = EcoreUtil.create(eReferencedType); // create referenced object
+        EClass eReferencedType = eReference.getEReferenceType(); // IfcValue        
+        EObject eReferenedInstance = util.addElementByKeyword(eReferencedType.getName());
 
         // find mapped attribute
         //
@@ -491,35 +563,67 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
         // this is the structural feature from the select which is needed
         //
         EStructuralFeature eReferenedInstanceFeature = eReferencedType.getEStructuralFeature(namedElement);
-        EMap<String, String> details =
-            eReferenedInstanceFeature.getEAnnotation("http://www.bitub.de/express/XpressModel").getDetails();
+        String kind = EcoreUtil.getAnnotation(eReferenedInstanceFeature, "http://www.bitub.de/express/XpressModel", "kind");
 
-        if (details.get("kind").equals("mapped")) { // this is a mapped value
+        if (kind.equals("mapped")) {
+
+          String datatype =
+              EcoreUtil.getAnnotation(eReferenedInstanceFeature, "http://www.bitub.de/express/XpressModel", "datatypeRef");
 
           // what type is it mapped to
           //
-          switch (details.get("datatypeRef")) {
+          switch (datatype) {
             case "double":
 
-              eReferenedInstance.eSet(eReferenedInstanceFeature, 15.0); // TODO set real value
+              LOGGER.config(String.format("DATA_TYPE double: %s", datatype));
+              eReferenedInstance.eSet(eReferenedInstanceFeature, Double.parseDouble(ctx.parameter().untyped().real().getText()));
+              break;
 
-              LOGGER.warning("Container is " + eStructuralFeature.eContainer());
-              LOGGER.warning(String.format("SET %s as %s of referenced %s", eReferenedInstance.eGet(eReferenedInstanceFeature),
-                  eReferenedInstanceFeature.getName(), eReferenedInstance.eClass().getName()));
+            case "int":
 
-              LOGGER.warning(String.format("PUT object of type %s as %s into %s", eReferenedInstance.eClass().getName(),
-                  eStructuralFeature.getName(), this.curObject.eClass().getName()));
+              LOGGER.config(String.format("DATA_TYPE int: %s", datatype));
+              eReferenedInstance.eSet(eReferenedInstanceFeature, Integer.parseInt(ctx.parameter().untyped().integer().getText()));
+              break;
 
-              // set reference to current object
-              //
-              this.curObject.eSet(eStructuralFeature, eReferenedInstance);
+            case "boolean": // IFC_BOOLEAN
+
+              LOGGER.config(String.format("DATA_TYPE boolean: %s", datatype));
+              String booleanValue = ctx.parameter().getText();
+
+              if (booleanValue.equalsIgnoreCase(".T.")) {
+
+                eReferenedInstance.eSet(eReferenedInstanceFeature, true);
+              } else {
+
+                eReferenedInstance.eSet(eReferenedInstanceFeature, false);
+              }
+              break;
+
+            case "Boolean": // IFC_LOGICAL
+
+              LOGGER.config(String.format("DATA_TYPE Boolean: %s", datatype));
+
+              String logicalValue = ctx.parameter().getText();
+
+              if (logicalValue.equalsIgnoreCase(".U.")) {
+
+                eReferenedInstance.eSet(eReferenedInstanceFeature, null);
+              }
+              break;
+
+            case "String":
+
+              LOGGER.config(String.format("DATA_TYPE String: %s", datatype));
+              eReferenedInstance.eSet(eReferenedInstanceFeature, ctx.parameter().untyped().string().getText());
               break;
 
             default:
-
-              LOGGER.warning(String.format("NO MATCH %s", details.get("datatypeRef")));
-              break;
+              LOGGER.warning(String.format("DATA_TYPE UNRESOLVED: %s", eReferenedInstance));
           }
+
+          // set reference to current object
+          //
+          this.curObject.eSet(eStructuralFeature, eReferenedInstance);
         }
       }
     }
@@ -538,20 +642,36 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
     if (this.curObject != null) {
 
       EList<EStructuralFeature> eStructuralFeatures = this.curObject.eClass().getEAllStructuralFeatures();
-      EStructuralFeature eStructuralFeature = eStructuralFeatures.get(this.curParameterIndex);
+      EStructuralFeature eStructuralFeature =
+          eStructuralFeatures.get(StepUntypedToEcore.calcIndex(curParameterIndex, eStructuralFeatures));
 
       if (eStructuralFeature instanceof EReference) {
-
         EReference eReference = (EReference) eStructuralFeature;
+
         LOGGER.warning(String.format("%s[] as %s in %s", eReference.getEReferenceType().getName(), eReference.getName(),
             this.curObject.eClass().getName()));
 
-        boolean isSet = eReference.isMany() && eReference.isUnique() && !eReference.isOrdered();
+        boolean isSet = eReference.isMany();// && eReference.isUnique() && !eReference.isOrdered();
         Object curRef = this.curObject.eGet(eReference);
 
         if (isSet && curRef instanceof List<?>) {
-
           this.eList = (List) curRef;
+          LOGGER.warning("NEW_LIST" + this.eList + " - " + eReference);
+        }
+      }
+
+      if (eStructuralFeature instanceof EAttribute) {
+        EAttribute eAttribute = (EAttribute) eStructuralFeature;
+
+        LOGGER.warning(String.format("%s[] as %s in %s", eAttribute.getEType().getName(), eAttribute.getName(),
+            this.curObject.eClass().getName()));
+
+        boolean isSet = eAttribute.isMany();// && eAttribute.isUnique() && !eAttribute.isOrdered();
+        Object curRef = this.curObject.eGet(eAttribute);
+
+        if (isSet && curRef instanceof List<?>) {
+          this.eList = (List) curRef;
+          LOGGER.warning("NEW_LIST" + this.eList + " - " + eAttribute);
         }
       }
     }
@@ -617,7 +737,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
       }
 
       EObject eObject = this.idToEntity.put(this.curIdAsString, this.curObject);
-      LOGGER.info("Put REFERENCE: " + this.curIdAsString + " - " + this.curKeyword + " -> " + this.curObject);
+      LOGGER.info("Put REFERENCE: " + this.curIdAsString + " - " + this.curKeyword + " -> " + this.curObject.eClass().getName());
 
       if (eObject != null) {
         this.curObject = forwards.remove(ctx.id.getText());
@@ -644,7 +764,6 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void enterParameterList(ParameterListContext ctx)
   {
-    super.enterParameterList(ctx);
     this.startNestedParametersList();
   }
 
@@ -658,8 +777,6 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void exitParameter(ParameterContext ctx)
   {
-    super.exitParameter(ctx);
-
     ParserRuleContext parentCtx = ctx.getParent();
 
     // count parameters only if there in lists
@@ -680,7 +797,6 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   @Override
   public void exitParameterList(ParameterListContext ctx)
   {
-    super.exitParameterList(ctx);
     this.endNestedParametersList();
   }
 

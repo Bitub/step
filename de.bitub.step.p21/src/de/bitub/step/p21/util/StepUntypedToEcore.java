@@ -10,8 +10,11 @@
  */
 package de.bitub.step.p21.util;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
@@ -47,6 +50,11 @@ public class StepUntypedToEcore
     int structuralIndex = StepUntypedToEcore.calcIndex(parameterIndex, eStructuralFeatures);
 
 //    LOGGER.info("INDEX: text: " + parameterIndex + "  struc: " + structuralIndex + " all: " + eStructuralFeatures.size());
+
+    if (structuralIndex == -1) {
+      LOGGER.warning("" + structuralIndex);
+      return;
+    }
 
     EStructuralFeature eStructuralFeature = eStructuralFeatures.get(structuralIndex);
 
@@ -112,78 +120,17 @@ public class StepUntypedToEcore
     }
   }
 
-  public static int calcIndex(int index, List<EStructuralFeature> eStructuralFeatures)
+  public static int calcIndex(int parameterIndex, EList<EStructuralFeature> eStructuralFeatures)
   {
-    StringBuilder sb = new StringBuilder("\n");
-    int downCounter = index;
-    int structuralIndex = 0;
 
-    if (downCounter == 0) {
+    P21ParameterIterator<EStructuralFeature> iterator = new P21ParameterIterator<>(eStructuralFeatures);
 
-      boolean isNotFound = true;
-      while (isNotFound) {
-
-        EStructuralFeature eStructuralFeature = eStructuralFeatures.get(structuralIndex);
-        if (eStructuralFeature instanceof EReference) {
-          EReference eReference = (EReference) eStructuralFeature;
-
-          if (eReference.getEOpposite() != null && eReference.getEOpposite().isOrdered()) {
-            structuralIndex++;
-
-          } else {
-            isNotFound = false;
-            LOGGER.info("found ERef " + eStructuralFeature.getName());
-          }
-        } else {
-          isNotFound = false;
-          LOGGER.info("found EAttr" + eStructuralFeature.getName());
-        }
-      }
+    int i = 0;
+    while (iterator.hasNext() && i <= parameterIndex) {
+      i++;
+      iterator.next();
     }
-
-    while (downCounter > 0) {
-
-      EStructuralFeature eStructuralFeature = eStructuralFeatures.get(structuralIndex);
-      sb.append(structuralIndex + " FEATURE " + eStructuralFeature.getName());
-
-      if (eStructuralFeature instanceof EReference) {
-        EReference eReference = (EReference) eStructuralFeature;
-
-        // this is a reference with an INVERSE
-        //
-        if (eReference.getEOpposite() != null) {
-
-          sb.append(" INVERSE " + eReference.getEOpposite().getName() + " - " + !eReference.getEOpposite().isOrdered() + "\n");
-
-          if (!eReference.getEOpposite().isOrdered()) {
-            downCounter--;
-          }
-
-          index++;
-        } else {
-
-          // this is a normal reference
-          //
-          downCounter--;
-        }
-      }
-
-      // everything else must be an attribute
-      //
-      if (eStructuralFeature instanceof EAttribute) {
-
-        if (!eStructuralFeature.isDerived()) {
-          downCounter--;
-        }
-        sb.append("\n");
-      }
-
-      structuralIndex++;
-    }
-
-//    LOGGER.info(sb.toString());
-
-    return structuralIndex;
+    return iterator.index();
   }
 
   private static void setEAttribute(EAttribute eAttribute, EObject eObject, Object value)
