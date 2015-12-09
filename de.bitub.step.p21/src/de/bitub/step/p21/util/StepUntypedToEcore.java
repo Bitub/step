@@ -13,6 +13,7 @@ package de.bitub.step.p21.util;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -38,6 +39,27 @@ public class StepUntypedToEcore
 
   public static final Logger LOGGER = Logger.getLogger(StepUntypedToEcore.class.getName());
 
+  static {
+    try {
+
+      // This block configure the logger with handler and formatter
+      //
+      FileHandler fh = new FileHandler("logs/" + StepUntypedToEcore.class.getSimpleName() + ".log");
+      SimpleFormatter formatter = new SimpleFormatter();
+      fh.setFormatter(formatter);
+
+      StepUntypedToEcore.LOGGER.setLevel(Level.WARNING);
+      StepUntypedToEcore.LOGGER.addHandler(fh);
+      StepUntypedToEcore.LOGGER.setUseParentHandlers(false);
+    }
+    catch (SecurityException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static void eString(int index, EObject eObject, String value, StepToModel util)
   {
     StepUntypedToEcore.setEStructuralFeature(index, eObject, value, util);
@@ -49,7 +71,7 @@ public class StepUntypedToEcore
 
     int structuralIndex = StepUntypedToEcore.calcIndex(parameterIndex, eStructuralFeatures);
 
-//    LOGGER.info("INDEX: text: " + parameterIndex + "  struc: " + structuralIndex + " all: " + eStructuralFeatures.size());
+    LOGGER.info("INDEX: text: " + parameterIndex + "  struc: " + structuralIndex + " all: " + eStructuralFeatures.size());
 
     if (structuralIndex == -1) {
       LOGGER.warning("" + structuralIndex);
@@ -63,7 +85,7 @@ public class StepUntypedToEcore
     if (eStructuralFeature instanceof EAttribute) {
 
       EAttribute eAttribute = (EAttribute) eStructuralFeature;
-      LOGGER.info("It's an EAttribute: " + eAttribute);
+//      LOGGER.info("It's an EAttribute: " + eAttribute);
 
       StepUntypedToEcore.setEAttribute(eAttribute, eObject, value);
     }
@@ -111,10 +133,6 @@ public class StepUntypedToEcore
         }
       }
 
-      if (value instanceof Double) {
-        LOGGER.warning("OHH double: " + value);
-      }
-
       // TODO handle SELECT
       StepUntypedToEcore.setEReference(eReference, eObject, value);
     }
@@ -145,7 +163,7 @@ public class StepUntypedToEcore
       eObject.eSet(eFeature, value);
     }
     catch (ClassCastException exception) {
-      LOGGER.warning(value + " : " + eFeature.getName() + " " + exception.getMessage());
+      LOGGER.severe(value + " : " + eFeature.getName() + " " + exception.getMessage());
     }
 
   }
@@ -187,20 +205,14 @@ public class StepUntypedToEcore
 
       switch (value) {
         case "T":
-
-          LOGGER.warning("BOOLEAN: " + eObject + " " + eObject.eClass().getEAllStructuralFeatures());
           StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(true), util);
           break;
 
         case "F":
-
-          LOGGER.warning("BOOLEAN:" + eObject);
           StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(false), util);
           break;
 
         default:
-
-          LOGGER.warning("BOOLEAN: ERROR" + value);
           break;
       }
     }
