@@ -11,23 +11,19 @@
 package de.bitub.step.p21.mapper;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.buildingsmart.ifc4.IFC4;
 import org.buildingsmart.ifc4.Ifc4Factory;
 import org.buildingsmart.ifc4.Ifc4Package;
 import org.buildingsmart.ifc4.impl.IFC4Impl;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EAnnotation;
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EDataType;
@@ -56,15 +52,14 @@ public class StepToModelImpl implements StepToModel
   @SuppressWarnings("rawtypes")
   private Map<String, EList> containerLists = null;
 
-//  private Map
-  private Map<String, EClassifier> list = Collections.synchronizedMap(new TreeMap<>());
-
   private Map<String, EClassifier> stepToEcoreNames = null;
 
   public StepToModelImpl()
   {
-    this.initLogger(Level.ALL, "./" + StepToModelImpl.class.getName() + ".log");
+    this.initLogger("ifc-files/" + StepToModelImpl.class.getName() + ".log");
 
+    // TODO make generic access to root container of schema
+    //
     Ifc4Factory factory = Ifc4Package.eINSTANCE.getIfc4Factory();
     ifc4 = factory.createIFC4();
 
@@ -78,12 +73,14 @@ public class StepToModelImpl implements StepToModel
    * @generated NOT
    * @param all
    */
-  private void initLogger(Level all, String pattern)
+  private void initLogger(String pattern)
   {
-    LOGGER.setLevel(all);
-
     try {
       Handler handler = new FileHandler(pattern);
+      SimpleFormatter formatter = new SimpleFormatter();
+      handler.setFormatter(formatter);
+
+      LOGGER.setLevel(Level.ALL);
       LOGGER.addHandler(handler);
       LOGGER.setUseParentHandlers(false);
     }
@@ -121,28 +118,6 @@ public class StepToModelImpl implements StepToModel
   }
 
   /**
-   * Do something with different types of annotations.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * 
-   * @generated NOT
-   * @param eClass
-   */
-  private void annotations(EClass eClass)
-  {
-    StringBuilder sb = new StringBuilder();
-
-    for (EAnnotation eAnnotation : eClass.getEAnnotations()) {
-      for (String key : eAnnotation.getDetails().keySet()) {
-
-        sb.append("\n" + key + " -> " + eAnnotation.getDetails().get(key));
-      }
-    }
-
-    LOGGER.log(Level.INFO, sb.toString());
-  }
-
-  /**
    * <!-- begin-user-doc -->
    * Create an instance (EObject) of the entity for the keyword, which is the
    * upper case entity name.
@@ -161,9 +136,9 @@ public class StepToModelImpl implements StepToModel
       eObject = EcoreUtil.create(eClass);
     }
     catch (IllegalArgumentException | ClassCastException e) {
-      e.printStackTrace();
+      LOGGER.severe(String.format("Could not create object from %s see error %s", keyword, e.getMessage()));
     }
-    
+
     return eObject;
   }
 
@@ -183,10 +158,8 @@ public class StepToModelImpl implements StepToModel
   }
 
   /**
-   * <!-- begin-user-doc -->
    * Create an enumeration by entity keyword (e.g. IfcSlabTypeEnum) and
    * the value it should hold (e.g. BASESLAB).
-   * <!-- end-user-doc -->
    * 
    * @generated NOT
    * @see de.bitub.step.p21.mapper.StepToModel#createEnumBy(java.lang.String,
@@ -196,26 +169,21 @@ public class StepToModelImpl implements StepToModel
   {
     EClassifier eClassifier = this.get(keyword);
 
-    if (!isEnum(eClassifier)) {
+    if (eClassifier instanceof EEnum) {
+      EEnum eEnum = (EEnum) eClassifier;
 
-      LOGGER.info("No Enum for keyword '" + keyword + "' with Literal " + literalValue);
-      return null;
+      try {
+        LOGGER.info("Create Enum for keyword '" + keyword + "' with Literal " + literalValue);
+        return EcoreUtil.createFromString(eEnum, literalValue);
+      }
+      catch (IllegalArgumentException exception) {
+        LOGGER.warning("ERROR! Creating Enum for keyword '" + keyword + "' with Literal " + literalValue);
+        LOGGER.warning(exception.getMessage());
+      }
     }
-    LOGGER.info("Create Enum for keyword '" + keyword + "' with Literal " + literalValue);
 
-    try {
-      return EcoreUtil.createFromString((EEnum) eClassifier, literalValue);//Ifc4Factory.eINSTANCE.createFromString((EEnum) eClassifier, literalValue);
-    }
-    catch (IllegalArgumentException exception) { // TODO: remove when handling proxies
-      LOGGER.warning("ERROR! Creating Enum for keyword '" + keyword + "' with Literal " + literalValue);
-      LOGGER.warning(exception.getMessage());
-      return null;
-    }
-  }
-
-  private boolean isEnum(EClassifier eClassifier)
-  {
-    return eClassifier instanceof EEnum;
+    LOGGER.warning("No Enum for keyword '" + keyword + "' with Literal " + literalValue);
+    return null;
   }
 
   private void init()
@@ -282,26 +250,8 @@ public class StepToModelImpl implements StepToModel
 
       String upperCaseEntityName = eClassifier.getName().toUpperCase();
       stepToEcoreNames.put(upperCaseEntityName, eClassifier);
-//      LOGGER.warning("" + upperCaseEntityName + " -> " + eClassifier);
     }
     return stepToEcoreNames;
-  }
-
-  private static void printAttributeValues(EObject object)
-  {
-    EClass eClass = object.eClass();
-    System.out.println(eClass.getName());
-    for (Iterator<EAttribute> iterator = eClass.getEAllAttributes().iterator(); iterator.hasNext();) {
-      EAttribute attribute = (EAttribute) iterator.next();
-      Object value = object.eGet(attribute);
-
-      System.out.print("  " + attribute.getName() + ": " + value);
-      if (object.eIsSet(attribute)) {
-        System.out.println();
-      } else {
-        System.out.println(" (default)");
-      }
-    }
   }
 
   /**

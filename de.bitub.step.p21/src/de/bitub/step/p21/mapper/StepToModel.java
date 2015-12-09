@@ -34,8 +34,6 @@ public interface StepToModel
 
   Object createEnumBy(String keyword, String literalValue);
 
-//  void createDataTypeBy(String name, String value);
-
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
