@@ -94,7 +94,8 @@ public class IOHelper
     }
     catch (IOException exception) {
 
-      IOHelper.LOGGER.warning(String.format("Failed to save resource %s. See reason %s", uri, exception.getMessage()));
+      IOHelper.LOGGER
+          .warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri, exception.getMessage()));
     }
     catch (Exception exception) {
       IOHelper.LOGGER.severe(
