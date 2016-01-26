@@ -71,17 +71,13 @@ public class IOHelper
    */
   public static void storeAsXMI(EObject eObject, URI uri)
   {
-    // Initialize the model
-    //
-//    Ifc4Package ifc4Package = Ifc4Package.eINSTANCE;
-
     // Obtain a new resource set
     //
     ResourceSet resSet = new ResourceSetImpl();
 
     // Register the P21 resource factory for the .ifc extension
     //
-    resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ifc", new XMIResourceFactoryImpl());
+    resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
 
     // Get the resource
     //
