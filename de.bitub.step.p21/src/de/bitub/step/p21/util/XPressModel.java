@@ -10,13 +10,13 @@
  */
 package de.bitub.step.p21.util;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.buildingsmart.ifc4.Ifc4Package;
-import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -43,9 +43,9 @@ public class XPressModel
 
   private static final String XPRESS_MODEL_ANNOTATION_SRC = "http://www.bitub.de/express/XpressModel";
 
-  private Map<String, Kind> kindByName = new HashMap<>();
-  private Map<String, String> datatypeRefByName = new HashMap<>();
-  private Map<String, String> selectByName = new HashMap<>();
+  private Map<String, Kind> kindByName = Collections.emptyMap();
+  private Map<String, String> datatypeRefByName = Collections.emptyMap();
+  private Map<String, String> selectByName = Collections.emptyMap();
 
   public enum Kind
   {
@@ -57,6 +57,11 @@ public class XPressModel
     DOUBLE, INT, STRING, BOOLEAN, DOUBLE_ARRAY
   }
 
+  public XPressModel()
+  {
+    this(Ifc4Package.eINSTANCE);
+  }
+
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -65,13 +70,7 @@ public class XPressModel
    */
   public XPressModel(Ifc4Package ifc4Package)
   {
-    if (ifc4Package != null) {
-
-      this.ifc4Package = ifc4Package;
-    } else {
-
-      this.ifc4Package = Ifc4Package.eINSTANCE;
-    }
+    this.ifc4Package = ifc4Package;
     init();
   }
 
@@ -88,20 +87,11 @@ public class XPressModel
 
   private void addAnnotatedEntity(EClassifier eClassifier)
   {
-    EAnnotation eAnnotation = eClassifier.getEAnnotation(XPRESS_MODEL_ANNOTATION_SRC);
-
-    if (eAnnotation != null) {
-
-      EMap<String, String> details = eAnnotation.getDetails();
-
-      String name = details.get("name");
-      if (null == name) {
-        return;
-      }
-
+    String name = EcoreUtil.getAnnotation(eClassifier, XPRESS_MODEL_ANNOTATION_SRC, "name");
+    if (null != name) {
       name = name.toUpperCase();
 
-      String kind = details.get("kind");
+      String kind = EcoreUtil.getAnnotation(eClassifier, XPRESS_MODEL_ANNOTATION_SRC, "kind");
       if (null != kind) {
         switch (kind) {
           case "new":
@@ -119,30 +109,48 @@ public class XPressModel
         }
       }
 
-      String datatypeRef = details.get("datatypeRef");
+      String datatypeRef = EcoreUtil.getAnnotation(eClassifier, XPRESS_MODEL_ANNOTATION_SRC, "kidatatypeRefnd");
       if (null != datatypeRef) {
         this.datatypeRefByName.put(name, datatypeRef);
       }
 
-      String select = details.get("select");
+      String select = EcoreUtil.getAnnotation(eClassifier, XPRESS_MODEL_ANNOTATION_SRC, "select");
       if (null != select) {
         this.selectByName.put(name, select);
       }
     }
+
   }
 
+  /**
+   * Get type of model object. Can be GENERATED, NEW, MAPPED or PROXY.
+   * 
+   * @param entityName
+   * @return
+   */
   public Kind getKindOf(String entityName) // name of class
   {
     System.out.println(entityName + " kind = " + this.kindByName.get(entityName.toUpperCase()));
     return this.kindByName.get(entityName.toUpperCase());
   }
 
+  /**
+   * Get data type reference. Can be DOUBLE, INT, STRING, BOOLEAN or
+   * DOUBLE_ARRAY.
+   * 
+   * @param entityName
+   * @return
+   */
   public String getDatatypeRefOf(String entityName) // name of class
   {
     System.out.println(entityName + " datatypeRef = " + this.datatypeRefByName.get(entityName.toUpperCase()));
     return this.datatypeRefByName.get(entityName.toUpperCase());
   }
 
+  /**
+   * @param entityName
+   * @return
+   */
   public String getSelectOf(String entityName) // name of class
   {
     System.out.println(entityName + " select = " + this.selectByName.get(entityName.toUpperCase()));
@@ -151,7 +159,7 @@ public class XPressModel
 
   public static void main(String[] args)
   {
-    XPressModel model = new XPressModel(null);
+    XPressModel model = new XPressModel();
     model.getKindOf("IfcDerivedMeasureValue");
     EObject ifcEntity = model.getEObjectFor("IfcDerivedMeasureValue");
     System.out.println(ifcEntity);
@@ -162,7 +170,7 @@ public class XPressModel
   {
     EStructuralFeature eStructuralFeature = ifcEntity.eClass().getEStructuralFeatures().get(index);
     this.getKindOf(eStructuralFeature.getName());
-    this.toString(eStructuralFeature.getEType());
+//    this.toString(eStructuralFeature.getEType());
     ifcEntity.eSet(eStructuralFeature, parsedValue);
   }
 
@@ -182,7 +190,7 @@ public class XPressModel
       eObject = EcoreUtil.create((EClass) eClassifier);
     }
 
-    this.toString(eClassifier);
+//    this.toString(eClassifier);
 
     return eObject;
   }
