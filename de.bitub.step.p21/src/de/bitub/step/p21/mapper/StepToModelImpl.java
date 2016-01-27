@@ -105,10 +105,10 @@ public class StepToModelImpl implements StepToModel
     EObject newObject = null;
     keyword = keyword.toUpperCase();
 
-    if (this.stepToEcoreNames.containsKey(keyword)) {
+    if (this.stepToEcoreNames.containsKey(keyword)) { // TODO Is this needed? Check!
 
       newObject = createBy(keyword);
-      if (newObject != null && this.containerLists.containsKey(keyword)) {
+      if (newObject != null && this.containerLists.containsKey(keyword)) { // is persistable
 
         this.containerLists.get(keyword).add(newObject);
         LOGGER.info(String.format("Added new %s to containment list reference.", keyword));

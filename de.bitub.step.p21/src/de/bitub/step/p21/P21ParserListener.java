@@ -10,18 +10,17 @@
  */
 package de.bitub.step.p21;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.Pair;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -43,9 +42,13 @@ import de.bitub.step.p21.StepParser.StringContext;
 import de.bitub.step.p21.StepParser.TypedContext;
 import de.bitub.step.p21.StepParser.UntypedContext;
 import de.bitub.step.p21.header.Header;
+import de.bitub.step.p21.mapper.P21ToModel;
 import de.bitub.step.p21.mapper.StepToModel;
 import de.bitub.step.p21.mapper.StepToModelImpl;
+import de.bitub.step.p21.util.Antlr4Util;
+import de.bitub.step.p21.util.LoggerHelper;
 import de.bitub.step.p21.util.StepUntypedToEcore;
+import de.bitub.step.p21.util.XPressModel;
 
 /**
  * <!-- begin-user-doc -->
@@ -56,7 +59,7 @@ import de.bitub.step.p21.util.StepUntypedToEcore;
  */
 public class P21ParserListener extends StepParserBaseListener implements StepParserListener
 {
-  private static final Logger LOGGER = Logger.getLogger(P21ParserListener.class.getName());
+  private static final Logger LOGGER = LoggerHelper.init(Level.WARNING, P21ParserListener.class);
 
   // store entities with forward references
   //
@@ -66,7 +69,13 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   //
   private Map<String, EObject> idToEntity = new HashMap<String, EObject>();
 
+  // helper class to create and save model elements
+  //
   private StepToModel util = new StepToModelImpl();
+
+  // save information when forward referenced type is abstract and can't be guessed at this point in time
+  //
+  Map<String, List<Pair<EObject, EStructuralFeature>>> abstractReferences = new HashMap<>();
 
   //
   // save different variables for current entity subtree walk
@@ -78,6 +87,8 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   // save the index for the current parameter in parameterList, stack value if goiing deeper
   //
   private int curParameterIndex = -1;
+  private int upperIndex = -1;
+
   Deque<Integer> parameterIndexStack = new ArrayDeque<Integer>();
 
   private Mode mode = Mode.HEADER;
@@ -97,35 +108,6 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   public enum Mode
   {
     HEADER, DATA, FOOTER, DONE
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * 
-   * @generated NOT
-   */
-  public P21ParserListener()
-  {
-    FileHandler fh;
-
-    try {
-      // This block configure the logger with handler and formatter
-      //
-      fh = new FileHandler("logs/" + this.getClass().getSimpleName() + ".log");
-      SimpleFormatter formatter = new SimpleFormatter();
-      fh.setFormatter(formatter);
-
-      LOGGER.setLevel(Level.WARNING);
-      LOGGER.addHandler(fh);
-      LOGGER.setUseParentHandlers(false);
-    }
-    catch (SecurityException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
   public EObject getContainer()
@@ -334,17 +316,6 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
       EObject referencedObject = this.idToEntity.get(referenceId);
 
-      try {
-        StepUntypedToEcore.setEStructuralFeature(curParameterIndex, curObject, referencedObject, util);
-        LOGGER.info("Set resolvable REFERENCE: " + referenceId + " -> " + referencedObject.eClass().getName());
-      }
-      catch (ClassCastException exception) {
-        LOGGER.warning("ClassCastException: Un-resolvable REFERENCE: " + referenceId + ": " + exception.getMessage());
-      }
-      catch (Exception e) {
-        LOGGER.warning("Exception Un-resolvable REFERENCE: " + referenceId + ": " + e.getMessage());
-      }
-
       return referencedObject;
 
     } else {
@@ -362,14 +333,36 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
         EList<EStructuralFeature> eStructuralFeatures = curObject.eClass().getEAllStructuralFeatures();
         int structuralIndex = StepUntypedToEcore.calcIndex(curParameterIndex, eStructuralFeatures);
 
-        LOGGER.severe(String.format("DEAD reference %s in %s", referenceId, curObject.eClass().getName()));
+        // FIXME use upper index to get correct structural feature when forward reference in list
+        //
+        if (isInList) {
+          structuralIndex = StepUntypedToEcore.calcIndex(upperIndex, eStructuralFeatures);
+        }
 
         if (structuralIndex != -1) {
-          //FIXME handle forward referenced proxy (IFCAXIS2PLACEMENT)
-
+          // FIXME handle forward referenced proxy (IFCAXIS2PLACEMENT)
           // FIXME handle forward referenced non-abstract supertype, but implemented subtype (IfcFaceBound -> IfcLoop / IfcPolyloop)
-
+          // FIXME forward refernce in LIST 
           EStructuralFeature eStructuralFeature = eStructuralFeatures.get(structuralIndex);
+
+          if (eStructuralFeature.getEType() instanceof EClass) {
+            EClass eClass = (EClass) eStructuralFeature.getEType();
+
+            if (eClass.isAbstract()) {
+              if (abstractReferences.containsKey(referenceId)) {
+
+                abstractReferences.get(referenceId).add(new Pair<EObject, EStructuralFeature>(curObject, eStructuralFeature));
+              } else {
+
+                List<Pair<EObject, EStructuralFeature>> pairs = new ArrayList<>();
+                pairs.add(new Pair<EObject, EStructuralFeature>(curObject, eStructuralFeature));
+                abstractReferences.put(referenceId, pairs);
+              }
+            }
+          }
+
+          LOGGER.info(String.format("Forward reference %s in %s of type %s", referenceId, curObject.eClass().getName(),
+              eStructuralFeature.getEType().getName()));
 
           // create empty object if not already there
           //
@@ -457,16 +450,43 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
         if (!isInList) {
 
-          this.resolveReference(referenceId);
+          EObject referencedObject = this.resolveReference(referenceId);
+
+          try {
+            StepUntypedToEcore.setEStructuralFeature(curParameterIndex, curObject, referencedObject, util);
+            LOGGER.info("Set resolvable REFERENCE: " + referenceId + " -> " + referencedObject.eClass().getName());
+          }
+          catch (ClassCastException exception) {
+            LOGGER.severe("ClassCastException: Un-resolvable REFERENCE: " + referenceId + ": " + exception.getMessage());
+          }
+          catch (Exception e) {
+            LOGGER.severe("Exception Un-resolvable REFERENCE: " + referenceId + ": " + e.getMessage());
+          }
+
         } else {
 
+          EObject eObject = this.resolveReference(referenceId); // FIXME issues with list 
+
+          // FIXME handle abstract forward reference !!! IFcObject -> IfcWallStandardType in IfcRelDefinesByType
           // FIXME handle forward references in lists e.g. #34102=IFCPRESENTATIONSTYLEASSIGNMENT((#35061));
+          // FIXME handle forward supertypes (IfcUnit forward now IfcSIUnit)
           //
           try {
+            LOGGER.severe(String.format("BEFORE ADD %s", this.eList));
+
             this.eList.add(this.idToEntity.get(referenceId));
+
+            LOGGER.severe(String.format("ADD %s TO %s", this.idToEntity.get(referenceId), this.eList));
           }
           catch (ArrayStoreException | IllegalArgumentException | NullPointerException exception) {
-            LOGGER.warning(exception.getMessage());
+
+            try {
+              this.eList.add(eObject);
+              LOGGER.severe("Fallback added " + referenceId + " | " + eObject + " | " + exception.getStackTrace());
+            }
+            catch (ArrayStoreException | IllegalArgumentException | NullPointerException e) {
+              LOGGER.severe(this.eList + " - " + referenceId + " | " + eObject + " | " + exception);
+            }
           }
         }
       }
@@ -505,110 +525,124 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   {
     String innerKeyword = ctx.keyword().STANDARD_KEYWORD().getText();
 
+    System.out.println(curObject);
+
     if (this.curObject != null) { // IfcMeasureWithUnit
+
+      //FIXME check before if it is proxy
+      
 
       // calculate index where to put current typed value
       //
       EList<EStructuralFeature> eStructuralFeatures = curObject.eClass().getEAllStructuralFeatures();
-      EStructuralFeature eStructuralFeature =
-          eStructuralFeatures.get(StepUntypedToEcore.calcIndex(curParameterIndex, eStructuralFeatures));
 
-      LOGGER.info(String.format("TYPED with name %s as parameter into %s", innerKeyword, eStructuralFeature.getName()));
+      int index = StepUntypedToEcore.calcIndex(curParameterIndex, eStructuralFeatures);
 
-      // hold the reference to the SELECT type
-      //
-      if (eStructuralFeature instanceof EReference) {
-        EReference eReference = (EReference) eStructuralFeature;
+      if (index != -1) {
+        EStructuralFeature eStructuralFeature = eStructuralFeatures.get(index);
 
-        // the SELECT class which is referenced
+        LOGGER.info(String.format("TYPED with name %s as parameter into %s", innerKeyword, eStructuralFeature.getName()));
+
+        // hold the reference to the SELECT type
         //
-        EClass eReferencedType = eReference.getEReferenceType(); // IfcValue        
-        EObject eReferenedInstance = util.addElementByKeyword(eReferencedType.getName());
+        if (eStructuralFeature instanceof EReference) {
+          EReference eReference = (EReference) eStructuralFeature;
 
-        // find mapped attribute
-        //
-        EList<EStructuralFeature> eReferencedTypeStructuralFeatures = eReferencedType.getEAllStructuralFeatures();
-        String namedElement = null;
-        for (EStructuralFeature selectedType : eReferencedTypeStructuralFeatures) {
+          // the SELECT class which is referenced
+          //
+          EClass eReferencedType = eReference.getEReferenceType(); // IfcValue        
+          EObject eReferenedInstance = util.addElementByKeyword(eReferencedType.getName());
 
-          if (selectedType.getName().equalsIgnoreCase(innerKeyword)) {
-            namedElement = selectedType.getName();
+          // find mapped attribute
+          //
+          EList<EStructuralFeature> eReferencedTypeStructuralFeatures = eReferencedType.getEAllStructuralFeatures();
+          String namedElement = null;
+          for (EStructuralFeature selectedType : eReferencedTypeStructuralFeatures) {
+
+            if (selectedType.getName().equalsIgnoreCase(innerKeyword)) {
+              namedElement = selectedType.getName();
+            }
+          }
+
+          // this is the structural feature from the select which is needed
+          //
+          EStructuralFeature eReferenedInstanceFeature = eReferencedType.getEStructuralFeature(namedElement);
+          // FIX handle null better
+
+          if (eReferenedInstanceFeature == null) {
+            return;
+          }
+          String kind = EcoreUtil.getAnnotation(eReferenedInstanceFeature, "http://www.bitub.de/express/XpressModel", "kind");
+
+          if (kind.equals("mapped")) {
+
+            String datatype =
+                EcoreUtil.getAnnotation(eReferenedInstanceFeature, "http://www.bitub.de/express/XpressModel", "datatypeRef");
+
+            // what type is it mapped to
+            //
+            switch (datatype) {
+              case "double":
+                LOGGER.config(String.format("Mapped SELECT with type double -> %s", datatype));
+
+                eReferenedInstance.eSet(eReferenedInstanceFeature,
+                    Double.parseDouble(ctx.parameter().untyped().real().getText()));
+                break;
+
+              case "int":
+                LOGGER.config(String.format("Mapped SELECT with type int: %s", datatype));
+
+                eReferenedInstance.eSet(eReferenedInstanceFeature,
+                    Integer.parseInt(ctx.parameter().untyped().integer().getText()));
+                break;
+
+              case "boolean": // IFC_BOOLEAN
+                LOGGER.config(String.format("Mapped SELECT with type boolean: %s", datatype));
+
+                String booleanValue = ctx.parameter().getText();
+                if (booleanValue.equalsIgnoreCase(".T.")) {
+
+                  eReferenedInstance.eSet(eReferenedInstanceFeature, true);
+                } else {
+
+                  eReferenedInstance.eSet(eReferenedInstanceFeature, false);
+                }
+                break;
+
+              case "Boolean": // IFC_LOGICAL
+                LOGGER.config(String.format("Mapped SELECT with type Boolean: %s", datatype));
+
+                String logicalValue = ctx.parameter().getText();
+                if (logicalValue.equalsIgnoreCase(".U.")) {
+
+                  eReferenedInstance.eSet(eReferenedInstanceFeature, null);
+                }
+                break;
+
+              case "String":
+                LOGGER.config(String.format("Mapped SELECT with type String: %s", datatype));
+
+                eReferenedInstance.eSet(eReferenedInstanceFeature, ctx.parameter().untyped().string().getText());
+                break;
+
+              default:
+                LOGGER.warning(String.format("Mapped SELECT which stayed UNRESOLVED: %s", eReferenedInstance));
+            }
+
+            // set reference to current object
+            //
+            this.curObject.eSet(eStructuralFeature, eReferenedInstance);
           }
         }
 
-        // this is the structural feature from the select which is needed
-        //
-        EStructuralFeature eReferenedInstanceFeature = eReferencedType.getEStructuralFeature(namedElement);
-        // FIX handle null better
+        if (eStructuralFeature instanceof EAttribute) {
+          EAttribute eAttribute = (EAttribute) eStructuralFeature;
 
-        if (eReferenedInstanceFeature == null) {
-          return;
+          LOGGER.warning(String.format("TYPED feature as attribute %s", eAttribute));
         }
-        String kind = EcoreUtil.getAnnotation(eReferenedInstanceFeature, "http://www.bitub.de/express/XpressModel", "kind");
-
-        if (kind.equals("mapped")) {
-
-          String datatype =
-              EcoreUtil.getAnnotation(eReferenedInstanceFeature, "http://www.bitub.de/express/XpressModel", "datatypeRef");
-
-          // what type is it mapped to
-          //
-          switch (datatype) {
-            case "double":
-              LOGGER.config(String.format("Mapped SELECT with type double -> %s", datatype));
-
-              eReferenedInstance.eSet(eReferenedInstanceFeature, Double.parseDouble(ctx.parameter().untyped().real().getText()));
-              break;
-
-            case "int":
-              LOGGER.config(String.format("Mapped SELECT with type int: %s", datatype));
-
-              eReferenedInstance.eSet(eReferenedInstanceFeature, Integer.parseInt(ctx.parameter().untyped().integer().getText()));
-              break;
-
-            case "boolean": // IFC_BOOLEAN
-              LOGGER.config(String.format("Mapped SELECT with type boolean: %s", datatype));
-
-              String booleanValue = ctx.parameter().getText();
-              if (booleanValue.equalsIgnoreCase(".T.")) {
-
-                eReferenedInstance.eSet(eReferenedInstanceFeature, true);
-              } else {
-
-                eReferenedInstance.eSet(eReferenedInstanceFeature, false);
-              }
-              break;
-
-            case "Boolean": // IFC_LOGICAL
-              LOGGER.config(String.format("Mapped SELECT with type Boolean: %s", datatype));
-
-              String logicalValue = ctx.parameter().getText();
-              if (logicalValue.equalsIgnoreCase(".U.")) {
-
-                eReferenedInstance.eSet(eReferenedInstanceFeature, null);
-              }
-              break;
-
-            case "String":
-              LOGGER.config(String.format("Mapped SELECT with type String: %s", datatype));
-
-              eReferenedInstance.eSet(eReferenedInstanceFeature, ctx.parameter().untyped().string().getText());
-              break;
-
-            default:
-              LOGGER.warning(String.format("Mapped SELECT which stayed UNRESOLVED: %s", eReferenedInstance));
-          }
-
-          // set reference to current object
-          //
-          this.curObject.eSet(eStructuralFeature, eReferenedInstance);
-        }
-      }
-
-      if (eStructuralFeature instanceof EAttribute) {
-        EAttribute eAttribute = (EAttribute) eStructuralFeature;
-
-        LOGGER.warning(String.format("TYPED feature as attribute %s", eAttribute));
+      } else {
+        System.out.println(String.format("SEVERE %s %s %s", curObject, curParameterIndex, ctx.getText()));
+        System.out.println(curParameterIndex + " " + XPressModel.p21FeatureBy(curObject, curParameterIndex));
       }
     }
   }
@@ -643,14 +677,16 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
         if (eStructuralFeature.isMany() && curRef instanceof List<?>) {
 
           this.eList = (List<Object>) curRef;
-          LOGGER.config(String.format("Found list %s", curRef));
+          LOGGER.config(String.format("Found list %s", eStructuralFeature.getName()));
         } else {
 
           // TODO should not happen (index maps to correct structural feature)
           // FIXME remove if IfcSite in Xcore is fixed
           //
-          LOGGER.config(String.format("NO list %s", curRef));
+          LOGGER.severe(String.format("NO list %s", curRef));
         }
+      } else {
+        LOGGER.severe(String.format("Index (%s) mapping not resolved for %s.", curParameterIndex, this.curObject));
       }
     }
 
@@ -698,29 +734,85 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
         // take forward created object
         //
         this.curObject = forwards.get(ctx.id.getText());
+
+        // must be a select which needs a type to be set
+        //
+        if (!this.curKeyword.equalsIgnoreCase(this.curObject.eClass().getName())) {
+
+          try {
+            EObject selectedObject = util.addElementByKeyword(this.curKeyword);
+            EStructuralFeature feature = findNestedPlaceToPut(this.curObject, this.curKeyword, selectedObject);
+
+            this.curObject.eSet(feature, selectedObject);
+            this.curObject = selectedObject;
+          }
+          catch (Exception e) {
+            LOGGER.severe(String.format("UNFOUND %s", e));
+          }
+        }
       } else {
 
         // save created object which maps to keyword
         //
         this.curObject = util.addElementByKeyword(this.curKeyword);
+
+        // handle abstract entity references
+        //
+        if (abstractReferences.containsKey(curIdAsString)) {
+          for (Pair<EObject, EStructuralFeature> pair : abstractReferences.get(curIdAsString)) {
+            try {
+              pair.a.eSet(pair.b, curObject);
+            }
+            catch (ClassCastException exception) {
+              LOGGER.severe("Some abstract problems." + exception.toString());
+            }
+          }
+        }
       }
 
       // cache the new object and make it accesible by its id
       //
-      EObject eObject = this.idToEntity.put(this.curIdAsString, this.curObject);
-      LOGGER.info("Save reference with id " + this.curIdAsString + " of type " + this.curObject.eClass().getName());
+      EObject eObjectOrNull = this.idToEntity.put(this.curIdAsString, this.curObject);
+      LOGGER.info("Save reference with id " + this.curIdAsString + " of type " + this.curObject);
 
       // clean up forward reference
       //
-      if (eObject != null) {
+      boolean hasPreviousReference = null != eObjectOrNull;
+      if (hasPreviousReference) { // there was a value before
 
-        LOGGER.config(String.format("Overwrite existing object %s with %s", eObject, this.curObject));
         this.curObject = forwards.remove(ctx.id.getText());
+        LOGGER.severe(String.format("Overwrite existing object %s with %s", eObjectOrNull, this.curObject));
       } else {
 
-        LOGGER.config(String.format("Add new object %s", this.curObject));
+        LOGGER.info(String.format("Add new object %s", this.curObject));
       }
     }
+  }
+
+  private EStructuralFeature findNestedPlaceToPut(EObject searchIn, String searchFor, EObject selectedObject)
+  {
+    for (EStructuralFeature eCurFeature : searchIn.eClass().getEAllStructuralFeatures()) {
+
+      // found in first level by name
+      //
+      if (eCurFeature.getName().equalsIgnoreCase(searchFor)) {
+
+        return eCurFeature;
+      } else {
+
+        // see if it is a spezilized value
+        //
+        for (EClass supertype : selectedObject.eClass().getEAllSuperTypes()) {
+
+          if (supertype.getName().equalsIgnoreCase(eCurFeature.getName())) {
+            return eCurFeature;
+          }
+
+        }
+      }
+    }
+    return null;
+
   }
 
   /**
@@ -788,6 +880,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
     //
     if (this.curParameterIndex != -1) {
       this.parameterIndexStack.push(this.curParameterIndex); // save current pointer
+      this.upperIndex = this.curParameterIndex;
     }
 
     // start index by 0
