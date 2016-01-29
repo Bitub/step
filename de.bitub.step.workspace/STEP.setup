@@ -222,6 +222,17 @@
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
+        id="p2.antlr4ide.sdk"
+        label="ANTLR4 IDE"
+        licenseConfirmationDisabled="true">
+      <requirement
+          name="antlr4ide.sdk.feature.group"/>
+      <repository
+          url="http://dl.bintray.com/jknack/antlr4ide/"/>
+      <description>ANTLR4 IDE</description>
+    </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
         label="StringConverter">
       <requirement
           name="org.openifctools.stringconverter.f.feature.group"/>
@@ -480,6 +491,12 @@
   <stream name="luna-dev-p21"
       label="luna-dev-p21">
     <setupTask
+        xsi:type="pde:TargetPlatformTask"
+        id="de.bitub.step.luna"
+        name="de.bitub.step">
+      <description>Target platform for project developement on Eclipse Luna.</description>
+    </setupTask>
+    <setupTask
         xsi:type="setup:VariableTask"
         name="mwe2.site"
         value="http://download.eclipse.org/modeling/emft/mwe/updates/releases/2.8.3/"/>
@@ -499,23 +516,6 @@
         storageURI="scope://Workspace"
         label="Target Platform">
       <description>Choose the compatibility level of the target platform</description>
-    </setupTask>
-    <setupTask
-        xsi:type="setup.p2:P2Task"
-        id="p2.antlr4ide.sdk"
-        label="ANTLR4 IDE"
-        licenseConfirmationDisabled="true">
-      <requirement
-          name="antlr4ide.sdk.feature.group"/>
-      <repository
-          url="http://dl.bintray.com/jknack/antlr4ide/"/>
-      <description>ANTLR4 IDE</description>
-    </setupTask>
-    <setupTask
-        xsi:type="pde:TargetPlatformTask"
-        id="de.bitub.step.luna"
-        name="de.bitub.step">
-      <description>Target platform for project developement on Eclipse Luna.</description>
     </setupTask>
   </stream>
   <stream name="luna-dev-express"
