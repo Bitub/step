@@ -642,7 +642,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
         }
       } else {
         System.out.println(String.format("SEVERE %s %s %s", curObject, curParameterIndex, ctx.getText()));
-        System.out.println(curParameterIndex + " " + XPressModel.p21FeatureBy(curObject, curParameterIndex));
+//        System.out.println(curParameterIndex + " " + XPressModel.p21FeatureBy(curObject, curParameterIndex));
       }
     }
   }
