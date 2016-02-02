@@ -26,11 +26,11 @@ parser grammar StepParser;
  */
  exchangeFile
  :
- 	ISO_10303_21 headerSection dataSection+ END_ISO_10303_21
+ 	ISO_10303_21 headerSection dataSection+ END_ISO_10303_21 EOF
  	|
  	{isVersion3}?
 
- 	ISO_10303_21 headerSection dataSection+ END_ISO_10303_21
+ 	ISO_10303_21 headerSection dataSection+ END_ISO_10303_21 EOF
  ;
 
  /** 
@@ -168,8 +168,8 @@ parser grammar StepParser;
 
  entityInstance
  :
- 	id = ENTITY_INSTANCE_NAME '=' simpleRecord SEMICOLON # simpleEntityInstance
- 	| id = ENTITY_INSTANCE_NAME '=' subsuperRecord SEMICOLON #
+ 	id = ENTITY_INSTANCE_NAME EQUAL simpleRecord SEMICOLON # simpleEntityInstance
+ 	| id = ENTITY_INSTANCE_NAME EQUAL subsuperRecord SEMICOLON #
  	complexEntityInstance
  ;
 
@@ -203,3 +203,4 @@ parser grammar StepParser;
  		| STANDARD_KEYWORD
  	)
  ;
+ 

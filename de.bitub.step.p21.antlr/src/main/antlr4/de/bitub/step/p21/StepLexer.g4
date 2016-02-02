@@ -293,7 +293,4 @@ WS
 :
 	[ \t\f]+ -> skip
 ;
-
-/**
- * Mode for all character inside a string.
- */
+ 
