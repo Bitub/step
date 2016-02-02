@@ -6,6 +6,7 @@
     xmlns:git="http://www.eclipse.org/oomph/setup/git/1.0"
     xmlns:jdt="http://www.eclipse.org/oomph/setup/jdt/1.0"
     xmlns:launching="http://www.eclipse.org/oomph/setup/launching/1.0"
+    xmlns:mylyn="http://www.eclipse.org/oomph/setup/mylyn/1.0"
     xmlns:pde="http://www.eclipse.org/oomph/setup/pde/1.0"
     xmlns:predicates="http://www.eclipse.org/oomph/predicates/1.0"
     xmlns:projects="http://www.eclipse.org/oomph/setup/projects/1.0"
@@ -13,7 +14,7 @@
     xmlns:setup.p2="http://www.eclipse.org/oomph/setup/p2/1.0"
     xmlns:setup.targlets="http://www.eclipse.org/oomph/setup/targlets/1.0"
     xmlns:setup.workingsets="http://www.eclipse.org/oomph/setup/workingsets/1.0"
-    xsi:schemaLocation="http://www.eclipse.org/oomph/setup/git/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Git.ecore http://www.eclipse.org/oomph/setup/jdt/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/JDT.ecore http://www.eclipse.org/oomph/setup/launching/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Launching.ecore http://www.eclipse.org/oomph/setup/pde/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/PDE.ecore http://www.eclipse.org/oomph/predicates/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Predicates.ecore http://www.eclipse.org/oomph/setup/projects/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Projects.ecore http://www.eclipse.org/oomph/setup/targlets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupTarglets.ecore http://www.eclipse.org/oomph/setup/workingsets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupWorkingSets.ecore"
+    xsi:schemaLocation="http://www.eclipse.org/oomph/setup/git/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Git.ecore http://www.eclipse.org/oomph/setup/jdt/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/JDT.ecore http://www.eclipse.org/oomph/setup/launching/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Launching.ecore http://www.eclipse.org/oomph/setup/mylyn/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Mylyn.ecore http://www.eclipse.org/oomph/setup/pde/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/PDE.ecore http://www.eclipse.org/oomph/predicates/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Predicates.ecore http://www.eclipse.org/oomph/setup/projects/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Projects.ecore http://www.eclipse.org/oomph/setup/targlets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupTarglets.ecore http://www.eclipse.org/oomph/setup/workingsets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupWorkingSets.ecore"
     name="de.bitub.step"
     label="de.bitub.step">
   <setupTask
@@ -99,6 +100,29 @@
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
+        label="EMF">
+      <requirement
+          name="org.eclipse.emf.sdk.feature.group"/>
+    </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
+        id="p2.m2e"
+        label="M2E"
+        licenseConfirmationDisabled="true">
+      <requirement
+          name="org.sonatype.tycho.m2e.feature.feature.group"/>
+      <requirement
+          name="org.eclipse.m2e.feature.feature.group"/>
+      <requirement
+          name="org.sonatype.m2e.buildhelper.feature.feature.group"/>
+      <repository
+          url="http://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-tycho/0.9.0/N/LATEST"/>
+      <repository
+          url="http://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-buildhelper/0.15.0/N/0.15.0.201207090124/"/>
+      <description>Maven connector</description>
+    </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
         id="p2.mylyn"
         label="Mylyn"
         licenseConfirmationDisabled="true">
@@ -112,6 +136,8 @@
           name="org.eclipse.mylyn.commons.sdk.feature.group"/>
       <repository
           url="http://download.eclipse.org/egit/github/updates/"/>
+      <repository
+          url="http://download.eclipse.org/mylyn/releases/latest"/>
       <description>Task and build connector</description>
     </setupTask>
     <setupTask
@@ -125,25 +151,6 @@
           versionRange="[1.5.0,1.6.0)"/>
       <repository
           url="http://download.eclipse.org/tools/gef/updates/releases/"/>
-    </setupTask>
-    <setupTask
-        xsi:type="setup.p2:P2Task"
-        id="p2.m2e"
-        label="M2E"
-        licenseConfirmationDisabled="true">
-      <requirement
-          name="org.sonatype.tycho.m2e.feature.feature.group"/>
-      <requirement
-          name="org.eclipse.m2e.feature.feature.group"/>
-      <repository
-          url="http://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-tycho/0.8.0/N/LATEST"/>
-      <description>Maven connector</description>
-    </setupTask>
-    <setupTask
-        xsi:type="setup.p2:P2Task"
-        label="EMF">
-      <requirement
-          name="org.eclipse.emf.sdk.feature.group"/>
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
@@ -185,17 +192,15 @@
         label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
         licenseConfirmationDisabled="true">
       <requirement
-          name="org.eclipse.emf.ecore.xcore.feature.group"/>
-      <requirement
           name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.emf.ecore.xcore.ui.feature.group"/>
       <requirement
           name="org.eclipse.xtext.sdk.feature.group"
           versionRange="[2.7.0,2.8.0)"/>
       <requirement
           name="org.eclipse.xtend.sdk.feature.group"
           versionRange="[2.7.0,2.8.0)"/>
+      <requirement
+          name="org.eclipse.xpand.sdk.feature.group"/>
       <requirement
           name="org.eclipse.emf.mwe2.language.sdk.feature.group"
           versionRange="[2.7.0,2.8.0)"/>
@@ -486,8 +491,28 @@
     </targlet>
   </setupTask>
   <setupTask
+      xsi:type="projects:ProjectsBuildTask"/>
+  <setupTask
       xsi:type="launching:LaunchTask"
       launcher="Generate Language Infrastructure (de.bitub.step.express)"/>
+  <setupTask
+      xsi:type="setup:CompoundTask"
+      name="Mylyn Github Issues">
+    <setupTask
+        xsi:type="mylyn:MylynQueriesTask"
+        connectorKind="github"
+        repositoryURL="https://github.com/bitub/step"
+        userID="${github.user.id}"
+        password="">
+      <query
+          summary="STEP Issues"
+          url="">
+        <attribute
+            key="state"
+            value="open::"/>
+      </query>
+    </setupTask>
+  </setupTask>
   <stream name="luna-dev-p21"
       label="luna-dev-p21">
     <setupTask
