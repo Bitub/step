@@ -1,18 +1,17 @@
 package de.bitub.step.generator
 
-import de.bitub.step.express.Function
-import de.bitub.step.express.Schema
-import de.bitub.step.express.DataType
-import de.bitub.step.express.CollectionType
 import de.bitub.step.express.BooleanType
-import de.bitub.step.express.LogicalType
-import de.bitub.step.express.ReferenceType
+import de.bitub.step.express.CollectionType
+import de.bitub.step.express.DataType
+import de.bitub.step.express.Function
 import de.bitub.step.express.GenericType
-import de.bitub.step.express.BuiltInType
-import de.bitub.step.express.StringType
-import de.bitub.step.express.RealType
-import de.bitub.step.express.NumberType
 import de.bitub.step.express.IntegerType
+import de.bitub.step.express.LogicalType
+import de.bitub.step.express.NumberType
+import de.bitub.step.express.RealType
+import de.bitub.step.express.ReferenceType
+import de.bitub.step.express.Schema
+import de.bitub.step.express.StringType
 
 class FunctionGenerator {
 
