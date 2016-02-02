@@ -29,6 +29,9 @@
 							<filesets combine.children="append">
 								<fileset>
 									<directory>${basedir}/src-gen/</directory>
+									<excludes>
+										<exclude>.gitignore</exclude>
+									</excludes>
 								</fileset>
 								<fileset>
 									<directory>${basedir}/model/generated/</directory>
