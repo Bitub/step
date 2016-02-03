@@ -42,13 +42,10 @@ import de.bitub.step.p21.StepParser.StringContext;
 import de.bitub.step.p21.StepParser.TypedContext;
 import de.bitub.step.p21.StepParser.UntypedContext;
 import de.bitub.step.p21.header.Header;
-import de.bitub.step.p21.mapper.P21ToModel;
 import de.bitub.step.p21.mapper.StepToModel;
 import de.bitub.step.p21.mapper.StepToModelImpl;
-import de.bitub.step.p21.util.Antlr4Util;
 import de.bitub.step.p21.util.LoggerHelper;
 import de.bitub.step.p21.util.StepUntypedToEcore;
-import de.bitub.step.p21.util.XPressModel;
 
 /**
  * <!-- begin-user-doc -->
