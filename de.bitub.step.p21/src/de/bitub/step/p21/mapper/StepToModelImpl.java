@@ -10,27 +10,24 @@
  */
 package de.bitub.step.p21.mapper;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import org.buildingsmart.ifc4.IFC4;
-import org.buildingsmart.ifc4.Ifc4Factory;
 import org.buildingsmart.ifc4.Ifc4Package;
-import org.buildingsmart.ifc4.impl.IFC4Impl;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnum;
+import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+
+import de.bitub.step.p21.util.LoggerHelper;
 
 /**
  * <!-- begin-user-doc -->
@@ -41,52 +38,27 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
  */
 public class StepToModelImpl implements StepToModel
 {
-  private static final Logger LOGGER = Logger.getLogger(StepToModelImpl.class.getName());
+  private static final Logger LOGGER = LoggerHelper.init(Level.ALL, StepToModelImpl.class);
 
   //container for all IFC objects, each stored by class in a separate list
   //
-  private IFC4 ifc4;
+  private IFC4 ifc4 = null; //TODO "Schema" as class name for every generated schema.
 
   // emf + ecore specific references for filling model
   //
   @SuppressWarnings("rawtypes")
   private Map<String, EList> containerLists = null;
-
   private Map<String, EClassifier> stepToEcoreNames = null;
 
   public StepToModelImpl()
   {
-    this.initLogger("ifc-files/" + StepToModelImpl.class.getName() + ".log");
-
-    // TODO make generic access to root container of schema
-    //
-    Ifc4Factory factory = Ifc4Package.eINSTANCE.getIfc4Factory();
-    ifc4 = factory.createIFC4();
-
-    this.init();
+    this(Ifc4Package.eINSTANCE.getIfc4Factory(), Ifc4Package.eINSTANCE.getIFC4());
   }
 
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * 
-   * @generated NOT
-   * @param all
-   */
-  private void initLogger(String pattern)
+  public StepToModelImpl(EFactory eFactory, EClass eClass)
   {
-    try {
-      Handler handler = new FileHandler(pattern);
-      SimpleFormatter formatter = new SimpleFormatter();
-      handler.setFormatter(formatter);
-
-      LOGGER.setLevel(Level.ALL);
-      LOGGER.addHandler(handler);
-      LOGGER.setUseParentHandlers(false);
-    }
-    catch (SecurityException | IOException e) {
-      e.printStackTrace();
-    }
+    ifc4 = (IFC4) eFactory.create(eClass);
+    init();
   }
 
   /**
@@ -188,7 +160,7 @@ public class StepToModelImpl implements StepToModel
 
   private void init()
   {
-    this.containerLists = this.initKeywordToContainmentListsMap();
+    this.containerLists = this.initKeywordToContainmentListsMap(ifc4.eClass().getEAllContainments());
     this.stepToEcoreNames = this.initNameToClassifierMap();
 
     if (LOGGER.isLoggable(Level.CONFIG)) {
@@ -219,24 +191,20 @@ public class StepToModelImpl implements StepToModel
   }
 
   @SuppressWarnings("rawtypes")
-  private Map<String, EList> initKeywordToContainmentListsMap()
+  private Map<String, EList> initKeywordToContainmentListsMap(EList<EReference> containments)
   {
-    Map<String, EList> containerLists = new HashMap<String, EList>();
+    Map<String, EList> containerLists = new HashMap<>();
 
     // all containment references in IFC4
     //
-    for (EReference eReference : this.ifc4.eClass().getEAllContainments()) {
-
-      String upperCaseKey = eReference.getName().toUpperCase();
-      int containmentListFeatureId = eReference.getFeatureID();
-
-      Object containmentList = ((IFC4Impl) this.ifc4).eGet(containmentListFeatureId, true, true);
+    for (EReference eReference : containments) {
+      Object containmentList = ifc4.eGet(eReference);
 
       if (containmentList instanceof EList) {
 
         // save references to containment lists of overall ifc4 container
         //
-        containerLists.put(upperCaseKey, (EList<?>) containmentList);
+        containerLists.put(eReference.getName().toUpperCase(), (EList<?>) containmentList);
       }
     }
     return containerLists;
@@ -248,8 +216,7 @@ public class StepToModelImpl implements StepToModel
 
     for (EClassifier eClassifier : Ifc4Package.eINSTANCE.getEClassifiers()) {
 
-      String upperCaseEntityName = eClassifier.getName().toUpperCase();
-      stepToEcoreNames.put(upperCaseEntityName, eClassifier);
+      stepToEcoreNames.put(eClassifier.getName().toUpperCase(), eClassifier);
     }
     return stepToEcoreNames;
   }
