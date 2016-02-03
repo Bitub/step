@@ -7,14 +7,13 @@
     xmlns:jdt="http://www.eclipse.org/oomph/setup/jdt/1.0"
     xmlns:launching="http://www.eclipse.org/oomph/setup/launching/1.0"
     xmlns:mylyn="http://www.eclipse.org/oomph/setup/mylyn/1.0"
-    xmlns:pde="http://www.eclipse.org/oomph/setup/pde/1.0"
     xmlns:predicates="http://www.eclipse.org/oomph/predicates/1.0"
     xmlns:projects="http://www.eclipse.org/oomph/setup/projects/1.0"
     xmlns:setup="http://www.eclipse.org/oomph/setup/1.0"
     xmlns:setup.p2="http://www.eclipse.org/oomph/setup/p2/1.0"
     xmlns:setup.targlets="http://www.eclipse.org/oomph/setup/targlets/1.0"
     xmlns:setup.workingsets="http://www.eclipse.org/oomph/setup/workingsets/1.0"
-    xsi:schemaLocation="http://www.eclipse.org/oomph/setup/git/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Git.ecore http://www.eclipse.org/oomph/setup/jdt/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/JDT.ecore http://www.eclipse.org/oomph/setup/launching/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Launching.ecore http://www.eclipse.org/oomph/setup/mylyn/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Mylyn.ecore http://www.eclipse.org/oomph/setup/pde/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/PDE.ecore http://www.eclipse.org/oomph/predicates/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Predicates.ecore http://www.eclipse.org/oomph/setup/projects/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Projects.ecore http://www.eclipse.org/oomph/setup/targlets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupTarglets.ecore http://www.eclipse.org/oomph/setup/workingsets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupWorkingSets.ecore"
+    xsi:schemaLocation="http://www.eclipse.org/oomph/setup/git/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Git.ecore http://www.eclipse.org/oomph/setup/jdt/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/JDT.ecore http://www.eclipse.org/oomph/setup/launching/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Launching.ecore http://www.eclipse.org/oomph/setup/mylyn/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Mylyn.ecore http://www.eclipse.org/oomph/predicates/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Predicates.ecore http://www.eclipse.org/oomph/setup/projects/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/Projects.ecore http://www.eclipse.org/oomph/setup/targlets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupTarglets.ecore http://www.eclipse.org/oomph/setup/workingsets/1.0 http://git.eclipse.org/c/oomph/org.eclipse.oomph.git/plain/setups/models/SetupWorkingSets.ecore"
     name="de.bitub.step"
     label="de.bitub.step">
   <setupTask
@@ -188,31 +187,6 @@
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
-        id="p2.org.eclipse.xtext"
-        label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
-        licenseConfirmationDisabled="true">
-      <requirement
-          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.xtext.sdk.feature.group"
-          versionRange="[2.7.0,2.8.0)"/>
-      <requirement
-          name="org.eclipse.xtend.sdk.feature.group"
-          versionRange="[2.7.0,2.8.0)"/>
-      <requirement
-          name="org.eclipse.xpand.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.emf.mwe2.language.sdk.feature.group"
-          versionRange="[2.7.0,2.8.0)"/>
-      <requirement
-          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
-          versionRange="[2.7.0,2.8.0)"/>
-      <repository
-          url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
-      <description>Xtext &amp; Xtend &amp; Xcore</description>
-    </setupTask>
-    <setupTask
-        xsi:type="setup.p2:P2Task"
         label="ANTLR4">
       <requirement
           name="org.antlr.antlr4-runtime-osgi"/>
@@ -224,17 +198,6 @@
           name="org.antlr.antlr4-runtime-osgi.source"/>
       <repository
           url="https://bitub.github.io/step-p2-antlr4/p2/"/>
-    </setupTask>
-    <setupTask
-        xsi:type="setup.p2:P2Task"
-        id="p2.antlr4ide.sdk"
-        label="ANTLR4 IDE"
-        licenseConfirmationDisabled="true">
-      <requirement
-          name="antlr4ide.sdk.feature.group"/>
-      <repository
-          url="http://dl.bintray.com/jknack/antlr4ide/"/>
-      <description>ANTLR4 IDE</description>
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
@@ -361,34 +324,9 @@
       <description>BITUB STEP Code Repository</description>
     </setupTask>
     <setupTask
-        xsi:type="git:GitCloneTask"
-        id="git.clone.ifc"
-        remoteURI="bitub/step-ifc4"
-        checkoutBranch="master">
-      <annotation
-          source="http://www.eclipse.org/oomph/setup/InducedChoices">
-        <detail
-            key="inherit">
-          <value>github.remoteURIs</value>
-        </detail>
-        <detail
-            key="label">
-          <value>${scope.project.label} Github repository</value>
-        </detail>
-        <detail
-            key="target">
-          <value>remoteURI</value>
-        </detail>
-      </annotation>
-      <description>BITUB STEP Code Repository</description>
-    </setupTask>
-    <setupTask
         xsi:type="projects:ProjectsImportTask">
       <sourceLocator
           rootFolder="${installation.location/git/}${git.clone.step.remoteURI|gitRepository}"
-          locateNestedProjects="true"/>
-      <sourceLocator
-          rootFolder="${installation.location/git/}${git.clone.ifc.remoteURI|gitRepository}"
           locateNestedProjects="true"/>
     </setupTask>
   </setupTask>
@@ -445,53 +383,22 @@
         name="${scope.project.label}"
         activeRepositoryList="${eclipse.target.platform}">
       <requirement
-          name="org.eclipse.xtext.sdk.feature.group"
-          versionRange="[2.7.0,2.8.0)"/>
+          name="org.antlr.antlr4-runtime-osgi"/>
       <requirement
-          name="org.eclipse.emf.mwe2.language.sdk.feature.group"
-          versionRange="[2.7.0,2.8.0)"/>
-      <requirement
-          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
-          versionRange="[2.7.0,2.8.0)"/>
-      <requirement
-          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"
-          versionRange="[1.2.0,1.3.0)"/>
+          name="org.abego.treelayout.org.abego.treelayout.core"/>
       <requirement
           name="org.eclipse.zest.feature.group"
           versionRange="[1.5.0,1.6.0)"/>
       <requirement
           name="org.eclipse.zest.sdk.feature.group"
           versionRange="[1.5.0,1.6.0)"/>
-      <repositoryList
-          name="Luna">
-        <repository
-            url="http://download.eclipse.org/releases/luna"/>
-        <repository
-            url="http://download.eclipse.org/eclipse/updates/4.4/"/>
-        <repository
-            url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
-        <repository
-            url="http://download.eclipse.org/tools/gef/updates/releases/"/>
-        <repository
-            url="${mwe2.site}"/>
-        <repository
-            url="https://bitub.github.io/step-p2-antlr4/p2/"/>
-        <repository
-            url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
-      </repositoryList>
-      <repositoryList
-          name="Mars">
-        <repository
-            url="http://download.eclipse.org/releases/mars"/>
-        <repository
-            url="http://download.eclipse.org/eclipse/updates/4.5/"/>
-        <repository
-            url="${mwe2.site}"/>
-      </repositoryList>
+      <requirement
+          name="org.openifctools.stringconverter.f.feature.group"/>
     </targlet>
   </setupTask>
   <setupTask
-      xsi:type="projects:ProjectsBuildTask"/>
+      xsi:type="projects:ProjectsBuildTask"
+      onlyNewProjects="true"/>
   <setupTask
       xsi:type="launching:LaunchTask"
       launcher="Generate Language Infrastructure (de.bitub.step.express)"/>
@@ -516,12 +423,6 @@
   <stream name="luna-dev-p21"
       label="luna-dev-p21">
     <setupTask
-        xsi:type="pde:TargetPlatformTask"
-        id="de.bitub.step.luna"
-        name="de.bitub.step">
-      <description>Target platform for project developement on Eclipse Luna.</description>
-    </setupTask>
-    <setupTask
         xsi:type="setup:VariableTask"
         name="mwe2.site"
         value="http://download.eclipse.org/modeling/emft/mwe/updates/releases/2.8.3/"/>
@@ -531,8 +432,9 @@
         value="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
     <setupTask
         xsi:type="setup:VariableTask"
-        name="stringconverter.site"
-        value="https://bitub.github.io/step-p2-stringconverter/p2/"/>
+        name="target.generate.versions"
+        value="0.1.0-SNAPSHOT"
+        defaultValue="0.1.0-SNAPSHOT"/>
     <setupTask
         xsi:type="setup:VariableTask"
         name="eclipse.target.platform"
@@ -542,15 +444,98 @@
         label="Target Platform">
       <description>Choose the compatibility level of the target platform</description>
     </setupTask>
-  </stream>
-  <stream name="luna-dev-express"
-      label="luna-dev-express">
     <setupTask
-        xsi:type="pde:TargetPlatformTask"
-        id="de.bitub.step-luna"
-        name="de.bitub.step">
-      <description>Target platform for project developement on Eclipse Luna.</description>
+        xsi:type="setup.p2:P2Task"
+        id="p2.org.eclipse.xtext"
+        label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
+        licenseConfirmationDisabled="true">
+      <requirement
+          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.xtext.sdk.feature.group"
+          versionRange="[2.7.0,2.8.0)"/>
+      <requirement
+          name="org.eclipse.xtend.sdk.feature.group"
+          versionRange="[2.7.0,2.8.0)"/>
+      <requirement
+          name="org.eclipse.xpand.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.emf.mwe2.language.sdk.feature.group"
+          versionRange="[2.7.0,2.8.0)"/>
+      <requirement
+          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
+          versionRange="[2.7.0,2.8.0)"/>
+      <repository
+          url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
+      <description>Xtext &amp; Xtend &amp; Xcore</description>
     </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
+        id="p2.antlr4ide.sdk"
+        label="ANTLR4 IDE"
+        licenseConfirmationDisabled="true">
+      <requirement
+          name="antlr4ide.sdk.feature.group"/>
+      <repository
+          url="http://dl.bintray.com/jknack/antlr4ide/"/>
+      <description>ANTLR4 IDE</description>
+    </setupTask>
+    <setupTask
+        xsi:type="setup.targlets:TargletTask">
+      <targlet
+          name="Luna PLatform"
+          activeRepositoryList="Luna">
+        <annotation
+            source="http:/www.eclipse.org/oomph/targlets/TargetDefinitionGenerator">
+          <detail
+              key="location">
+            <value>${installation.location/git/}${git.clone.step.remoteURI|gitRepository}/de.bitub.step.target-definition/de.bitub.step-luna.target</value>
+          </detail>
+          <detail
+              key="includeAllPlatforms">
+            <value>false</value>
+          </detail>
+          <detail
+              key="includeSource">
+            <value>false</value>
+          </detail>
+          <detail
+              key="generateVersions">
+            <value>${target.generate.versions}</value>
+          </detail>
+        </annotation>
+        <requirement
+            name="org.eclipse.xtext.sdk.feature.group"
+            versionRange="[2.7.0,2.8.0)"/>
+        <requirement
+            name="org.eclipse.emf.mwe2.language.sdk.feature.group"
+            versionRange="[2.7.0,2.8.0)"/>
+        <requirement
+            name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
+            versionRange="[2.7.0,2.8.0)"/>
+        <requirement
+            name="org.eclipse.emf.ecore.xcore.sdk.feature.group"
+            versionRange="[1.2.0,1.3.0)"/>
+        <repositoryList
+            name="Luna">
+          <repository
+              url="http://download.eclipse.org/releases/luna"/>
+          <repository
+              url="http://download.eclipse.org/eclipse/updates/4.4/"/>
+          <repository
+              url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
+          <repository
+              url="http://download.eclipse.org/tools/gef/updates/releases/"/>
+          <repository
+              url="https://bitub.github.io/step-p2-antlr4/p2/"/>
+          <repository
+              url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
+        </repositoryList>
+      </targlet>
+    </setupTask>
+  </stream>
+  <stream name="mars-dev-p21"
+      label="mars-dev-p21">
     <setupTask
         xsi:type="setup:VariableTask"
         name="mwe2.site"
@@ -558,75 +543,12 @@
     <setupTask
         xsi:type="setup:VariableTask"
         name="xtext.site"
-        value="http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.8.4"/>
+        value="http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.9.1/"/>
     <setupTask
         xsi:type="setup:VariableTask"
-        name="eclipse.target.platform"
-        value="Luna"
-        defaultValue="Luna"
-        storageURI="scope://Workspace"
-        label="Target Platform">
-      <annotation
-          source="http://www.eclipse.org/oomph/setup/GlobalVariable"/>
-      <choice
-          value="Neon"
-          label="Eclipse Neon - 4.6"/>
-      <choice
-          value="Mars"
-          label="Eclipse Mars - 4.5"/>
-      <choice
-          value="Luna"
-          label="Eclipse Luna - 4.4"/>
-      <choice
-          value="None"
-          label="None"/>
-      <description>Choose the compatibility level of the target platform</description>
-    </setupTask>
-    <description></description>
-  </stream>
-  <stream name="luna-dev"
-      label="luna-dev">
-    <setupTask
-        xsi:type="setup:VariableTask"
-        name="mwe2.site"
-        value="http://download.eclipse.org/modeling/emft/mwe/updates/releases/2.8.3/"/>
-    <setupTask
-        xsi:type="setup:VariableTask"
-        name="xtext.site"
-        value="http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.8.4/"/>
-    <setupTask
-        xsi:type="setup:VariableTask"
-        name="eclipse.target.platform"
-        value="Luna"
-        defaultValue="Luna"
-        storageURI="scope://Workspace"
-        label="Target Platform">
-      <annotation
-          source="http://www.eclipse.org/oomph/setup/GlobalVariable"/>
-      <choice
-          value="Neon"
-          label="Eclipse Neon - 4.6"/>
-      <choice
-          value="Mars"
-          label="Eclipse Mars - 4.5"/>
-      <choice
-          value="Luna"
-          label="Eclipse Luna - 4.4"/>
-      <choice
-          value="None"
-          label="None"/>
-      <description>Choose the compatibility level of the target platform</description>
-    </setupTask>
-    <description></description>
-  </stream>
-  <stream name="master"
-      label="master">
-    <setupTask
-        xsi:type="pde:TargetPlatformTask"
-        id="de.bitub.step-mars"
-        name="de.bitub.step">
-      <description>Target platform for project developement on Eclipse Mars.</description>
-    </setupTask>
+        name="target.generate.versions"
+        value="0.1.0-SNAPSHOT"
+        defaultValue="0.1.0-SNAPSHOT"/>
     <setupTask
         xsi:type="setup:VariableTask"
         name="eclipse.target.platform"
@@ -637,10 +559,83 @@
       <description>Choose the compatibility level of the target platform</description>
     </setupTask>
     <setupTask
-        xsi:type="setup:VariableTask"
-        name="mwe2.site"
-        value="http://download.eclipse.org/modeling/emft/mwe/updates/releases/2.8.3/"/>
-    <description></description>
+        xsi:type="setup.p2:P2Task"
+        label="Equinox Core">
+      <requirement
+          name="org.eclipse.equinox.core.sdk.feature.group"/>
+    </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
+        id="p2.org.eclipse.xtext"
+        label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
+        licenseConfirmationDisabled="true">
+      <requirement
+          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.xtext.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.xtend.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.xpand.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.emf.mwe2.language.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"/>
+      <repository
+          url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
+      <description>Xtext &amp; Xtend &amp; Xcore</description>
+    </setupTask>
+    <setupTask
+        xsi:type="setup.targlets:TargletTask">
+      <targlet
+          name="Mars Platform"
+          activeRepositoryList="Mars">
+        <annotation
+            source="http:/www.eclipse.org/oomph/targlets/TargetDefinitionGenerator">
+          <detail
+              key="location">
+            <value>${installation.location/git/}${git.clone.step.remoteURI|gitRepository}/de.bitub.step.target-definition/de.bitub.step-mars.target</value>
+          </detail>
+          <detail
+              key="includeAllPlatforms">
+            <value>false</value>
+          </detail>
+          <detail
+              key="includeSource">
+            <value>false</value>
+          </detail>
+          <detail
+              key="generateVersions">
+            <value>${target.generate.versions}</value>
+          </detail>
+        </annotation>
+        <requirement
+            name="org.eclipse.equinox.core.sdk.feature.group"/>
+        <requirement
+            name="org.eclipse.xtext.sdk.feature.group"/>
+        <requirement
+            name="org.eclipse.emf.mwe2.language.sdk.feature.group"/>
+        <requirement
+            name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"/>
+        <requirement
+            name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
+        <repositoryList
+            name="Mars">
+          <repository
+              url="http://download.eclipse.org/releases/mars"/>
+          <repository
+              url="http://download.eclipse.org/eclipse/updates/4.5/"/>
+          <repository
+              url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
+          <repository
+              url="http://download.eclipse.org/tools/gef/updates/releases/"/>
+          <repository
+              url="https://bitub.github.io/step-p2-antlr4/p2/"/>
+          <repository
+              url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
+        </repositoryList>
+      </targlet>
+    </setupTask>
   </stream>
   <logicalProjectContainer
       xsi:type="setup:ProjectCatalog"
