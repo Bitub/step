@@ -328,7 +328,6 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
         if (isInList) {
 
-          System.out.println(eList);
         } else {
 
           StepUntypedToEcore.setEStructuralFeature(index.current(), curObject, preCreated);
