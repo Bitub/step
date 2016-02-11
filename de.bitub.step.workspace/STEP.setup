@@ -207,6 +207,15 @@
       <repository
           url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
     </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
+        label="IFC4">
+      <requirement
+          name="de.bitub.step.ifc4.f.feature.group"
+          versionRange="[0.2.0,1.0.0)"/>
+      <repository
+          url="http://bitub.github.io/step-ifc4"/>
+    </setupTask>
   </setupTask>
   <setupTask
       xsi:type="setup:CompoundTask"
@@ -352,27 +361,21 @@
       </predicate>
     </workingSet>
     <workingSet
-        name="ifc">
-      <predicate
-          xsi:type="predicates:AndPredicate">
-        <operand
-            xsi:type="predicates:NamePredicate"
-            pattern=".*\.ifc(\..*)?"/>
-      </predicate>
-    </workingSet>
-    <workingSet
         name="dev">
       <predicate
           xsi:type="predicates:AndPredicate">
         <operand
             xsi:type="predicates:NamePredicate"
-            pattern=".*\.step-updatesite(\..*)?"/>
+            pattern=".*\.step-updatesite"/>
         <operand
             xsi:type="predicates:NamePredicate"
-            pattern=".*\.build-resources(\..*)?"/>
+            pattern=".*\.build-resources"/>
         <operand
             xsi:type="predicates:NamePredicate"
-            pattern=".*\.workspace(\..*)?"/>
+            pattern=".*\.workspace"/>
+        <operand
+            xsi:type="predicates:NamePredicate"
+            pattern=".*\.target-definition"/>
       </predicate>
     </workingSet>
     <description>The dynamic working sets for ${scope.project.label}</description>
@@ -394,6 +397,15 @@
           versionRange="[1.5.0,1.6.0)"/>
       <requirement
           name="org.openifctools.stringconverter.f.feature.group"/>
+      <requirement
+          name="org.eclipse.platform.sdk"/>
+      <requirement
+          name="org.eclipse.sdk.feature.group"/>
+      <requirement
+          name="org.eclipse.sdk.ide"/>
+      <requirement
+          name="de.bitub.step.ifc4.f.feature.group"
+          versionRange="[0.2.0,1.0.0)"/>
     </targlet>
   </setupTask>
   <setupTask
@@ -446,7 +458,7 @@
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
-        id="p2.org.eclipse.xtext"
+        id="p2.org.eclipse.xtext.luna"
         label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
         licenseConfirmationDisabled="true">
       <requirement
@@ -516,6 +528,9 @@
         <requirement
             name="org.eclipse.emf.ecore.xcore.sdk.feature.group"
             versionRange="[1.2.0,1.3.0)"/>
+        <requirement
+            name="org.eclipse.swt"
+            filter=""/>
         <repositoryList
             name="Luna">
           <repository
@@ -530,6 +545,8 @@
               url="https://bitub.github.io/step-p2-antlr4/p2/"/>
           <repository
               url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
+          <repository
+              url="http://bitub.github.io/step-ifc4"/>
         </repositoryList>
       </targlet>
     </setupTask>
@@ -566,7 +583,7 @@
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
-        id="p2.org.eclipse.xtext"
+        id="p2.org.eclipse.xtext.mars"
         label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
         licenseConfirmationDisabled="true">
       <requirement
@@ -691,6 +708,8 @@
               url="https://bitub.github.io/step-p2-antlr4/p2/"/>
           <repository
               url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
+          <repository
+              url="http://bitub.github.io/Bitub/step-ifc4"/>
         </repositoryList>
       </targlet>
     </setupTask>
