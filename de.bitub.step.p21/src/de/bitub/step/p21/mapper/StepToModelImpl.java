@@ -20,7 +20,6 @@ import org.buildingsmart.ifc4.Ifc4Package;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
-import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EObject;
@@ -77,13 +76,12 @@ public class StepToModelImpl implements StepToModel
     EObject newObject = null;
     keyword = keyword.toUpperCase();
 
-    if (this.stepToEcoreNames.containsKey(keyword)) { // TODO Is this needed? Check!
+    if (stepToEcoreNames.containsKey(keyword)) {
 
-      newObject = createBy(keyword);
+      newObject = createEObjectFrom(keyword);
       if (newObject != null && this.containerLists.containsKey(keyword)) { // is persistable
 
         this.containerLists.get(keyword).add(newObject);
-        LOGGER.info(String.format("Added new %s to containment list reference.", keyword));
       }
     }
     return newObject;
@@ -99,12 +97,12 @@ public class StepToModelImpl implements StepToModel
    * @param keyword
    * @return
    */
-  private EObject createBy(String keyword)
+  private EObject createEObjectFrom(String keyword)
   {
     EObject eObject = null;
 
     try {
-      EClass eClass = (EClass) this.get(keyword);
+      EClass eClass = (EClass) stepToEcoreNames.get(keyword);
       eObject = EcoreUtil.create(eClass);
     }
     catch (IllegalArgumentException | ClassCastException e) {
@@ -112,21 +110,6 @@ public class StepToModelImpl implements StepToModel
     }
 
     return eObject;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * Return the EClassifier of the given keyword, which is the upper case entity
-   * name.
-   * <!-- end-user-doc -->
-   * 
-   * @generated NOT
-   * @param keyword
-   * @return
-   */
-  private EClassifier get(String keyword)
-  {
-    return this.stepToEcoreNames.get(keyword);
   }
 
   /**
@@ -139,7 +122,7 @@ public class StepToModelImpl implements StepToModel
    */
   public Object createEnumBy(String keyword, String literalValue)
   {
-    EClassifier eClassifier = this.get(keyword);
+    EClassifier eClassifier = stepToEcoreNames.get(keyword);
 
     if (eClassifier instanceof EEnum) {
       EEnum eEnum = (EEnum) eClassifier;
@@ -160,64 +143,34 @@ public class StepToModelImpl implements StepToModel
 
   private void init()
   {
-    this.containerLists = this.initKeywordToContainmentListsMap(ifc4.eClass().getEAllContainments());
-    this.stepToEcoreNames = this.initNameToClassifierMap();
-
-    if (LOGGER.isLoggable(Level.CONFIG)) {
-
-      for (EClassifier eClassifier : Ifc4Package.eINSTANCE.getEClassifiers()) {
-
-        if (eClassifier instanceof EClass) {
-
-          EClass eClass = (EClass) eClassifier;
-          LOGGER.config("CLASS: " + eClass.getName());
-        }
-
-        if (eClassifier instanceof EDataType) {
-
-          EDataType eDataType = (EDataType) eClassifier;
-
-          if (eDataType instanceof EEnum) {
-
-            EEnum eEnum = (EEnum) eDataType;
-            LOGGER.config("ENUM: " + eEnum.getName() + " " + eEnum.getELiterals());
-          } else {
-
-            LOGGER.config("D-TYPE: " + eDataType.getName());
-          }
-        }
-      }
-    }
+    containerLists = keywordToContainmentList(ifc4.eClass().getEAllContainments());
+    stepToEcoreNames = nameToClassifier(Ifc4Package.eINSTANCE.getEClassifiers());
   }
 
   @SuppressWarnings("rawtypes")
-  private Map<String, EList> initKeywordToContainmentListsMap(EList<EReference> containments)
+  private Map<String, EList> keywordToContainmentList(EList<EReference> containments)
   {
     Map<String, EList> containerLists = new HashMap<>();
 
-    // all containment references in IFC4
-    //
     for (EReference eReference : containments) {
       Object containmentList = ifc4.eGet(eReference);
 
       if (containmentList instanceof EList) {
-
-        // save references to containment lists of overall ifc4 container
-        //
-        containerLists.put(eReference.getName().toUpperCase(), (EList<?>) containmentList);
+        containerLists.put(eReference.getName().toUpperCase(), (EList) containmentList);
       }
     }
+
     return containerLists;
   }
 
-  private Map<String, EClassifier> initNameToClassifierMap()
+  private Map<String, EClassifier> nameToClassifier(EList<EClassifier> pckgClassifiers)
   {
-    Map<String, EClassifier> stepToEcoreNames = new HashMap<String, EClassifier>();
+    Map<String, EClassifier> stepToEcoreNames = new HashMap<>();
 
-    for (EClassifier eClassifier : Ifc4Package.eINSTANCE.getEClassifiers()) {
-
+    for (EClassifier eClassifier : pckgClassifiers) {
       stepToEcoreNames.put(eClassifier.getName().toUpperCase(), eClassifier);
     }
+
     return stepToEcoreNames;
   }
 

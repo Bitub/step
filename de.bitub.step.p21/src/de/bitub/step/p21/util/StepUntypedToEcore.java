@@ -10,12 +10,8 @@
  */
 package de.bitub.step.p21.util;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
@@ -24,8 +20,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-
-import de.bitub.step.p21.mapper.StepToModel;
 
 /**
  * <!-- begin-user-doc -->
@@ -36,56 +30,16 @@ import de.bitub.step.p21.mapper.StepToModel;
  */
 public class StepUntypedToEcore
 {
+  private static final Logger LOGGER = LoggerHelper.init(Level.WARNING, StepUntypedToEcore.class);
 
-  public static final Logger LOGGER = Logger.getLogger(StepUntypedToEcore.class.getName());
-
-  static {
-    try {
-
-      // This block configure the logger with handler and formatter
-      //
-      FileHandler fh = new FileHandler("logs/" + StepUntypedToEcore.class.getSimpleName() + ".log");
-      SimpleFormatter formatter = new SimpleFormatter();
-      fh.setFormatter(formatter);
-
-      StepUntypedToEcore.LOGGER.setLevel(Level.WARNING);
-      StepUntypedToEcore.LOGGER.addHandler(fh);
-      StepUntypedToEcore.LOGGER.setUseParentHandlers(false);
-    }
-    catch (SecurityException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public static void eString(int index, EObject eObject, String value, StepToModel util)
+  public static void setEStructuralFeature(int parameterIndex, EObject eObject, Object value)
   {
-    StepUntypedToEcore.setEStructuralFeature(index, eObject, value, util);
-  }
-
-  public static void setEStructuralFeature(int parameterIndex, EObject eObject, Object value, StepToModel util)
-  {
-    EList<EStructuralFeature> eStructuralFeatures = eObject.eClass().getEAllStructuralFeatures();
-
-    int structuralIndex = StepUntypedToEcore.calcIndex(parameterIndex, eStructuralFeatures);
-
-    LOGGER.info("INDEX: text: " + parameterIndex + "  struc: " + structuralIndex + " all: " + eStructuralFeatures.size());
-
-    if (structuralIndex == -1) {
-      LOGGER.warning("" + structuralIndex);
-      return;
-    }
-
-    EStructuralFeature eStructuralFeature = eStructuralFeatures.get(structuralIndex);
+    EStructuralFeature eStructuralFeature = XPressModel.p21FeatureBy(eObject, parameterIndex);
 
     // is it an attribute
     //
     if (eStructuralFeature instanceof EAttribute) {
-
       EAttribute eAttribute = (EAttribute) eStructuralFeature;
-//      LOGGER.info("It's an EAttribute: " + eAttribute);
 
       StepUntypedToEcore.setEAttribute(eAttribute, eObject, value);
     }
@@ -93,15 +47,12 @@ public class StepUntypedToEcore
     // is it an reference
     //
     if (eStructuralFeature instanceof EReference) {
-
       EReference eReference = (EReference) eStructuralFeature;
-      LOGGER.info(eReference.getName() + " references " + eReference.getEType().getName());
 
       if (value instanceof EObject) {
         EObject eValue = (EObject) value;
-        boolean isNotMatched = !eValue.eClass().getName().equals(eReference.getEType().getName());
 
-        LOGGER.info("New Value " + value + " != " + eReference.getEType().getName() + " ? " + isNotMatched);
+        boolean isNotMatched = !eValue.eClass().getName().equals(eReference.getEType().getName());
         if (isNotMatched) {
 
           EClass eSelectClass = (EClass) eReference.getEType();
@@ -173,43 +124,48 @@ public class StepUntypedToEcore
     StepUntypedToEcore.set(eReference, eObject, value);
   }
 
-  public static void eInteger(int index, EObject eObject, String value, StepToModel util)
+  public static void eString(int index, EObject eObject, String value)
+  {
+    StepUntypedToEcore.setEStructuralFeature(index, eObject, value);
+  }
+
+  public static void eInteger(int index, EObject eObject, String value)
   {
     try {
       LOGGER.info(String.format("SET %s to %s", value, eObject.eClass().getName()));
 
       int newValue = Integer.parseInt(value, 10);
-      StepUntypedToEcore.setEStructuralFeature(index, eObject, newValue, util);
+      StepUntypedToEcore.setEStructuralFeature(index, eObject, newValue);
     }
     catch (NumberFormatException exception) {
       LOGGER.warning(exception.getMessage());
     }
   }
 
-  public static void eReal(int index, EObject eObject, String value, StepToModel util)
+  public static void eReal(int index, EObject eObject, String value)
   {
     try {
       LOGGER.info(String.format("SET %s to %s", value, eObject.eClass().getName()));
 
       double newValue = Double.parseDouble(value);
-      StepUntypedToEcore.setEStructuralFeature(index, eObject, newValue, util);
+      StepUntypedToEcore.setEStructuralFeature(index, eObject, newValue);
     }
     catch (NumberFormatException exception) {
       LOGGER.warning(exception.getMessage());
     }
   }
 
-  public static void eBoolean(int index, EObject eObject, String value, StepToModel util)
+  public static void eBoolean(int index, EObject eObject, String value)
   {
     try {
 
       switch (value) {
         case "T":
-          StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(true), util);
+          StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(true));
           break;
 
         case "F":
-          StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(false), util);
+          StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(false));
           break;
 
         default:
@@ -219,15 +175,5 @@ public class StepUntypedToEcore
     catch (NumberFormatException exception) {
       LOGGER.warning(exception.getMessage());
     }
-  }
-
-  public static String eBinary(String text)
-  {
-    throw new UnsupportedOperationException("Not implemented yet!");
-  }
-
-  public static List<?> eList(String text)
-  {
-    throw new UnsupportedOperationException("Not implemented yet!");
   }
 }

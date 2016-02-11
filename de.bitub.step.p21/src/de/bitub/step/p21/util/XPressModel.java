@@ -37,6 +37,7 @@ public class XPressModel
   private static final String PROXY = "proxy";
 
   private static final String KIND = "kind";
+  private static final String NAME = "name";
   private static final String DATATYPE_REF = "datatypeRef";
   private static final String SELECT = "select";
 
@@ -45,12 +46,13 @@ public class XPressModel
     NEW, GENERATED, MAPPED, PROXY
   }
 
-  private interface DatatypeRefStrings
+  public interface DatatypeRefStrings
   {
     String DOUBLE = "double";
     String INT = "int";
     String STRING = "string";
     String BOOLEAN = "boolean";
+    String LOGICAL = "Boolean";
     String DOUBLE_ARRAY = "double[]";
   }
 
@@ -70,29 +72,9 @@ public class XPressModel
     throw new UnsupportedOperationException();
   }
 
-  public static DatatypeRef getDataTypeOf(EStructuralFeature eStructuralFeature)
+  public static String getDataTypeOf(EStructuralFeature eStructuralFeature)
   {
-    String datatypeRef = EcoreUtil.getAnnotation(eStructuralFeature, XPRESS_MODEL_ANNOTATION_SRC, DATATYPE_REF);
-    switch (datatypeRef) {
-
-      case DatatypeRefStrings.BOOLEAN:
-        return DatatypeRef.BOOLEAN;
-
-      case DatatypeRefStrings.DOUBLE:
-        return DatatypeRef.DOUBLE;
-
-      case DatatypeRefStrings.DOUBLE_ARRAY:
-        return DatatypeRef.DOUBLE_ARRAY;
-
-      case DatatypeRefStrings.INT:
-        return DatatypeRef.INT;
-
-      case DatatypeRefStrings.STRING:
-        return DatatypeRef.STRING;
-
-      default:
-        return null;
-    }
+    return EcoreUtil.getAnnotation(eStructuralFeature, XPRESS_MODEL_ANNOTATION_SRC, DATATYPE_REF);
   }
 
   public static boolean isGenerated(EClassifier eClassifier)
@@ -111,6 +93,12 @@ public class XPressModel
   {
     String kind = getKindOf(eStructuralFeature);
     return null != kind && kind.equalsIgnoreCase(MAPPED);
+  }
+
+  public static boolean isProxy(EModelElement eModelElement)
+  {
+    // TODO Auto-generated method stub
+    return false;
   }
 
   public static boolean isProxy(EStructuralFeature eStructuralFeature)
@@ -159,8 +147,6 @@ public class XPressModel
     if (annotatedFeatures.isEmpty()) {
       return null;
     }
-
-    System.out.println(annotatedFeatures + " \n " + p21Index + " \n " + eObject.eClass());
     return annotatedFeatures.get(p21Index);
   }
 
@@ -169,5 +155,10 @@ public class XPressModel
     EStructuralFeature eStructuralFeature = ifcEntity.eClass().getEStructuralFeatures().get(index);
     this.getKindOf(eStructuralFeature.getName());
     ifcEntity.eSet(eStructuralFeature, parsedValue);
+  }
+
+  public static String getName(EStructuralFeature eStructuralFeature)
+  {
+    return EcoreUtil.getAnnotation(eStructuralFeature, XPRESS_MODEL_ANNOTATION_SRC, NAME);
   }
 }
