@@ -14,7 +14,6 @@ import java.util.List;
 
 import javax.management.InstanceNotFoundException;
 
-import org.buildingsmart.ifc4.IFC4;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -40,10 +39,6 @@ public class P21ToModel implements AllEntities, AllParameters
   // holds all model informations and mappings
   //
   private Registry registry = Registry.INSTANCE();
-
-  // contains all model data
-  //
-  private IFC4 container = registry.getContainer();
 
   /**
    * <!-- begin-user-doc -->
@@ -134,4 +129,18 @@ public class P21ToModel implements AllEntities, AllParameters
     throw new InstanceNotFoundException(name);
   }
 
+  public void update(EObject object, EStructuralFeature feature, Object newValue)
+  {
+    try {
+      object.eSet(feature, newValue);
+    }
+    catch (ClassCastException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public EObject getContainer()
+  {
+    return registry.getContainer();
+  }
 }
