@@ -358,22 +358,22 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(kind="new")
 		class «s.name» {
 					
-		«FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
+		«FOR e:s.entity.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
 		«ENDFOR»
 		
 		// persisted SELECTS
 		
-		«FOR t:s.types.filter[datatype instanceof SelectType]»  contains «t.name.toFirstUpper»[] «t.name.toFirstLower»
+		«FOR t:s.type.filter[datatype instanceof SelectType]»  contains «t.name.toFirstUpper»[] «t.name.toFirstLower»
 		«ENDFOR»
 		}
 		
 		// --- TYPE DEFINITIONS ------------------------------
 		
-		«FOR t:s.types»«t.compileConcept»«ENDFOR»
+		«FOR t:s.type»«t.compileConcept»«ENDFOR»
 		
 		// --- ENTITY DEFINITIONS ----------------------------
 		
-		«FOR e:s.entities»«e.compileConcept»«ENDFOR»
+		«FOR e:s.entity»«e.compileConcept»«ENDFOR»
 			
 		// --- ADDITIONALLY GENERATED ------------------------
 		
@@ -402,7 +402,7 @@ class XcoreGenerator implements IGenerator {
 			  »// FIXME op «a.type.compileDatatype» get«a.name.toFirstUpper»()«
 			ENDFOR»«
 		  ENDIF»
-		  «FOR a : e.attributes»
+		  «FOR a : e.attribute»
 		  
 		  «IF !util.isDerivedAttribute(a)»
 		  @GenModel(documentation="Attribute definition of «a.name»")
@@ -783,7 +783,7 @@ class XcoreGenerator implements IGenerator {
 		var nameList = <String>newArrayList
 		var i = 0
 		
-		for(String name : t.literals.map[name]) {
+		for(String name : t.literal.map[name]) {
 			nameList += name+"="+(i++)
 		}		
 			

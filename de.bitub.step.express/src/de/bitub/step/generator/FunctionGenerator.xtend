@@ -20,7 +20,7 @@ class FunctionGenerator {
 		'''
 		class Functions {
 		
-		«FOR f : schema.funtions»«f.compileFunction»«ENDFOR»
+		«FOR f : schema.function»«f.compileFunction»«ENDFOR»
 		
 		}'''
 	}

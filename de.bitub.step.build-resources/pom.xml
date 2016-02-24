@@ -10,11 +10,11 @@
 	<name>de.bitub.step Build</name>
 
 	<properties>
-		<tycho-version>0.22.0</tycho-version>
-		<tycho-extras-version>0.22.0</tycho-extras-version>
+		<tycho-version>0.24.0</tycho-version>
+		<tycho-extras-version>0.24.0</tycho-extras-version>
 		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<xtext.version>2.7.2</xtext.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>	
+		<xtext.version>2.8.4</xtext.version>	
 		<updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</updatesiteLocal>
 	</properties>
 
@@ -24,24 +24,39 @@
 
 	<!-- Profiles, default "platform-luna" -->
 	<profiles>
+		  
+	  <profile>
+		  <id>platform-luna</id>
+		  <activation>
+			<activeByDefault>true</activeByDefault>
+			<property>
+			  <name>platform-name</name>
+			  <value>luna</value>
+			</property>			
+		  </activation>
+		  <properties>
+			<targetPlatform>luna</targetPlatform>
+			<platformUsUrl>http://download.eclipse.org/releases/luna</platformUsUrl>
+		  </properties>
+      </profile>	
 
-		<profile>
-			<id>platform-luna</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<property>
-					<name>platform-name</name>
-					<value>luna</value>
-				</property>
-			</activation>
-			<properties>
-				<targetPlatform>luna</targetPlatform>
-				<platformUsUrl>http://download.eclipse.org/releases/luna</platformUsUrl>
-			</properties>
-		</profile>
-
-	</profiles>
-
+	  <profile>
+		  <id>platform-mars</id>
+		  <activation>
+			<activeByDefault>true</activeByDefault>
+			<property>
+			  <name>platform-name</name>
+			  <value>mars</value>
+			</property>			
+		  </activation>
+		  <properties>
+			<targetPlatform>luna</targetPlatform>
+			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
+		  </properties>
+      </profile>	
+	  	  
+    </profiles>
+	
 	<modules>
 		<module>../de.bitub.step.express</module>
 		<module>../de.bitub.step.express.ui</module>

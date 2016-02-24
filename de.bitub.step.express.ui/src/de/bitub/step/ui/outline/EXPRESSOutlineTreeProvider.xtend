@@ -47,7 +47,7 @@ class EXPRESSOutlineTreeProvider extends DefaultOutlineTreeProvider {
 	def void _createChildren(IOutlineNode parentNode, Entity e) {
 
 		e.disjointSubtype.forEach[entity|createNode(parentNode, entity)];
-		e.attributes.forEach[attribute|createNode(parentNode, attribute)];
+		e.attribute.forEach[attribute|createNode(parentNode, attribute)];
 	}
 
 	/**
@@ -64,7 +64,7 @@ class EXPRESSOutlineTreeProvider extends DefaultOutlineTreeProvider {
 		// display all literals of enum as child nodes in outline
 		//
 		if (e.datatype instanceof EnumType) {
-			(e.datatype as EnumType).literals.forEach[term|createNode(parentNode, term)];
+			(e.datatype as EnumType).literal.forEach[term|createNode(parentNode, term)];
 		}
 	}
 

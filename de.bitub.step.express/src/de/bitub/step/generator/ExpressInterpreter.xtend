@@ -56,7 +56,7 @@ class ExpressInterpreter {
 		// Filter for simplified type selects
 		//
 		LOGGER.info("Processing select types ...")
-		for (Type t : schema.types.filter[it.datatype instanceof SelectType]) {
+		for (Type t : schema.type.filter[it.datatype instanceof SelectType]) {
 
 			val conceptSet = selectSet(t)
 			LOGGER.debug("~> Type definition of \"" + t.name + "\" resolved to " + conceptSet.size + " sub concept(s).")
@@ -67,11 +67,11 @@ class ExpressInterpreter {
 		LOGGER.info("Finished. Found " + resolvedSelectsMap.size + " select(s) in schema.")
 		LOGGER.info("Processing inverse relations ...")
 
-		for (Entity entity : schema.entities.filter[attributes.exists[opposite != null]]) {
+		for (Entity entity : schema.entity.filter[attribute.exists[opposite != null]]) {
 
 			// Filter for both sided collection types, omit any restriction (cardinalities etc.)
 			//
-			for (Attribute attribute : entity.attributes.filter[opposite != null]) {
+			for (Attribute attribute : entity.attribute.filter[opposite != null]) {
 
 				val oppositeEntity = attribute.opposite.eContainer as ExpressConcept
 

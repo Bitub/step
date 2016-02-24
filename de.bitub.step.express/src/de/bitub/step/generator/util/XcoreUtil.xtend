@@ -39,14 +39,14 @@ class XcoreUtil {
 	 * Get all derived attributes of the given entity.
 	 */
 	def static derived(Entity entity) {
-		entity.attributes.filter[it.expression != null]
+		entity.attribute.filter[it.expression != null]
 	}
 
 	/**
 	 * Get all inverse attributes of the given entity.
 	 */
 	def static inverse(Entity entity) {
-		entity.attributes.filter[it.opposite != null]
+		entity.attribute.filter[it.opposite != null]
 	}
 
 	/**
