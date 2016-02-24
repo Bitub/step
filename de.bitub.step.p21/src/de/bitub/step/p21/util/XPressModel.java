@@ -130,6 +130,9 @@ public class XPressModel
 
   private static String getKindOf(EModelElement eModelElement)
   {
+    if (null == eModelElement) {
+      return null;
+    }
     return EcoreUtil.getAnnotation(eModelElement, XPRESS_MODEL_ANNOTATION_SRC, KIND);
   }
 
@@ -144,7 +147,7 @@ public class XPressModel
       }
     }
 
-    if (annotatedFeatures.isEmpty()) {
+    if (annotatedFeatures.isEmpty() || annotatedFeatures.size() < p21Index) {
       return null;
     }
     return annotatedFeatures.get(p21Index);
