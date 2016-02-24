@@ -83,7 +83,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   //
   private IndexUtil index = new IndexUtil();
 
-  private Mode mode = Mode.HEADER;
+  private Mode mode = Mode.DATA;
   public Header header = null;
 
   private boolean isInList = false;
@@ -219,6 +219,9 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   {
     if (!isInList) {
 
+      if (null == curObject) {
+        return;
+      }
       StepUntypedToEcore.eInteger(index.current(), curObject, ctx.getText());
     } else {
 

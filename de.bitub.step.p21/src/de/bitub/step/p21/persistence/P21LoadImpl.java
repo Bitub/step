@@ -10,8 +10,10 @@
  */
 package de.bitub.step.p21.persistence;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -26,7 +28,6 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import de.bitub.step.p21.P21ParserListener;
 import de.bitub.step.p21.StepLexer;
 import de.bitub.step.p21.StepParser;
 
@@ -70,7 +71,35 @@ public class P21LoadImpl implements P21Load
     this.inputStream = inputStream;
     this.options = options;
 
-    CharStream input = new ANTLRInputStream(this.inputStream);
+    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+    de.bitub.step.p21.P21ParserListener listener = new de.bitub.step.p21.P21ParserListener();
+
+    String line = "";
+    boolean isDataSection = false;
+
+    while ((line = br.readLine()) != null) {
+      //do something with line
+
+      if (line.equalsIgnoreCase("ENDSEC;")) {
+        isDataSection = false;
+      }
+
+      if (isDataSection) {
+        parse(line, listener);
+      }
+
+      if (line.equalsIgnoreCase("DATA;")) {
+        isDataSection = true;
+      }
+    }
+
+    br.close();
+    resource.getContents().add(listener.data());
+  }
+
+  private void parse(String line, de.bitub.step.p21.P21ParserListener listener)
+  {
+    CharStream input = new ANTLRInputStream(line);
     StepLexer lexer = new StepLexer(input);
     TokenStream tokens = new CommonTokenStream(lexer);
     StepParser parser = new StepParser(tokens);
@@ -87,8 +116,9 @@ public class P21LoadImpl implements P21Load
     ParseTree tree = null;
 
     try {
-
-      tree = parser.exchangeFile();
+//      long start = System.currentTimeMillis();
+      tree = parser.entityInstance();
+//      System.out.println((System.currentTimeMillis() - start) + " ms to create parse tree");
     }
     catch (RuntimeException ex) {
 
@@ -116,11 +146,6 @@ public class P21LoadImpl implements P21Load
     }
 
     ParseTreeWalker walker = new ParseTreeWalker();
-    P21ParserListener listener = new P21ParserListener();
-
     walker.walk(listener, tree);
-
-    resource.getContents().add(listener.getContainer());
   }
-
 }
