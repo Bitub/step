@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/de.bitub.step.express.sdk.f_0.0.0.qualifier.jar" id="de.bitub.step.express.sdk.f" version="0.0.0">
+      <category name="bitub.step"/>
+   </feature>
+   <feature url="features/de.bitub.step.express.sdk.f.source_0.0.0.qualifier.jar" id="de.bitub.step.express.sdk.f.source" version="0.0.0">
+      <category name="bitub.step"/>
+   </feature>   
+   <category-def name="bitub.step" label="Bitub STEP Model Generator SDK"/>   
+</site>
