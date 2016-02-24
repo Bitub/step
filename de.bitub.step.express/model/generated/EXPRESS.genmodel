@@ -26,7 +26,7 @@
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/disjointSubtype"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/subtype"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/supertype"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/attribute"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/attributes"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//Entity/uniqueRule"/>
     </genClasses>
     <genClasses ecoreClass="EXPRESS.ecore#//Attribute">
@@ -62,6 +62,13 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//LocalVar/varname"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//LocalVar/type"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//LocalVar/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="EXPRESS.ecore#//FunctionExpression">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//FunctionExpression/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/arguments"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/return"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/loacls"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//FunctionExpression/statements"/>
     </genClasses>
     <genClasses ecoreClass="EXPRESS.ecore#//Function">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//Function/name"/>
@@ -122,7 +129,7 @@
     <genClasses ecoreClass="EXPRESS.ecore#//NumberType"/>
     <genClasses ecoreClass="EXPRESS.ecore#//IntegerType"/>
     <genClasses ecoreClass="EXPRESS.ecore#//EnumType">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//EnumType/literal"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference EXPRESS.ecore#//EnumType/literals"/>
     </genClasses>
     <genClasses ecoreClass="EXPRESS.ecore#//LiteralType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute EXPRESS.ecore#//LiteralType/name"/>

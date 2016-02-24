@@ -8,7 +8,6 @@
  * Contributors:
  *  Bernold Kraft - initial implementation and initial documentation
  */
-
 package de.bitub.step.scoping
 
 import de.bitub.step.express.Attribute
@@ -34,57 +33,52 @@ class EXPRESSScopeProvider extends AbstractDeclarativeScopeProvider {
 
 	val myLog = Logger.getLogger(EXPRESSScopeProvider)
 
-
 	/**
 	 * Resolve opposite attributes.
 	 */
 	def scope_Attribute_opposite(Attribute context, EReference r) {
-		var DataType dataType = context.type		
-		
-		if(context.type instanceof CollectionType) {
-			
-		 	if((context.type as CollectionType).type instanceof ReferenceType) {
-		 		
-		 		dataType = (context.type as CollectionType).type;
-		 	}
+
+		var DataType dataType = context.type
+
+		if (context.type instanceof CollectionType) {
+
+			if ((context.type as CollectionType).type instanceof ReferenceType) {
+				dataType = (context.type as CollectionType).type;
+			}
 		}
-		
-		if(dataType instanceof ReferenceType) {
-			
-			if(dataType.instance instanceof Entity) {
-				Scopes.scopeFor((dataType.instance as Entity).attribute, IScope.NULLSCOPE);
-			}				
+		if (dataType instanceof ReferenceType) {
+
+			if (dataType.instance instanceof Entity) {
+				Scopes.scopeFor((dataType.instance as Entity).attributes, IScope.NULLSCOPE);
+			}
 		} else {
-			
-			myLog.debug("No reference given.")	
+
+			myLog.debug("No reference given.")
 		}
 	}
-	
+
 	def scope_CollectionType_lowerRef(CollectionType context, EReference r) {
-		
-		val entity = context.eContainer.eContainer as Entity;
-		if(null!=entity) {
-						
-			val candidates = newArrayList()
-			recursiveSuperExecute(candidates ,entity)
-			Scopes.scopeFor(candidates, IScope.NULLSCOPE);
-		}		
+		scope_CollectionType_ref(context, r);
 	}
 
 	def scope_CollectionType_upperRef(CollectionType context, EReference r) {
-		
-		val entity = context.eContainer.eContainer as Entity;
-		if(null!=entity) {
-						
-			val candidates = newArrayList()
-			recursiveSuperExecute(candidates ,entity)
-			Scopes.scopeFor(candidates, IScope.NULLSCOPE);
-		}		
+		scope_CollectionType_ref(context, r);
 	}
 
-	def void recursiveSuperExecute(List<Attribute> candidates, Entity e) {
-		
-		candidates += e.attribute 
-		e.supertype.forEach[ supertype | recursiveSuperExecute(candidates, supertype) ];
+	def scope_CollectionType_ref(CollectionType context, EReference reference) {
+
+		val entity = context.eContainer.eContainer as Entity;
+		if (null != entity) {
+
+			val candidates = newArrayList()
+			recursiveSuperExecute(candidates, entity)
+			Scopes.scopeFor(candidates, IScope.NULLSCOPE);
+		}
+	}
+
+	def void recursiveSuperExecute(List<Attribute> candidates, Entity entity) {
+
+		candidates += entity.attributes
+		entity.supertype.forEach[supertype|recursiveSuperExecute(candidates, supertype)];
 	}
 }

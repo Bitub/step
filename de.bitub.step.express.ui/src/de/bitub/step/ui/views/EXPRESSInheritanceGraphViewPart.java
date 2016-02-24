@@ -131,7 +131,7 @@ public class EXPRESSInheritanceGraphViewPart extends ViewPart
         if(isVisited) {
           
           dfsStack.removeElementAt(dfsStack.size()-1);
-          attributeList.addAll( entity.getAttribute() );
+          attributeList.addAll( entity.getAttributes() );
           superTypeList.add( entity );
           
           doneSet.add(entity);

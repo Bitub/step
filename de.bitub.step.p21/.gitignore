@@ -1,0 +1,9 @@
+# Ignore generated sources
+
+/generated/
+/generated-sources/
+/target/
+/src-gen/
+
+# Ignore documentation folder
+/docs/

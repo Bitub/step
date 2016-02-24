@@ -18,68 +18,48 @@ import de.bitub.step.express.DataType
 import de.bitub.step.express.Entity
 import de.bitub.step.express.EnumType
 import de.bitub.step.express.ExpressConcept
-import de.bitub.step.express.ExpressPackage
 import de.bitub.step.express.GenericType
 import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
+import de.bitub.step.generator.util.XcoreUtil
+import java.util.Date
 import java.util.Set
-import javax.inject.Inject
 import org.apache.log4j.Logger
-import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-import java.util.List
+import com.google.inject.Inject
 
 /**
  * Generates Xcore specifications from EXPRESS models.
  */
 class XcoreGenerator implements IGenerator {
 		
-	val static Logger myLog = Logger.getLogger(XcoreGenerator);
+	@Inject private static Logger LOGGER;
+		
+	@Inject extension IQualifiedNameProvider
 	
-	// Builtin mapping of primitive data types
-	val static builtinMappings =  <EClass, String>newHashMap(
-		ExpressPackage.Literals.INTEGER_TYPE -> "int",
-		ExpressPackage.Literals.NUMBER_TYPE -> "double",
-		ExpressPackage.Literals.LOGICAL_TYPE -> "Boolean",
-		ExpressPackage.Literals.BOOLEAN_TYPE -> "boolean",
-		ExpressPackage.Literals.BINARY_TYPE -> "Binary",
-		ExpressPackage.Literals.REAL_TYPE -> "double",
-		ExpressPackage.Literals.STRING_TYPE -> "String"
-	);
-	
-	
-	@Inject	IQualifiedNameProvider nameProvider; 
-	
-	// Flattened concept set of selects
-	var resolvedSelectsMap = <Type, Set<ExpressConcept>>newHashMap
-	// Inverse references
-	var inverseReferenceMap = <Attribute, Set<Attribute>>newHashMap
-	// Nested aggregation as QN to Xcore class name
-	var nestedAggregationQN = <String,String>newHashMap()
-	// Nested proxies as Attribute to <Class name of proxy, name of opposite Xcore attribute>
-	var nestedProxiesQN = <Attribute, Pair<String, String>>newHashMap
-	// Maps the type aliases
-	var aliasConceptMap = <Type,ExpressConcept>newHashMap
-	// Inverse super type substitution
-	var inverseSupertypeMap = <Entity, List<Attribute>>newHashMap
-	
+	@Inject ExpressInterpreter interpreter;
+	@Inject FunctionGenerator functionGenerator;
+	@Inject XcoreUtil util;
+
 	// Second stage cache (any additional concept needed beside first stage)
+	//
 	var secondStageCache = ''''''
 	
 	// Current project folder
+	//
 	var projectFolder = "<project folder>";
-	
+
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		
+
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
-							
-							
-		myLog.info("Generating XCore representation of "+schema.name)
+
+		LOGGER.info("Generating XCore representation of "+schema.name)
+
 		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
 	}
 	
@@ -87,7 +67,6 @@ class XcoreGenerator implements IGenerator {
 	 * Sets the project folder for Xcore code generation.
 	 */
 	def setProjectFolder(String prjFolder) {
-		
 		projectFolder = prjFolder;
 	}
 	
@@ -103,7 +82,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Compiles the header / annotation information on top of the Xcore file.
 	 */
-	def compileHeader(Schema s) { 
+	def compileHeader(Schema s) 
 		'''
 		@Ecore(nsPrefix="«s.name»",nsURI="http://example.org/«s.name»")
 		@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
@@ -117,42 +96,13 @@ class XcoreGenerator implements IGenerator {
 		//	importerID="org.eclipse.emf.importer.ecore", 
 		//	featureDelegation="Dynamic", 
 		//	providerRootExtendsclassRef="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"
-		)	
-		'''		
-	}
-	
-	/**
-	 * Determines the set of express concepts represented by given Select statement.
-	 */
-	def static Set<ExpressConcept> selectSet(ExpressConcept t) {
+		)
+		'''
 		
-		val uniqueTypeSet = <ExpressConcept>newHashSet
-		
-		if(t instanceof Type) {
-			if(t.datatype instanceof SelectType) {
-				
-				// Self evaluation
-				var set = (t.datatype as SelectType).select
-					.filter[!(it instanceof Type && (it as Type).datatype instanceof SelectType)]
-					.toSet;
-				
-				// Recursion
-				(t.datatype as SelectType).select
-					.filter[it instanceof Type && (it as Type).datatype instanceof SelectType]
-					.forEach[uniqueTypeSet+=selectSet(it)]
-				
-				uniqueTypeSet += set	
-			}
-		}
-		
-		uniqueTypeSet
-	}
-	
 	/**
 	 * Check whether there are any entity concepts inside set.
 	 */
-	def static isEntityCompositeSelect(Set<ExpressConcept> selects) {
-	
+	def static isEntityCompositeSelect(Set<ExpressConcept> selects) {	
 		selects.exists[it instanceof Entity]	
 	}
 	
@@ -162,53 +112,59 @@ class XcoreGenerator implements IGenerator {
 	def static boolean isUniqueCollectionSelect(Iterable<CollectionType> aggregationTypes) {
 		
 		// Check unique aggregation type
-		if(aggregationTypes.map[name].toSet.size > 1) {
-			
+		//
+		if(aggregationTypes.map[name].toSet.size > 1) {			
 			return false
 		}
 		
-		val nonNullLowerBound = aggregationTypes.findFirst[lowerBound > 0]
+		val nonNullLowerBound = aggregationTypes.findFirst[lowerBound > 0];
+		
 		// If there any non-null lower bound
-		if(null!=nonNullLowerBound 
-			&& aggregationTypes.filter[lowerBound != nonNullLowerBound.lowerBound ].size > 1
-		) {
+		//
+		if(null!=nonNullLowerBound && aggregationTypes.filter[lowerBound != nonNullLowerBound.lowerBound ].size > 1) {
+			
 			// False, if there are multiple lower bounds
+			//
 			return false;
 		}
 
 		val nonNullUpperBound = aggregationTypes.findFirst[upperBound > 0]
+		
 		// If there any non-null upper bound
-		if(null!=nonNullLowerBound 
-			&& aggregationTypes.filter[upperBound != nonNullUpperBound.upperBound ].size > 1
-		) {
+		//
+		if(null!=nonNullLowerBound && aggregationTypes.filter[upperBound != nonNullUpperBound.upperBound ].size > 1) {
+			
 			// False if there are multiple upper bounds
+			//
 			return false;
 		}
 		
 		val nestedCollections = aggregationTypes.filter[it.type instanceof CollectionType];
+		
 		if(!nestedCollections.empty) {
+			
 			// If there are nested aggregations
+			//
 			if(nestedCollections.size < aggregationTypes.size) {
-				
-				return false
-				
+		
+				return false			
 			} else {
+				
 				// Check nested aggregation
+				//
 				return isUniqueCollectionSelect(nestedCollections.map[type as CollectionType])
 			}
 		}
 				
-		val typeSet = aggregationTypes.map[it.type.eClass].toSet
-		if(typeSet.size>1) {
-			
+		val typeSet = aggregationTypes.map[it.type.eClass].toSet;
+		
+		if(typeSet.size>1) {			
 			return false
 		}
 		
 		// Check if concept
-		if(aggregationTypes
-			.filter[it.type instanceof ExpressConcept]
-			.map[(it.type as ExpressConcept).name].toSet.size > 1
-		) {
+		//
+		if(aggregationTypes.filter[it.type instanceof ExpressConcept].map[(it.type as ExpressConcept).name].toSet.size > 1) {
 			return false
 		}
 		
@@ -221,9 +177,10 @@ class XcoreGenerator implements IGenerator {
 	def static isUniqueAliasSelect(Set<ExpressConcept> selects) {
 		
 		// Filter for aggregations
-		val aggregationTypes = selects.filter[
-			it instanceof Type && (it as Type).datatype instanceof CollectionType
-		].map[(it as Type).datatype as CollectionType];
+		//
+		val aggregationTypes = selects
+			.filter[it instanceof Type && (it as Type).datatype instanceof CollectionType]
+			.map[(it as Type).datatype as CollectionType];
 		
 		var isAggregationSelect = !aggregationTypes.empty
 		if(isAggregationSelect) {
@@ -244,42 +201,21 @@ class XcoreGenerator implements IGenerator {
 		
 		}		
 				
-		if(builtinSelects.map[eClass].toSet.size > 1) {
-		
-			// TODO Test number types
-		}
-		
-		// Test for generic selects
-		val genericSelects = selects.filter[
-			it instanceof Type && (it as Type).datatype instanceof GenericType 
-		].map[(it as Type).datatype as GenericType]
-		
-		var isGenericSelect = !genericSelects.empty
-		// TODO
+//		if(builtinSelects.map[eClass].toSet.size > 1) {
+//		
+//			// TODO Test number types
+//		}
+//		
+//		// Test for generic selects
+//		val genericSelects = selects.filter[
+//			it instanceof Type && (it as Type).datatype instanceof GenericType 
+//		].map[(it as Type).datatype as GenericType]
+//		
+//		var isGenericSelect = !genericSelects.empty
+//		 TODO
 		
 	}
 	
-	
-	
-	
-	/**
-	 * Returns the transitively referred concept, if there's any referenced
-	 */
-	def ExpressConcept refersConcept(DataType dataType) {
-		
-		if(dataType instanceof ReferenceType) {
-			
-			(dataType as ReferenceType).instance
-				
-		} else if(dataType instanceof CollectionType) {
-			
-			(dataType as CollectionType).type.refersConcept
-			
-		} else {
-		
-		   null
-		}
-	}
 	
 	/**
 	 * Refers to itself. No substitution.
@@ -294,7 +230,7 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def dispatch ExpressConcept refersAlias(Type t) {
 		
-		if(t.builtinAlias) {
+		if(util.isBuiltinAlias(t)) {
 			// If builtin alias -> no concept at all
 			null
 		} else {
@@ -307,7 +243,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Returns the transitive associated datatype.
 	 */
-	def DataType refersTransitiveDatatype(DataType t) {
+	def dispatch DataType refersTransitiveDatatype(DataType t) {
 		
 		if(t  instanceof ReferenceType) {
 			
@@ -327,17 +263,16 @@ class XcoreGenerator implements IGenerator {
 		}
 	}
 	
-	def DataType refersTransitiveDatatype(Type t) {
+	def dispatch DataType refersTransitiveDatatype(Type t) {
 		
 		t.datatype.refersTransitiveDatatype
 	}
 
 	/**
 	 * Compiles an annotation, if an alias exists other returns an empty statement.
+	 * Empty annotation for entities (done before class statement)
 	 */	
 	def dispatch CharSequence compileInlineAnnotation(Entity t) {
-		
-		// Empty annotation for entities (done before class statement)
 		''''''
 	}
 	
@@ -355,10 +290,10 @@ class XcoreGenerator implements IGenerator {
 			'''
 		} else if (alias instanceof ReferenceType) {
 			
-			val qn = nameProvider.getFullyQualifiedName(t)
-			if(nestedAggregationQN.containsKey(qn.toString)) {
+			val qn = t.fullyQualifiedName
+			if(interpreter.nestedAggregationQN.containsKey(qn.toString)) {
 								
-				'''@XpressModel(name="«t.name»",kind="nested",classRef="«nestedAggregationQN.get(qn.toString)»[]")
+				'''@XpressModel(name="«t.name»",kind="nested",classRef="«interpreter.nestedAggregationQN.get(qn.toString)»[]")
 				'''
 			} else {
 
@@ -371,12 +306,12 @@ class XcoreGenerator implements IGenerator {
 			// End point is a generic datatype wrapper
 			'''@XpressModel(name="«t.name»",kind="generic",datatypeRef="«alias.referDatatype»")
 			'''
-		} else if (alias instanceof SelectType && aliasConceptMap.containsKey(t)) {
+		} else if (alias instanceof SelectType && interpreter.aliasConceptMap.containsKey(t)) {
 			
 			// End point is a SelectType
 			'''@XpressModel(name="«t.name»",kind="mapped",classRef="«alias.referDatatype»")
 			'''
-		} else if (aliasConceptMap.containsKey(t)) {
+		} else if (interpreter.aliasConceptMap.containsKey(t)) {
 			
 			// End point has been omitted (model validation error?)
 			'''@XpressModel(name="«t.name»",kind="omitted")
@@ -387,292 +322,23 @@ class XcoreGenerator implements IGenerator {
 			''''''
 		}
 	} 
-	
-	
-	/**
-	 * True if attribute's type is a one to many relation
-	 */
-	def isOneToManyRelation(Attribute a) {
-		
-		if(a.type instanceof CollectionType) {
-			
-			val t = a.type as CollectionType
-			
-			return t.upperBound > 1 
-				|| t.many 
-				|| t.upperRef != null 
-				|| t.lowerRef != null
-				|| t.refersConcept instanceof Type // implies Select type
-		}
-		
-		false
-	}
-	
-	/**
-	 * True, if a is part of an inverse relation with many-to-many relation.
-	 */
-	def isInverseManyToManyRelation(Attribute a) {
-		
-		a.inverseRelation && a.oneToManyRelation && a.anyInverseAttribute.oneToManyRelation
-	}
-	
-	
-	/**
-	 * True if a refers to an inverse relation.
-	 */
-	protected def isInverseRelation(Attribute a) {
-		
-		inverseReferenceMap.containsKey(a) || null!=a.opposite
-	}
-	
-	/** Get inverse attribute */
-	protected def Attribute getAnyInverseAttribute(Attribute a) {
-		
-		return 
-			if(null!=a.opposite) 
-				a.opposite 
-			else
-				inverseReferenceMap.get(a)?.findFirst[it!=null]
-				
-//		if(null!=a.opposite) {
-//			
-//			return a.opposite
-//		} else {
-//			
-//			val inverseSet = inverseReferenceMap.get(a)
-//			if(!inverseSet.empty) {
-//			
-//				return inverseSet.findFirst[it!=null]	
-//			} else {
-//				
-//				return null
-//			}
-//		}
-	}
-	
-	def boolean isLeftNonUniqueRelation(Attribute a)
-	{
-		val knownDeclaring = 
-			if(null!=a.opposite) 
-				inverseReferenceMap.get(a.opposite) 
-			else 
-				inverseReferenceMap.get(a)
-				 
-		return if(null==knownDeclaring) false else knownDeclaring.size > 1
-	}
-	
-	def Set<Attribute> getInverseAttributeSet(Attribute a) {
-		
-		if(null!=a.opposite) {
-			
-			return newHashSet( a.opposite )
-		} else {
-			
-			val inverseSet = inverseReferenceMap.get(a)
-			if(!inverseSet.empty) {
-			
-				return inverseSet	
-			} else {
-				
-				return newHashSet
-			}
-		}
-	}
-	
-	
-	/**
-	 * True, if attribute declares the inverse relation
-	 */
-	def isDeclaringInverseAttribute(Attribute a) {
-		
-		null!=a.opposite
-	}
-	
-	/**
-	 * True, if derived.
-	 */
-	def isDerivedAttribute(Attribute a) {
-		
-		null!=a.expression
-	}
-	
-	/**
-	 * If type is an alias type (simple type wrapper)
-	 */
-	def boolean isNamedAlias(ExpressConcept e) {
-		
-		if(e instanceof Type) {
-		
-			val t = e as Type			
-			!(t.datatype instanceof SelectType || t.datatype instanceof EnumType)				
-							
-		} else {
-		
-			false
-		}		
-	}
-
-	/**
-	 * True, if builtin type reference (primitive or aggregation)
-	 */
-	def boolean isBuiltinAlias(ExpressConcept e) {
-		
-		if(e instanceof Type) {
-		
-			(e as Type).datatype.builtinAlias
-						
-		} else {
-		
-			false
-		}		
-	}
-	
-	
-	def boolean isBuiltinAlias(DataType t) {
-		
-		if(t instanceof CollectionType) {
-			
-			(t as CollectionType).type.builtinAlias
-				
-		} else if(t instanceof ReferenceType) {
-			
-			(t as ReferenceType).instance.builtinAlias
-		} else {
-						
-			t instanceof BuiltInType 				
-		}		
-	}
-	
-	/**
-	 * Whether a datatype is referable (non-datatype in Java terms).
-	 */
-	def isReferable(DataType t) {
-		
-		val datatype = t.refersTransitiveDatatype
-		
-		if(datatype instanceof ReferenceType) {
-
-			// Entity only
-			true
-
-		} else if(datatype instanceof SelectType) {
-			
-			// The only class-wrapped type		
-			true
-			
-		} else {
-			
-			false
-		}
-	}
-
-	/**
-	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
-	 * relation.
-	 */
-	def Set<Attribute> refersOppositeAttribute(Attribute a) {
-		
-		if(null!=a.opposite) {
-			
-		 	newHashSet(a.opposite)
-		} else {
-			
-			if(inverseReferenceMap.containsKey(a)) {
-				
-				inverseReferenceMap.get(a)
-			}
-		}
-	}
-	
-
-
-	/**
-	 * Returns the parent attribute of a specific data type.
-	 */
-	def parentAttribute(DataType t) {
-
-		var eAttr = t.eContainer
-		
-		while(null!=eAttr && !(eAttr instanceof Attribute)) {
-			eAttr = eAttr.eContainer
-		}
-		eAttr as Attribute
-	}
-
-		
-	/**
-	 * Pre-processes the scheme before generating any code.
-	 *  - Registering and flattening select types with composite entities
-	 *  - Simplifying selects with unique builtin type
-	 * 
-	 * 
-	 */
-	protected def preprocess(Schema s) {
-		
-		// Filter for simplified type selects
-		myLog.info("Processing select types ...")
-		for(Type t : s.types.filter[it.datatype instanceof SelectType]) {
-			
-			val conceptSet = selectSet(t)
-			myLog.debug("~> Type definition of \""+t.name+"\" resolved to "+conceptSet.size+" sub concept(s).")
-		
-			resolvedSelectsMap.put(t, conceptSet)
-		}
-				
-		myLog.info("Finished. Found "+resolvedSelectsMap.size+" select(s) in schema.")
-		myLog.info("Processing inverse relations ...")
-		
-		for(Entity e : s.entities.filter[attribute.exists[opposite!=null]]) {
-						
-			// Filter for both sided collection types, omit any restriction (cardinalities etc.)
-			for(Attribute a : e.attribute.filter[opposite!=null]) {
-
-				val oppositeEntity = a.opposite.eContainer as ExpressConcept;				
-				myLog.debug("~> "+(a.eContainer as Entity).name+"."+a.name+" <--> "+oppositeEntity.name+"."+a.opposite.name)
-						
-				// Inverse super-type references 
-				val refConcept = a.opposite.type.refersConcept
-				if( refConcept instanceof Entity && !refConcept.equals(e) ) {
-					
-					// TODO Inheritance checking
-					var aList = inverseSupertypeMap.get(e)
-					if(null==aList) {
-						aList = newArrayList
-						inverseSupertypeMap.put(refConcept as Entity, aList)
-					}
-					aList += a
-				}
-				
-				// Add opposite versus declaring attribute
-				var inverseAttributeSet = inverseReferenceMap.get(a.opposite)
-				if(null==inverseAttributeSet) {
-					inverseAttributeSet = newHashSet
-					inverseReferenceMap.put(a.opposite, inverseAttributeSet)
-				}
-				
-				inverseAttributeSet += a				
-			}
-		}
-		
-		myLog.info("Finished. Found "+inverseReferenceMap.size+" relation(s) with "+ 
-			inverseReferenceMap.values.filter[size > 1].size+" non-unique left hand side (select on right hand).")
-	}
-		
 
 	// --- GENERATOR CODE ------------------------------------
-
 
 	/**
 	 * Transforms a schema into a package definition.
 	 */
 	def compileSchema(Schema s) {
-	
-		s.preprocess
-		 
+		
+		// process schema for structural information
+		//
+//		s.preprocess
+		interpreter.process(s);
+			 
 		'''	
 		«compileHeader(s)»
 		
-		// THIS FILE IS GENERATED. ANY CHANGE WILL BE LOST.
+		// THIS FILE IS GENERATED (TIMESTAMP «new Date().toString()»). ANY CHANGE WILL BE LOST.
 		
 		@GenModel(documentation="Generated EXPRESS model of schema «s.name»")
 		@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
@@ -682,6 +348,7 @@ class XcoreGenerator implements IGenerator {
 		
 		annotation "http://www.eclipse.org/OCL/Import" as Import
 		annotation "http://www.bitub.de/express/XpressModel" as XpressModel
+		annotation "http://www.bitub.de/express/P21" as P21
 				
 		// Additional datatype for binary
 		type Binary wraps java.util.BitSet
@@ -690,10 +357,14 @@ class XcoreGenerator implements IGenerator {
 		@GenModel(documentation="Generated container class of «s.name»")
 		@XpressModel(kind="new")
 		class «s.name» {
-		
+					
 		«FOR e:s.entities.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
 		«ENDFOR»
 		
+		// persisted SELECTS
+		
+		«FOR t:s.types.filter[datatype instanceof SelectType]»  contains «t.name.toFirstUpper»[] «t.name.toFirstLower»
+		«ENDFOR»
 		}
 		
 		// --- TYPE DEFINITIONS ------------------------------
@@ -705,6 +376,8 @@ class XcoreGenerator implements IGenerator {
 		«FOR e:s.entities»«e.compileConcept»«ENDFOR»
 			
 		// --- ADDITIONALLY GENERATED ------------------------
+		
+		«functionGenerator.compileFunction(s)»
 		
 		«secondStageCache»
 			
@@ -724,15 +397,21 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(name="«e.name»",kind="generated")
 		«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
 		
-		  «IF inverseSupertypeMap.containsKey(e)
-		  »«FOR a : inverseSupertypeMap.get(e)
-			  »op «a.type.compileDatatype» get«a.name.toFirstUpper»()«
+		  «IF interpreter.inverseSupertypeMap.containsKey(e)
+		  »«FOR a : interpreter.inverseSupertypeMap.get(e)
+			  »// FIXME op «a.type.compileDatatype» get«a.name.toFirstUpper»()«
 			ENDFOR»«
 		  ENDIF»
-		  «FOR a : e.attribute»
-		  @GenModel(documentation="Attribute definition of «a.name»")
-		  «a.compileAttribute»
+		  «FOR a : e.attributes»
 		  
+		  «IF !util.isDerivedAttribute(a)»
+		  @GenModel(documentation="Attribute definition of «a.name»")
+		  «IF !util.isDeclaringInverseAttribute(a)»
+		  @P21
+		  «ENDIF»
+		  «a.compileAttribute()»
+		  
+		  «ENDIF»
 		  «ENDFOR»
 		}
 		'''
@@ -778,12 +457,12 @@ class XcoreGenerator implements IGenerator {
 	
 			'''
 			
-			// Type «t.name» is a built-in primitive type (using «builtinMappings.get(t.datatype.eClass)»)
+			// Type «t.name» is a built-in primitive type (using «TypeMappingConstants.builtinMappings.get(t.datatype.eClass)»)
 			'''			
 						
 		} else if(t.datatype instanceof ReferenceType) {
 
-			aliasConceptMap.put(t, t.datatype.refersConcept)			
+			interpreter.aliasConceptMap.put(t, util.refersConcept(t.datatype))			
 			'''
 			
 			// Type «t.name» not generated. It is an alias of «(t.datatype as ReferenceType).instance.name»
@@ -791,14 +470,14 @@ class XcoreGenerator implements IGenerator {
 			
 		} else if(t.datatype instanceof CollectionType) {
 
-			aliasConceptMap.put(t, t)			
+			interpreter.aliasConceptMap.put(t, t)			
 			'''
 			
 			// Type «t.name» not generated. It is a named aggregation (using «t.datatype.referDatatype»)
 			'''			
 		} else {
 			
-			aliasConceptMap.put(t, null)
+			interpreter.aliasConceptMap.put(t, null)
 			'''
 			
 			// WARNING: UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»
@@ -811,14 +490,14 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def dispatch compileDatatype(SelectType s) {
 		
-		val conceptSet = resolvedSelectsMap.get(s.eContainer)
+		val conceptSet = interpreter.resolvedSelectsMap.get(s.eContainer)
 		
 		''' 
 		   «FOR c : conceptSet.filter[it instanceof Entity]»
 			«c.compileInlineAnnotation»refers «c.name.toFirstUpper» «c.name.toFirstLower»
 		   «ENDFOR»
 		   «FOR t : conceptSet.filter[it instanceof Type].map[it as Type]»
-			«t.compileInlineAnnotation»«IF t.namedAlias && !t.builtinAlias»refers «ENDIF»«t.datatype.referDatatype» «t.name.toFirstLower»
+			«t.compileInlineAnnotation»«IF util.isNamedAlias(t) && !util.isBuiltinAlias(t)»refers «ENDIF»«t.datatype.referDatatype» «t.name.toFirstLower»
 		   «ENDFOR»
 		'''
 	}
@@ -840,17 +519,17 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence referDatatype(ReferenceType r) { 
 		//TODO
-		val parentAttribute = r?.parentAttribute
+		val parentAttribute = util.parentAttribute(r)
 //		val inverseAttributes = parentAttribute?.inverseAttributeSet		
 		val alias = r.refersTransitiveDatatype
 //		inverseSupertypeMap.get(alias.refersConcept)?.filter[inverseAttributes.contains(it)]
 //		val isInverseSupertype = inverseSupertypeMap?.get(alias.refersConcept).exists[inverseAttributes.contains(it)]
 	
-		'''«IF alias.builtinAlias
+		'''«IF util.isBuiltinAlias(alias)
 				»«alias.compileDatatype»«
 			ELSE
 				»«
-				IF parentAttribute?.inverseManyToManyRelation || parentAttribute?.leftNonUniqueRelation
+				IF parentAttribute != null && (interpreter.isInverseManyToManyRelation(parentAttribute) || interpreter.isLeftNonUniqueRelation(parentAttribute))
 					»«parentAttribute.proxyRef»«
 				ELSE
 					»«IF alias instanceof ReferenceType
@@ -868,7 +547,7 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence referDatatype(BuiltInType b) { 
 		
-		'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(b.eClass)»'''
+		'''«TypeMappingConstants.builtinMappings.get(b.eClass)»'''
 	
 	}
 	
@@ -886,7 +565,7 @@ class XcoreGenerator implements IGenerator {
 		if(c.type instanceof CollectionType) {
 		
 			// Replace by nested collector proxy	
-			if(!c.type.builtinAlias) {
+			if(!util.isBuiltinAlias(c.type)) {
 			
 				referredType = generateCollector_NestedInnerProxy(c)+'''[]'''
 				
@@ -932,15 +611,15 @@ class XcoreGenerator implements IGenerator {
 	protected def String generateCollector_NestedInnerProxy(CollectionType c) {
 
 		// Builtin type or entity ?
-		val qualifiedName = nameProvider.getFullyQualifiedName(c.eContainer)		
+		val qualifiedName = c.eContainer.fullyQualifiedName
 		
 		// Generate nested class
-		if(nestedAggregationQN.containsKey(qualifiedName.toString)) {
-			return nestedAggregationQN.get(qualifiedName.toString)
+		if(interpreter.nestedAggregationQN.containsKey(qualifiedName.toString)) {
+			return interpreter.nestedAggregationQN.get(qualifiedName.toString)
 		}
 		
 		val nestedClassName = qualifiedName.toString.replace('.','_').toFirstUpper
-		nestedAggregationQN.put(qualifiedName.toString, nestedClassName)
+		interpreter.nestedAggregationQN.put(qualifiedName.toString, nestedClassName)
 				
 		val referDatatype = c.type.referDatatype
 		secondStageCache +=
@@ -950,10 +629,10 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(kind="new")
 		class «nestedClassName» {
 			
-			«IF !c.type.isBuiltinAlias
+			«IF !util.isBuiltinAlias(c.type)
 				»«IF c.type.isNestedAggregation»contains «ELSE»refers «ENDIF»«
 			ENDIF
-				»«referDatatype» «nameProvider.getFullyQualifiedName(c.type).lastSegment.toLowerCase»
+				»«referDatatype» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
 		}
 		'''		
 		return nestedClassName
@@ -964,9 +643,9 @@ class XcoreGenerator implements IGenerator {
 	 */	
 	protected def String generateCollector_ReferencedPrimitive(String primitiveTypeRef) {
 
-		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
+		if(interpreter.nestedAggregationQN.containsKey(primitiveTypeRef)) {
 			
-			return nestedAggregationQN.get(primitiveTypeRef)
+			return interpreter.nestedAggregationQN.get(primitiveTypeRef)
 		}
 		
 		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''Array''')
@@ -977,7 +656,7 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(kind="new")
 		type «typeWrap» wraps «primitiveTypeRef»
 		'''
-		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
+		interpreter.nestedAggregationQN.put(primitiveTypeRef, typeWrap)
 		return typeWrap
 	}
 	
@@ -1019,17 +698,17 @@ class XcoreGenerator implements IGenerator {
 		
 		// Determine declaring inverse
 		
-		val declaringInverse = if (a.declaringInverseAttribute) a else a.anyInverseAttribute
-		val declaringInverseSet = inverseReferenceMap.get(declaringInverse.opposite)
+		val declaringInverse = if (util.isDeclaringInverseAttribute(a)) a else interpreter.getAnyInverseAttribute(a)
+		val declaringInverseSet = interpreter.inverseReferenceMap.get(declaringInverse.opposite)
 		
 		// Get mapping if existing
-		if(nestedProxiesQN.containsKey(a)) {
-			return nestedProxiesQN.get(a).key
+		if(interpreter.nestedProxiesQN.containsKey(a)) {
+			return interpreter.nestedProxiesQN.get(a).key
 		}
 			
 		// Generate if not
 		var qnClassRef = ""					
-		if(declaringInverse.leftNonUniqueRelation) {
+		if(interpreter.isLeftNonUniqueRelation(declaringInverse)) {
 			
 			// Non-unique relation (SELECT on right hand side
 
@@ -1037,11 +716,11 @@ class XcoreGenerator implements IGenerator {
 			val inverseAttribute = declaringInverse.opposite
 						
 			// Generate proxy interface name as "ProxyEntityToSelect"
-			val selectType = inverseAttribute.type.refersConcept
+			val selectType = util.refersConcept(inverseAttribute.type)
 			val proxyInterfaceName = "Proxy" + inverseConcept.name.toFirstUpper + selectType.name.toFirstUpper
 
 			// Map QN of inverse attribute
-			nestedProxiesQN.put(inverseAttribute, proxyInterfaceName -> inverseConcept.name.toFirstLower )
+			interpreter.nestedProxiesQN.put(inverseAttribute, proxyInterfaceName -> inverseConcept.name.toFirstLower )
 			
 			// Write to second stage cache				
 			secondStageCache +=
@@ -1062,7 +741,7 @@ class XcoreGenerator implements IGenerator {
 			for(Attribute ia : declaringInverseSet) {
 									
 				val proxyClass = generateProxy(ia, inverseAttribute, proxyInterfaceName)
-				nestedProxiesQN.put(ia, proxyClass -> inverseAttribute.name.toFirstLower)				
+				interpreter.nestedProxiesQN.put(ia, proxyClass -> inverseAttribute.name.toFirstLower)				
 			}
 			
 			qnClassRef = getProxyRef(a)
@@ -1071,36 +750,18 @@ class XcoreGenerator implements IGenerator {
 			
 			// Unique relation
 			qnClassRef = generateProxy(declaringInverse, declaringInverse.opposite, "")
-			nestedProxiesQN.put(declaringInverse, qnClassRef -> declaringInverse.opposite.name.toFirstLower)
-			nestedProxiesQN.put(declaringInverse.opposite, qnClassRef -> declaringInverse.name.toFirstLower)
+			interpreter.nestedProxiesQN.put(declaringInverse, qnClassRef -> declaringInverse.opposite.name.toFirstLower)
+			interpreter.nestedProxiesQN.put(declaringInverse.opposite, qnClassRef -> declaringInverse.name.toFirstLower)
 		}
 		
 		return qnClassRef
 	}
 	
-	/**
-	 * Returns the local QN of opposite attribute, if there's any.
-	 */
-	def String getOppositeRef(Attribute a) {
-		
-		if(a.inverseRelation) {
-			if(a.inverseManyToManyRelation || a.leftNonUniqueRelation) {
-				
-				return nestedProxiesQN.get(a).value
-				
-			} else  {
-				
-				return a.anyInverseAttribute.name				
-			}
-		}
-	}
-	
-
 	// --- COMPILATION RULES --------------------------
 		
 	def dispatch CharSequence compileDatatype(CollectionType c) {
 								
-		'''«IF !c.isBuiltinAlias
+		'''«IF !util.isBuiltinAlias(c)
 				»«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF
 				»«IF "SET"==c.name»unique «ENDIF»«
 			ENDIF»«c.referDatatype»'''
@@ -1113,7 +774,7 @@ class XcoreGenerator implements IGenerator {
 		
 	def dispatch CharSequence compileDatatype(BuiltInType builtin) {
 		
-		'''«de.bitub.step.generator.XcoreGenerator.builtinMappings.get(builtin.eClass)»'''		
+		'''«TypeMappingConstants.builtinMappings.get(builtin.eClass)»'''		
 	}
 	
 		
@@ -1122,7 +783,7 @@ class XcoreGenerator implements IGenerator {
 		var nameList = <String>newArrayList
 		var i = 0
 		
-		for(String name : t.literal.map[name]) {
+		for(String name : t.literals.map[name]) {
 			nameList += name+"="+(i++)
 		}		
 			
@@ -1136,34 +797,35 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def compileAttribute(Attribute a) {
 		
-		'''«IF !a.type.builtinAlias»«
-				IF a.inverseManyToManyRelation || a.leftNonUniqueRelation
+		'''«IF !util.isBuiltinAlias(a.type)»«
+				IF interpreter.isInverseManyToManyRelation(a) || interpreter.isLeftNonUniqueRelation(a)
 					»@XpressModel(kind="proxy") contains «
 				ELSE
-					»«a.type.refersConcept?.compileInlineAnnotation
-					»«IF !a.type.builtinAlias
+					»«util.refersConcept(a.type)?.compileInlineAnnotation
+					»«IF !util.isBuiltinAlias(a.type)
 						»«IF a.type.nestedAggregation
 							»contains «
 						ELSE
-							»«IF a.type.referable
+							»«IF util.isReferable(a.type)
 								»refers «
 							ENDIF
 						»«ENDIF
 					»«ENDIF»«
 				ENDIF
 			»«ELSE
-				»«a.type.refersConcept?.compileInlineAnnotation
+				»«util.refersConcept(a.type)?.compileInlineAnnotation
 			»«ENDIF
-			»«IF a.derivedAttribute
+			»«IF util.isDerivedAttribute(a)
 				»derived «
 			ENDIF
 			»«a.type.compileDatatype» «a.name.toFirstLower» «
-			IF a.inverseRelation
-				»opposite «a.oppositeRef.toFirstLower
+			IF interpreter.isInverseRelation(a)
+				»opposite «interpreter.getOppositeRef(a).toFirstLower
 			»«ENDIF»'''
 	}
 	
-
-			
+	
+	// --- COMPILATION OF FUNCTIONS
+	
 
 }		

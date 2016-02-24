@@ -29,7 +29,7 @@
         upperBound="-1" eType="#//Entity"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="supertype" unique="false"
         upperBound="-1" eType="#//Entity"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="attribute" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributes" upperBound="-1"
         eType="#//Attribute" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="uniqueRule" upperBound="-1"
         eType="#//UniqueRule" containment="true"/>
@@ -80,6 +80,17 @@
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="expression" eType="#//Line"
         containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FunctionExpression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="arguments" eType="#//ParameterList"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="return" eType="#//DataType"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="loacls" upperBound="-1"
+        eType="#//LocalVar" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="statements" upperBound="-1"
+        eType="#//Statement" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Function">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -152,7 +163,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="NumberType" eSuperTypes="#//BuiltInType"/>
   <eClassifiers xsi:type="ecore:EClass" name="IntegerType" eSuperTypes="#//BuiltInType"/>
   <eClassifiers xsi:type="ecore:EClass" name="EnumType" eSuperTypes="#//DataType">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="literal" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="literals" upperBound="-1"
         eType="#//LiteralType" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="LiteralType">

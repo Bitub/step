@@ -12,26 +12,26 @@
 package de.bitub.step.ui.labeling
 
 import com.google.inject.Inject
+import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider
+import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider
 
 /**
  * Provides labels for a EObjects.
  * 
  * see http://www.eclipse.org/Xtext/documentation.html#labelProvider
  */
-class EXPRESSLabelProvider extends org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider {
+class EXPRESSLabelProvider extends DefaultEObjectLabelProvider {
 
 	@Inject
-	new(org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider delegate) {
+	new(AdapterFactoryLabelProvider delegate) {
 		super(delegate);
 	}
 
 	// Labels and icons can be computed like this:
-	
-//	def text(Greeting ele) {
-//		'A greeting to ' + ele.name
+//	def text(Entity entity) {
+//		entity.name
 //	}
 //
-//	def image(Greeting ele) {
-//		'Greeting.gif'
+//	def image(Attribute attribute) {
 //	}
 }
