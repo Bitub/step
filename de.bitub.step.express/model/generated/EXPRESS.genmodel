@@ -3,7 +3,7 @@
     xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/de.bitub.step.express/src-gen" editDirectory="/de.bitub.step.express.edit/src"
     editorDirectory="/de.bitub.step.express.editor/src" modelPluginID="de.bitub.step.express"
     forceOverwrite="true" modelName="EXPRESS" updateClasspath="false" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
-    complianceLevel="5.0" copyrightFields="false" editPluginID="de.bitub.step.express.edit"
+    complianceLevel="6.0" copyrightFields="false" editPluginID="de.bitub.step.express.edit"
     editorPluginID="de.bitub.step.express.editor" runtimeVersion="2.11">
   <genPackages prefix="Express" basePackage="de.bitub.step" disposableProviderFactory="true"
       fileExtensions="exp" ecorePackage="EXPRESS.ecore#/">
