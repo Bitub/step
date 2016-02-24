@@ -494,10 +494,6 @@
         <repository
             url="${mwe2.site}"/>
         <repository
-            url="${emf.site}"/>
-        <repository
-            url="${xpand.site}"/>
-        <repository
             url="https://bitub.github.io/step-p2-antlr4/p2/"/>
         <repository
             url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
@@ -523,7 +519,7 @@
         <repository
             url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
         <repository
-            url="http://bitub.github.io/Bitub/step-ifc4"/>
+            url="http://bitub.github.io/step-ifc4"/>
       </repositoryList>
     </targlet>
   </setupTask>
