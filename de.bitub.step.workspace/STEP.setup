@@ -584,8 +584,8 @@
       <description>Choose the compatibility level of the target platform</description>
     </setupTask>
   </stream>
-  <stream name="mars-dev-p21"
-      label="mars-dev-p21">
+  <stream name="mars-dev"
+      label="mars-dev">
     <setupTask
         xsi:type="setup:VariableTask"
         name="mwe2.site"
