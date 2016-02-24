@@ -37,30 +37,7 @@ import de.bitub.step.p21.persistence.P21ResourceFactoryImpl;
 public class IOHelper
 {
 
-  private static final Logger LOGGER = Logger.getLogger(IOHelper.class.getName());
-
-  static {
-    try {
-
-      // This block configure the logger with handler and formatter
-      //
-      FileHandler fh = new FileHandler("logs/" + IOHelper.class.getSimpleName() + ".log");
-      SimpleFormatter formatter = new SimpleFormatter();
-      fh.setFormatter(formatter);
-
-      IOHelper.LOGGER.setLevel(Level.WARNING);
-      IOHelper.LOGGER.addHandler(fh);
-      IOHelper.LOGGER.setUseParentHandlers(true);
-    }
-    catch (SecurityException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  // TODO (Riemschüssel 09.12.2015) Change serialisation from xmi to STEP instance file (.p21, .ifc, .stp)
+  private static final Logger LOGGER = LoggerHelper.init(Level.WARNING, IOHelper.class);
 
   /**
    * Store the resource as XMI file.
@@ -75,7 +52,7 @@ public class IOHelper
     //
     ResourceSet resSet = new ResourceSetImpl();
 
-    // Register the P21 resource factory for the .ifc extension
+    // Register the P21 resource factory for the .xmi extension
     //
     resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
 
@@ -90,12 +67,12 @@ public class IOHelper
     }
     catch (IOException exception) {
 
-      IOHelper.LOGGER
-          .warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri, exception.getMessage()));
+      IOHelper.LOGGER.warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri,
+          exception.getMessage()));
     }
     catch (Exception exception) {
-      IOHelper.LOGGER.severe(
-          String.format("Something unexpected happened while saving resource %s. See reason %s", uri, exception.getMessage()));
+      IOHelper.LOGGER.severe(String.format("Something unexpected happened while saving resource %s. See reason %s", uri,
+          exception.getMessage()));
     }
   }
 
