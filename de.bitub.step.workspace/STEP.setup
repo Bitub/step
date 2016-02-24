@@ -408,20 +408,17 @@
     <workingSet
         name="dev">
       <predicate
-          xsi:type="predicates:AndPredicate">
-        <operand
-            xsi:type="predicates:NamePredicate"
-            pattern=".*\.step-updatesite"/>
-        <operand
-            xsi:type="predicates:NamePredicate"
-            pattern=".*\.build-resources"/>
-        <operand
-            xsi:type="predicates:NamePredicate"
-            pattern=".*\.workspace"/>
-        <operand
-            xsi:type="predicates:NamePredicate"
-            pattern=".*\.target-definition"/>
-      </predicate>
+          xsi:type="predicates:NamePredicate"
+          pattern=".*\.build-resources"/>
+      <predicate
+          xsi:type="predicates:NamePredicate"
+          pattern=".*\.workspace"/>
+      <predicate
+          xsi:type="predicates:NamePredicate"
+          pattern=".*\.target-definition"/>
+      <predicate
+          xsi:type="predicates:NamePredicate"
+          pattern=".*\.step-updatesite"/>
     </workingSet>
     <description>The dynamic working sets for ${scope.project.label}</description>
   </setupTask>
