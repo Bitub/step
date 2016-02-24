@@ -608,27 +608,6 @@
           name="org.eclipse.equinox.core.sdk.feature.group"/>
     </setupTask>
     <setupTask
-        xsi:type="setup.p2:P2Task"
-        id="p2.org.eclipse.xtext.mars"
-        label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
-        licenseConfirmationDisabled="true">
-      <requirement
-          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.xtext.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.xtend.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.xpand.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.emf.mwe2.language.sdk.feature.group"/>
-      <requirement
-          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"/>
-      <repository
-          url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
-      <description>Xtext &amp; Xtend &amp; Xcore</description>
-    </setupTask>
-    <setupTask
         xsi:type="setup.targlets:TargletTask">
       <targlet
           name="Mars Platform"
