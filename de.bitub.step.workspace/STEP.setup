@@ -526,7 +526,9 @@
   </setupTask>
   <setupTask
       xsi:type="projects:ProjectsBuildTask"
-      onlyNewProjects="true"/>
+      onlyNewProjects="true"
+      refresh="true"
+      clean="true"/>
   <setupTask
       xsi:type="launching:LaunchTask"
       launcher="Generate Language Infrastructure (de.bitub.step.express)"/>
