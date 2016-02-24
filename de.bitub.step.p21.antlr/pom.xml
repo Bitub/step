@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>de.bitub.step</groupId>
+		<artifactId>Build</artifactId>
+		<version>0.1.0-SNAPSHOT</version>
+		<relativePath>../de.bitub.step.build-resources/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>de.bitub.step.p21.antlr</artifactId>
+	<packaging>eclipse-plugin</packaging>
+	<name>STEP Parser Grammar</name>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>gen-clean</id>
+							<phase>clean</phase>
+							<!-- Clean up generated files in all projects -->
+							<configuration>
+								<filesets combine.children="append">
+									<fileset>
+										<directory>${basedir}/src-gen/</directory>
+									</fileset>
+								</filesets>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.antlr</groupId>
+					<artifactId>antlr4-maven-plugin</artifactId>
+					<version>4.5</version>
+					<executions>
+						<execution>
+							<phase>generate-sources</phase>
+							<goals>
+								<goal>antlr4</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<outputDirectory>${basedir}/src-gen/</outputDirectory>
+						<goal>antlr4</goal>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+	</build>
+</project>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>		
+		<groupId>de.bitub.step</groupId>
+		<artifactId>Build</artifactId>
+		<version>0.1.0-SNAPSHOT</version>
+		<relativePath>../de.bitub.step.build-resources/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>de.bitub.step.express.ui</artifactId>
+	<packaging>eclipse-plugin</packaging>
+
+	<name>EXPRESS Grammar UI Integration</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>gen-clean</id>
+						<phase>clean</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>xtend-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>

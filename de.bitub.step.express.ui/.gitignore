@@ -1,0 +1,6 @@
+# Ignore generated sources
+
+/generated/**/*
+/generated-sources/**/*
+/src-gen/**/*
+/xtend-gen/**/*

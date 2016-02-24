@@ -1,0 +1,299 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.bitub.step</groupId>
+	<artifactId>Build</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>de.bitub.step Build</name>
+
+	<properties>
+		<tycho-version>0.22.0</tycho-version>
+		<tycho-extras-version>0.22.0</tycho-extras-version>
+		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<xtext.version>2.7.2</xtext.version>
+		<updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</updatesiteLocal>
+	</properties>
+
+	<scm>
+		<connection>scm:git:https://github.com/Bitub/step.git</connection>
+	</scm>
+
+	<!-- Profiles, default "platform-luna" -->
+	<profiles>
+
+		<profile>
+			<id>platform-luna</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>platform-name</name>
+					<value>luna</value>
+				</property>
+			</activation>
+			<properties>
+				<targetPlatform>luna</targetPlatform>
+				<platformUsUrl>http://download.eclipse.org/releases/luna</platformUsUrl>
+			</properties>
+		</profile>
+
+	</profiles>
+
+	<modules>
+		<module>../de.bitub.step.express</module>
+		<module>../de.bitub.step.express.ui</module>
+		<module>../de.bitub.step.express.sdk-feature</module>
+
+		<module>../de.bitub.step-updatesite</module>
+		<module>../de.bitub.step.target-definition</module>
+
+		<module>../de.bitub.step.p21</module>
+		<module>../de.bitub.step.p21.antlr</module>
+		<module>../de.bitub.step.p21.f</module>
+	</modules>
+
+	<repositories>
+
+		<repository>
+			<id>eclipse</id>
+			<url>${platformUsUrl}</url>
+			<layout>p2</layout>
+		</repository>
+
+	</repositories>
+
+
+	<build>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>${tycho-groupid}.extras</groupId>
+					<artifactId>tycho-p2-extras-plugin</artifactId>
+					<version>${tycho-extras-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.7</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho-groupid}</groupId>
+					<artifactId>tycho-source-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<strictSrcIncludes>false</strictSrcIncludes>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>${tycho-groupid}</groupId>
+					<artifactId>tycho-p2-director-plugin</artifactId>
+					<version>${tycho-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-p2-repository-plugin</artifactId>
+					<version>${tycho-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho-groupid}.extras</groupId>
+					<artifactId>tycho-source-feature-plugin</artifactId>
+					<version>${tycho-extras-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho-groupid}.extras</groupId>
+					<artifactId>tycho-custom-bundle-plugin</artifactId>
+					<version>${tycho-extras-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>${tycho-groupid}</groupId>
+					<artifactId>tycho-maven-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<extensions>true</extensions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.eclipse.xtend</groupId>
+					<artifactId>xtend-maven-plugin</artifactId>
+					<version>${xtext.version}</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>compile</goal>
+								<goal>xtend-install-debug-info</goal>
+								<goal>testCompile</goal>
+								<goal>xtend-test-install-debug-info</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<outputDirectory>xtend-gen</outputDirectory>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>2.5</version>
+					<executions>
+						<execution>
+							<id>gen-clean</id>
+							<goals>
+								<goal>clean</goal>
+							</goals>
+							<configuration>
+								<filesets>
+									<fileset>
+										<directory>${basedir}/xtend-gen</directory>
+									</fileset>
+								</filesets>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+
+			<!-- Target platform configuration -->
+			<plugin>
+				<groupId>${tycho-groupid}</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<version>${tycho-version}</version>
+
+				<configuration>
+					<resolver>p2</resolver>
+					<target>
+						<artifact>
+							<groupId>de.bitub.step</groupId>
+							<artifactId>de.bitub.step.target-definition</artifactId>
+							<version>${project.version}</version>
+							<classifier>../de.bitub.step.target-definition/de.bitub.step-${targetPlatform}</classifier>
+						</artifact>
+					</target>
+					<environments>
+
+						<environment>
+							<os>win32</os>
+							<ws>win32</ws>
+							<arch>x86_64</arch>
+						</environment>
+
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86_64</arch>
+						</environment>
+
+						<environment>
+							<os>macosx</os>
+							<ws>cocoa</ws>
+							<arch>x86_64</arch>
+						</environment>
+
+					</environments>
+				</configuration>
+
+			</plugin>
+
+			<!-- Source publishing -->
+			<plugin>
+				<groupId>${tycho-groupid}</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<executions>
+					<execution>
+						<id>plugin-source</id>
+						<goals>
+							<goal>plugin-source</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>${tycho-groupid}.extras</groupId>
+				<artifactId>tycho-source-feature-plugin</artifactId>
+				<version>${tycho-extras-version}</version>
+				<executions>
+					<execution>
+						<id>source-feature</id>
+						<phase>package</phase>
+						<goals>
+							<goal>source-feature</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>${tycho-groupid}</groupId>
+				<artifactId>tycho-p2-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<executions>
+					<execution>
+						<id>attach-p2-metadata</id>
+						<phase>package</phase>
+						<goals>
+							<goal>p2-metadata</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Build number generator -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>create</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<doCheck>false</doCheck>
+					<!-- <doUpdate>true</doUpdate> -->
+					<shortRevisionLength>5</shortRevisionLength>
+					<getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+					<revisionOnScmFailure>unknownbuild</revisionOnScmFailure>
+					<buildNumberPropertyName>serviceNumber</buildNumberPropertyName>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>${tycho-groupid}</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<extensions>true</extensions>
+			</plugin>
+
+			<plugin>
+				<groupId>${tycho-groupid}</groupId>
+				<artifactId>tycho-packaging-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.eclipse.tycho.extras</groupId>
+						<artifactId>tycho-buildtimestamp-jgit</artifactId>
+						<version>${tycho-extras-version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<strictBinIncludes>false</strictBinIncludes>
+					<strictVersions>false</strictVersions>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+
+</project>
