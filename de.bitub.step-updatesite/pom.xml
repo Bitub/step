@@ -54,7 +54,7 @@
 																													
 					</source>					
 					
-					<destination>${updatesiteLocal}</destination>					
+					<destination>${bitub.updatesiteLocal}</destination>					
 					<followStrictOnly>true</followStrictOnly>
 					<includeOptional>true</includeOptional>
 					<includeNonGreedy>true</includeNonGreedy>

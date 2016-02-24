@@ -7,7 +7,7 @@
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>de.bitub.step Build</name>
+	<name>BITUB EXPRESS / STEP P21 Build</name>
 
 	<properties>
 		<tycho-version>0.24.0</tycho-version>
@@ -15,7 +15,7 @@
 		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>	
 		<xtext.version>2.8.4</xtext.version>	
-		<updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</updatesiteLocal>
+		<bitub.updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</bitub.updatesiteLocal>
 	</properties>
 
 	<scm>
@@ -50,7 +50,7 @@
 			</property>			
 		  </activation>
 		  <properties>
-			<targetPlatform>luna</targetPlatform>
+			<targetPlatform>mars</targetPlatform>
 			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
 		  </properties>
       </profile>	
@@ -63,11 +63,15 @@
 		<module>../de.bitub.step.express.sdk-feature</module>
 
 		<module>../de.bitub.step-updatesite</module>
+		
+		<!--
 		<module>../de.bitub.step.target-definition</module>
-
+		-->		 
+		
 		<module>../de.bitub.step.p21</module>
 		<module>../de.bitub.step.p21.antlr</module>
 		<module>../de.bitub.step.p21.f</module>
+		 
 	</modules>
 
 	<repositories>
@@ -185,9 +189,9 @@
 					<target>
 						<artifact>
 							<groupId>de.bitub.step</groupId>
-							<artifactId>de.bitub.step.target-definition</artifactId>
+							<artifactId>Build</artifactId>
 							<version>${project.version}</version>
-							<classifier>../de.bitub.step.target-definition/de.bitub.step-${targetPlatform}</classifier>
+							<classifier>de.bitub.step-${targetPlatform}</classifier>
 						</artifact>
 					</target>
 					<environments>
@@ -260,51 +264,11 @@
 				</executions>
 			</plugin>
 
-			<!-- Build number generator -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.1</version>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<doCheck>false</doCheck>
-					<!-- <doUpdate>true</doUpdate> -->
-					<shortRevisionLength>5</shortRevisionLength>
-					<getRevisionOnlyOnce>true</getRevisionOnlyOnce>
-					<revisionOnScmFailure>unknownbuild</revisionOnScmFailure>
-					<buildNumberPropertyName>serviceNumber</buildNumberPropertyName>
-				</configuration>
-			</plugin>
-
 			<plugin>
 				<groupId>${tycho-groupid}</groupId>
 				<artifactId>tycho-maven-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<extensions>true</extensions>
-			</plugin>
-
-			<plugin>
-				<groupId>${tycho-groupid}</groupId>
-				<artifactId>tycho-packaging-plugin</artifactId>
-				<version>${tycho-version}</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.eclipse.tycho.extras</groupId>
-						<artifactId>tycho-buildtimestamp-jgit</artifactId>
-						<version>${tycho-extras-version}</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<strictBinIncludes>false</strictBinIncludes>
-					<strictVersions>false</strictVersions>
-				</configuration>
 			</plugin>
 
 		</plugins>
