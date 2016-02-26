@@ -67,7 +67,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
   // helper class to create and save model elements
   //
-  private StepToModel util = new StepToModelImpl();
+  private StepToModel util = null;
 
   // save information when forward referenced type is abstract and can't be guessed at this point in time
   //
@@ -92,6 +92,11 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   public enum Mode
   {
     HEADER, DATA, FOOTER, DONE
+  }
+
+  public P21ParserListener(StepToModel stepToModel)
+  {
+    this.util = stepToModel;
   }
 
   @Override
@@ -515,7 +520,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
                 eReferenedInstance.eSet(eReferenedInstanceFeature, null);
               } else {
-                
+
                 eReferenedInstance.eSet(eReferenedInstanceFeature, logicalValue.equalsIgnoreCase(".T."));
               }
               break;
@@ -699,7 +704,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
           }
         } // eo for
       }
-    }// eo for
+    } // eo for
     return null;
   }
 
@@ -750,7 +755,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
   public EObject data()
   {
-    return util.getIfc4();
+    return util.getSchemaContainer();
   }
 
   public Header header()

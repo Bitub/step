@@ -12,13 +12,14 @@ package de.bitub.step.p21.util;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.logging.FileHandler;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.XMIResource;
@@ -67,12 +68,12 @@ public class IOHelper
     }
     catch (IOException exception) {
 
-      IOHelper.LOGGER.warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri,
-          exception.getMessage()));
+      IOHelper.LOGGER
+          .warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri, exception.getMessage()));
     }
     catch (Exception exception) {
-      IOHelper.LOGGER.severe(String.format("Something unexpected happened while saving resource %s. See reason %s", uri,
-          exception.getMessage()));
+      IOHelper.LOGGER.severe(
+          String.format("Something unexpected happened while saving resource %s. See reason %s", uri, exception.getMessage()));
     }
   }
 
@@ -82,7 +83,7 @@ public class IOHelper
    * @param uri
    * @return
    */
-  public static EObject load(URI uri)
+  public static EObject load(URI uri, EPackage ePackage)
   {
     // Obtain a new resource set
     //
@@ -99,7 +100,10 @@ public class IOHelper
     EObject eObject = null;
 
     try {
-      resource.load(null);
+      Map<Object, Object> options = new HashMap<Object, Object>();
+      options.put("ePackage", ePackage);
+
+      resource.load(options);
 
       if (resource.getContents().size() > 0) {
         eObject = resource.getContents().get(0);

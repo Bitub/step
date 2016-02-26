@@ -27,9 +27,14 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EFactory;
+import org.eclipse.emf.ecore.EPackage;
 
 import de.bitub.step.p21.StepLexer;
 import de.bitub.step.p21.StepParser;
+import de.bitub.step.p21.mapper.StepToModel;
+import de.bitub.step.p21.mapper.StepToModelImpl;
 
 /**
  * <!-- begin-user-doc -->
@@ -72,7 +77,11 @@ public class P21LoadImpl implements P21Load
     this.options = options;
 
     BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-    de.bitub.step.p21.P21ParserListener listener = new de.bitub.step.p21.P21ParserListener();
+
+    EPackage ePackage = (EPackage) options.get("ePackage");
+
+    StepToModel stepToModel = new StepToModelImpl(ePackage.getEFactoryInstance(), (EClass) ePackage.getEClassifiers().get(1));
+    de.bitub.step.p21.P21ParserListener listener = new de.bitub.step.p21.P21ParserListener(stepToModel);
 
     String line = "";
     boolean isDataSection = false;
