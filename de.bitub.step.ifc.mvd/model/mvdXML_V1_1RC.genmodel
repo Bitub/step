@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/de.bitub.step.ifc.mvd.ecore/src-gen" editDirectory="/de.bitub.step.ifc.mvd.ecore.edit/src-gen"
+    editorDirectory="/de.bitub.step.ifc.mvd.ecore.editor/src-gen" modelPluginID="de.bitub.step.ifc.mvd.ecore"
+    modelName="MvdXML_V1-1RC" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    testsDirectory="/de.bitub.step.ifc.mvd.ecore.tests/src-gen" importerID="org.eclipse.emf.importer.ecore"
+    complianceLevel="5.0" copyrightFields="false" operationReflection="true" importOrganizing="true">
+  <foreignModel>mvdXML_V1_1RC.ecore</foreignModel>
+  <genPackages prefix="mvdXML" basePackage="org.tech.buildingsmart.mvd.xml" resource="XML"
+      disposableProviderFactory="true" fileExtensions="xml" ecorePackage="mvdXML_V1_1RC.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML_V1_1RC.ecore#//Applicability">
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//Applicability/export"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//Applicability/import"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//Applicability/both"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML_V1_1RC.ecore#//CategoryType">
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//CategoryType/definition"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//CategoryType/agreement"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//CategoryType/diagram"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//CategoryType/instantiation"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//CategoryType/example"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML_V1_1RC.ecore#//OperatorType">
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//OperatorType/and"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//OperatorType/or"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//OperatorType/not"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//OperatorType/nand"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//OperatorType/nor"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//OperatorType/xor"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//OperatorType/nxor"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML_V1_1RC.ecore#//RequirementType">
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//RequirementType/mandatory"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//RequirementType/recommended"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//RequirementType/notRelevant"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//RequirementType/notRecommended"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//RequirementType/excluded"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML_V1_1RC.ecore#//SchemaNameMember1">
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//SchemaNameMember1/IFC2XFINAL"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//SchemaNameMember1/IFC2X2FINAL"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//SchemaNameMember1/IFC2X3"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//SchemaNameMember1/IFC4"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML_V1_1RC.ecore#//StatusType">
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//StatusType/sample"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//StatusType/proposal"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//StatusType/draft"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//StatusType/candidate"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//StatusType/final"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML_V1_1RC.ecore#//StatusType/deprecated"/>
+    </genEnums>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//ApplicabilityObject"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//ApplicableEntityType"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//ApplicableSchemaType"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//CategoryTypeObject"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//OperatorTypeObject"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//RequirementTypeObject"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//SchemaName"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//SchemaNameMember1Object"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//StatusTypeObject"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//TagsType"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//TagsTypeBase"/>
+    <genDataTypes ecoreDataType="mvdXML_V1_1RC.ecore#//Uuid"/>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ApplicabilityType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ApplicabilityType/definitions"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ApplicabilityType/template"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ApplicabilityType/templateRules"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//AttributeRule">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//AttributeRule/entityRules"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//AttributeRule/constraints"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//AttributeRule/attributeName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//AttributeRule/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//AttributeRule/ruleID"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//AttributeRulesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//AttributeRulesType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//AttributeRulesType/attributeRule"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//BodyType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//BodyType/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//BodyType/lang"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//BodyType/tags"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//Concept">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//Concept/definitions"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//Concept/template"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//Concept/requirements"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//Concept/templateRules"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/author"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/baseConcept"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/code"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/copyright"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/override"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/status"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/uuid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//Concept/version"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ConceptRoot">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConceptRoot/definitions"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConceptRoot/applicability"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConceptRoot/concepts"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/applicableRootEntity"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/author"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/code"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/copyright"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/status"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/uuid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptRoot/version"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ConceptsType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConceptsType/concept"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ConceptTemplate">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConceptTemplate/definitions"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConceptTemplate/rules"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConceptTemplate/subTemplates"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/applicableEntity"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/applicableSchema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/author"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/code"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/copyright"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/isPartial"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/status"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/uuid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConceptTemplate/version"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ConstraintsType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConstraintsType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConstraintsType/constraint"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ConstraintsType1">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConstraintsType1/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ConstraintsType1/constraint"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ConstraintType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConstraintType/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ConstraintType1">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ConstraintType1/expression"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//Definitions">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//Definitions/definition"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//DefinitionType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DefinitionType/body"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DefinitionType/link"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//DocumentRoot">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//DocumentRoot/mixed"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/xMLNSPrefixMap"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/xSISchemaLocation"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/attributeRule"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/concept"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/conceptRoot"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/conceptTemplate"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/entityRule"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/modelView"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/mvdXML"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//DocumentRoot/templateRules"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//EntityRule">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//EntityRule/references"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//EntityRule/attributeRules"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//EntityRule/constraints"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//EntityRule/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//EntityRule/entityName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//EntityRule/ruleID"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//EntityRulesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//EntityRulesType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//EntityRulesType/entityRule"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ExchangeRequirementsType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ExchangeRequirementsType/exchangeRequirement"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ExchangeRequirementType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ExchangeRequirementType/definitions"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/applicability"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/author"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/code"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/copyright"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/status"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/uuid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ExchangeRequirementType/version"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//GenericReference">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//GenericReference/href"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//GenericReference/ref"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//LinkType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//LinkType/category"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//LinkType/href"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//LinkType/lang"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//LinkType/title"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ModelView">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ModelView/definitions"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ModelView/baseView"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ModelView/exchangeRequirements"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ModelView/roots"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/applicableSchema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/author"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/code"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/copyright"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/status"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/uuid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ModelView/version"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//MvdXML">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//MvdXML/templates"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//MvdXML/views"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/author"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/code"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/copyright"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/status"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/uuid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//MvdXML/version"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ReferencesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ReferencesType/template"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//ReferencesType/idPrefix"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//Requirements">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//Requirements/requirement"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//RequirementType1">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//RequirementType1/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//RequirementType1/applicability"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//RequirementType1/exchangeRequirement"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//RequirementType1/requirement"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//RootsType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//RootsType/conceptRoot"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//RulesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//RulesType/attributeRule"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//SubTemplatesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//SubTemplatesType/conceptTemplate"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//TemplateRules">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//TemplateRules/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//TemplateRules/templateRules"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//TemplateRules/templateRule"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//TemplateRules/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//TemplateRules/operator"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//TemplateRuleType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//TemplateRuleType/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML_V1_1RC.ecore#//TemplateRuleType/parameters"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//TemplatesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//TemplatesType/conceptTemplate"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML_V1_1RC.ecore#//ViewsType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML_V1_1RC.ecore#//ViewsType/modelView"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

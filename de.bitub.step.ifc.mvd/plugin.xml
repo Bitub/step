@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated mvdXML_V1_1RC -->
+      <package
+            uri="http://buildingsmart-tech.org/mvdXML/mvdXML1-1"
+            class="org.tech.buildingsmart.mvd.xml.mvdXML.mvdXMLPackage"
+            genModel="model/mvdXML_V1_1RC.genmodel"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.extension_parser">
+      <!-- @generated mvdXML_V1_1RC -->
+      <parser
+            type="xml"
+            class="org.tech.buildingsmart.mvd.xml.mvdXML.util.mvdXMLResourceFactoryImpl"/>
+   </extension>
+</plugin>
