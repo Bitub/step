@@ -62,8 +62,6 @@
 		<module>../de.bitub.step.express.ui</module>
 		<module>../de.bitub.step.express.sdk-feature</module>
 
-		<module>../de.bitub.step-updatesite</module>
-		
 		<!--
 		<module>../de.bitub.step.target-definition</module>
 		-->		 
@@ -71,6 +69,8 @@
 		<module>../de.bitub.step.p21</module>
 		<module>../de.bitub.step.p21.antlr</module>
 		<module>../de.bitub.step.p21.f</module>
+
+		<module>../de.bitub.step-updatesite</module>
 		 
 	</modules>
 
