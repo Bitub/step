@@ -13,7 +13,6 @@ package de.bitub.step.p21.util;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
@@ -87,19 +86,6 @@ public class StepUntypedToEcore
       // TODO handle SELECT
       StepUntypedToEcore.setEReference(eReference, eObject, value);
     }
-  }
-
-  public static int calcIndex(int parameterIndex, EList<EStructuralFeature> eStructuralFeatures)
-  {
-
-    P21ParameterIterator<EStructuralFeature> iterator = new P21ParameterIterator<>(eStructuralFeatures);
-
-    int i = 0;
-    while (iterator.hasNext() && i <= parameterIndex) {
-      i++;
-      iterator.next();
-    }
-    return iterator.index();
   }
 
   private static void setEAttribute(EAttribute eAttribute, EObject eObject, Object value)

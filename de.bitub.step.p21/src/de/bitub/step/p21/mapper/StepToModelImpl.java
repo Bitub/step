@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.buildingsmart.ifc4.IFC4;
-import org.buildingsmart.ifc4.Ifc4Package;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -41,7 +39,7 @@ public class StepToModelImpl implements StepToModel
 
   //container for all IFC objects, each stored by class in a separate list
   //
-  private IFC4 ifc4 = null; //TODO "Schema" as class name for every generated schema.
+  private EObject schemaContainer = null; //TODO "Schema" as class name for every generated schema.
 
   // emf + ecore specific references for filling model
   //
@@ -49,15 +47,15 @@ public class StepToModelImpl implements StepToModel
   private Map<String, EList> containerLists = null;
   private Map<String, EClassifier> stepToEcoreNames = null;
 
-  public StepToModelImpl()
+  public StepToModelImpl(EObject eObject)
   {
-    this(Ifc4Package.eINSTANCE.getIfc4Factory(), Ifc4Package.eINSTANCE.getIFC4());
+    this.schemaContainer = eObject;
+    init();
   }
 
   public StepToModelImpl(EFactory eFactory, EClass eClass)
   {
-    ifc4 = (IFC4) eFactory.create(eClass);
-    init();
+    this(eFactory.create(eClass));
   }
 
   /**
@@ -143,8 +141,8 @@ public class StepToModelImpl implements StepToModel
 
   private void init()
   {
-    containerLists = keywordToContainmentList(ifc4.eClass().getEAllContainments());
-    stepToEcoreNames = nameToClassifier(Ifc4Package.eINSTANCE.getEClassifiers());
+    containerLists = keywordToContainmentList(schemaContainer.eClass().getEAllContainments());
+    stepToEcoreNames = nameToClassifier(schemaContainer.eClass().getEPackage().getEClassifiers());
   }
 
   @SuppressWarnings("rawtypes")
@@ -153,7 +151,7 @@ public class StepToModelImpl implements StepToModel
     Map<String, EList> containerLists = new HashMap<>();
 
     for (EReference eReference : containments) {
-      Object containmentList = ifc4.eGet(eReference);
+      Object containmentList = schemaContainer.eGet(eReference);
 
       if (containmentList instanceof EList) {
         containerLists.put(eReference.getName().toUpperCase(), (EList) containmentList);
@@ -181,8 +179,8 @@ public class StepToModelImpl implements StepToModel
    * @generated NOT
    * @return the ifc4
    */
-  public IFC4 getIfc4()
+  public EObject getSchemaContainer()
   {
-    return ifc4;
+    return schemaContainer;
   }
 }

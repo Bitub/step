@@ -41,6 +41,6 @@ public interface StepToModel
    * @generated NOT
    * @return
    */
-  EObject getIfc4();
+  EObject getSchemaContainer();
 
 }
