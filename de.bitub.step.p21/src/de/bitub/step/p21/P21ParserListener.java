@@ -560,30 +560,23 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
   {
     if (this.curObject != null) {
 
-      // get the correct structural feature to access the list
-      //
-      EList<EStructuralFeature> eStructuralFeatures = this.curObject.eClass().getEAllStructuralFeatures();
-      int index = StepUntypedToEcore.calcIndex(this.index.current(), eStructuralFeatures);
+      EStructuralFeature eStructuralFeature = XPressModel.p21FeatureBy(this.curObject, this.index.current());
 
-      if (index != -1) {
-        EStructuralFeature eStructuralFeature = eStructuralFeatures.get(index);
+      Object curRef = this.curObject.eGet(eStructuralFeature);
 
-        Object curRef = this.curObject.eGet(eStructuralFeature);
+      if (eStructuralFeature.isMany() && curRef instanceof List<?>) {
 
-        if (eStructuralFeature.isMany() && curRef instanceof List<?>) {
-
-          this.eList = (List<Object>) curRef;
-          LOGGER.config(String.format("Found list %s", eStructuralFeature.getName()));
-        } else {
-
-          // TODO should not happen (index maps to correct structural feature)
-          // FIXME remove if IfcSite in Xcore is fixed
-          //
-          LOGGER.severe(String.format("NO list %s", curRef));
-        }
+        this.eList = (List<Object>) curRef;
+        LOGGER.config(String.format("Found list %s", eStructuralFeature.getName()));
       } else {
-        LOGGER.severe(String.format("Index (%s) mapping not resolved for %s.", this.index.current(), this.curObject));
+
+        // TODO should not happen (index maps to correct structural feature)
+        // FIXME remove if IfcSite in Xcore is fixed
+        //
+        LOGGER.severe(String.format("NO list %s", curRef));
       }
+    } else {
+      LOGGER.severe(String.format("Index (%s) mapping not resolved for %s.", this.index.current(), this.curObject));
     }
 
     index.levelDown();
