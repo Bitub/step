@@ -15,14 +15,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.buildingsmart.ifc4.Ifc4Package;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
@@ -48,16 +46,6 @@ public class StepToModelImpl implements StepToModel
   @SuppressWarnings("rawtypes")
   private Map<String, EList> containerLists = null;
   private Map<String, EClassifier> stepToEcoreNames = null;
-
-  public StepToModelImpl(String nsURI, String schemaName)
-  {
-    this(Ifc4Package.eINSTANCE, Ifc4Package.eINSTANCE.getIfc4Factory().createIFC4().eClass());
-  }
-
-  public StepToModelImpl(EPackage ePackage, EClass schemaContainerClass)
-  {
-    this(ePackage.getEFactoryInstance(), schemaContainerClass);
-  }
 
   public StepToModelImpl(EObject eObject)
   {
@@ -154,7 +142,7 @@ public class StepToModelImpl implements StepToModel
   private void init()
   {
     containerLists = keywordToContainmentList(schemaContainer.eClass().getEAllContainments());
-    stepToEcoreNames = nameToClassifier(Ifc4Package.eINSTANCE.getEClassifiers());
+    stepToEcoreNames = nameToClassifier(schemaContainer.eClass().getEPackage().getEClassifiers());
   }
 
   @SuppressWarnings("rawtypes")
