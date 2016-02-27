@@ -14,7 +14,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.MathContext;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -31,6 +35,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EPackage;
 
+import de.bitub.step.p21.P21ParserListener;
 import de.bitub.step.p21.StepLexer;
 import de.bitub.step.p21.StepParser;
 import de.bitub.step.p21.mapper.StepToModel;
@@ -50,6 +55,11 @@ public class P21LoadImpl implements P21Load
   protected P21Helper helper;
   protected Map<?, ?> options;
 
+  private static final String ID_AT_START_REGEX = "^#\\d+";
+  private static final Pattern ID_AT_START = Pattern.compile(ID_AT_START_REGEX);
+
+  public static final String E_PACKAGE_OPTION = "ePackage";
+
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -61,10 +71,16 @@ public class P21LoadImpl implements P21Load
     this.helper = helper;
   }
 
+  private static boolean startsWithEntityId(String text)
+  {
+    return ID_AT_START.matcher(text).find();
+  }
+
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * 
+   * @throws Exception
    * @generated NOT
    * @see de.bitub.step.p21.persistence.P21Load#load(de.bitub.step.p21.persistence.P21Resource,
    *      java.io.InputStream, java.util.Map)
@@ -76,37 +92,34 @@ public class P21LoadImpl implements P21Load
     this.inputStream = inputStream;
     this.options = options;
 
-    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-
-    EPackage ePackage = (EPackage) options.get("ePackage");
-
-    StepToModel stepToModel = new StepToModelImpl(ePackage.getEFactoryInstance(), (EClass) ePackage.getEClassifiers().get(1));
-    de.bitub.step.p21.P21ParserListener listener = new de.bitub.step.p21.P21ParserListener(stepToModel);
-
-    String line = "";
-    boolean isDataSection = false;
-
-    while ((line = br.readLine()) != null) {
-      //do something with line
-
-      if (line.equalsIgnoreCase("ENDSEC;")) {
-        isDataSection = false;
-      }
-
-      if (isDataSection) {
-        parse(line, listener);
-      }
-
-      if (line.equalsIgnoreCase("DATA;")) {
-        isDataSection = true;
-      }
+    if (!options.containsKey(E_PACKAGE_OPTION)) {
+      throw new Error("Missing option 'ePackage' with EPackage object.");
     }
 
-    br.close();
-    resource.getContents().add(listener.data());
+    P21ParserListener listener = init((EPackage) options.get(E_PACKAGE_OPTION));
+
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+
+      long start = System.currentTimeMillis();
+      System.out.println("Start ...");
+      br.lines().filter(P21LoadImpl::startsWithEntityId).collect(Collectors.toList()).forEach(line -> parse(line, listener));
+      System.out.println("Finished in " + (System.currentTimeMillis() - start) + " ms");
+      resource.getContents().add(listener.data());
+    }
   }
 
-  private void parse(String line, de.bitub.step.p21.P21ParserListener listener)
+  private P21ParserListener init(EPackage ePackage)
+  {
+    // setup needed ecore classes
+    //
+    EFactory eFactory = ePackage.getEFactoryInstance();
+    EClass entitiesContainer = (EClass) ePackage.getEClassifiers().get(1);
+
+    StepToModel stepToModel = new StepToModelImpl(eFactory, entitiesContainer);
+    return new P21ParserListener(stepToModel);
+  }
+
+  private void parse(String line, P21ParserListener listener)
   {
     CharStream input = new ANTLRInputStream(line);
     StepLexer lexer = new StepLexer(input);
@@ -125,12 +138,9 @@ public class P21LoadImpl implements P21Load
     ParseTree tree = null;
 
     try {
-//      long start = System.currentTimeMillis();
       tree = parser.entityInstance();
-//      System.out.println((System.currentTimeMillis() - start) + " ms to create parse tree");
     }
     catch (RuntimeException ex) {
-
       if (ex.getClass() == RuntimeException.class && ex.getCause() instanceof RecognitionException) {
 
         // The BailErrorStrategy wraps the RecognitionExceptions in
@@ -150,11 +160,12 @@ public class P21LoadImpl implements P21Load
         //
         parser.getInterpreter().setPredictionMode(PredictionMode.LL);
 
-        tree = parser.exchangeFile();
+        tree = parser.entityInstance();
       }
     }
 
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(listener, tree);
+//    }
   }
 }
