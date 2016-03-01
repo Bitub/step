@@ -7,42 +7,51 @@
       <nested inputs="mvdXML.ecore#//Applicability/import" outputs="MvdXmlXML.xsd#//Applicability;XSDSimpleTypeDefinition/XSDEnumerationFacet=1"/>
       <nested inputs="mvdXML.ecore#//Applicability/both" outputs="MvdXmlXML.xsd#//Applicability;XSDSimpleTypeDefinition/XSDEnumerationFacet=2"/>
     </nested>
-    <nested inputs="mvdXML.ecore#//CategoryType" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=1">
-      <nested inputs="mvdXML.ecore#//CategoryType/definition" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet"/>
-      <nested inputs="mvdXML.ecore#//CategoryType/agreement" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=1"/>
-      <nested inputs="mvdXML.ecore#//CategoryType/diagram" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=2"/>
-      <nested inputs="mvdXML.ecore#//CategoryType/instantiation" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=3"/>
-      <nested inputs="mvdXML.ecore#//CategoryType/example" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=4"/>
+    <nested inputs="mvdXML.ecore#//CardinalityType" outputs="MvdXmlXML.xsd#//CardinalityType;XSDSimpleTypeDefinition=1">
+      <nested inputs="mvdXML.ecore#//CardinalityType/asSchema" outputs="MvdXmlXML.xsd#//CardinalityType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet"/>
+      <nested inputs="mvdXML.ecore#//CardinalityType/Zero" outputs="MvdXmlXML.xsd#//CardinalityType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=1"/>
+      <nested inputs="mvdXML.ecore#//CardinalityType/ZeroToOne" outputs="MvdXmlXML.xsd#//CardinalityType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=2"/>
+      <nested inputs="mvdXML.ecore#//CardinalityType/One" outputs="MvdXmlXML.xsd#//CardinalityType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=3"/>
+      <nested inputs="mvdXML.ecore#//CardinalityType/OneToMany" outputs="MvdXmlXML.xsd#//CardinalityType;XSDSimpleTypeDefinition=1/XSDEnumerationFacet=4"/>
     </nested>
-    <nested inputs="mvdXML.ecore#//OperatorType" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2">
-      <nested inputs="mvdXML.ecore#//OperatorType/and" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet"/>
-      <nested inputs="mvdXML.ecore#//OperatorType/or" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=1"/>
-      <nested inputs="mvdXML.ecore#//OperatorType/not" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=2"/>
-      <nested inputs="mvdXML.ecore#//OperatorType/nand" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=3"/>
-      <nested inputs="mvdXML.ecore#//OperatorType/nor" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=4"/>
-      <nested inputs="mvdXML.ecore#//OperatorType/xor" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=5"/>
-      <nested inputs="mvdXML.ecore#//OperatorType/nxor" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=6"/>
+    <nested inputs="mvdXML.ecore#//CategoryType" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=2">
+      <nested inputs="mvdXML.ecore#//CategoryType/definition" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet"/>
+      <nested inputs="mvdXML.ecore#//CategoryType/agreement" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=1"/>
+      <nested inputs="mvdXML.ecore#//CategoryType/diagram" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=2"/>
+      <nested inputs="mvdXML.ecore#//CategoryType/instantiation" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=3"/>
+      <nested inputs="mvdXML.ecore#//CategoryType/example" outputs="MvdXmlXML.xsd#//CategoryType;XSDSimpleTypeDefinition=2/XSDEnumerationFacet=4"/>
     </nested>
-    <nested inputs="mvdXML.ecore#//RequirementType" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=3">
-      <nested inputs="mvdXML.ecore#//RequirementType/mandatory" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet"/>
-      <nested inputs="mvdXML.ecore#//RequirementType/recommended" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=1"/>
-      <nested inputs="mvdXML.ecore#//RequirementType/notRelevant" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=2"/>
-      <nested inputs="mvdXML.ecore#//RequirementType/notRecommended" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=3"/>
-      <nested inputs="mvdXML.ecore#//RequirementType/excluded" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=4"/>
+    <nested inputs="mvdXML.ecore#//OperatorType" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3">
+      <nested inputs="mvdXML.ecore#//OperatorType/and" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet"/>
+      <nested inputs="mvdXML.ecore#//OperatorType/or" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=1"/>
+      <nested inputs="mvdXML.ecore#//OperatorType/not" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=2"/>
+      <nested inputs="mvdXML.ecore#//OperatorType/nand" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=3"/>
+      <nested inputs="mvdXML.ecore#//OperatorType/nor" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=4"/>
+      <nested inputs="mvdXML.ecore#//OperatorType/xor" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=5"/>
+      <nested inputs="mvdXML.ecore#//OperatorType/nxor" outputs="MvdXmlXML.xsd#//OperatorType;XSDSimpleTypeDefinition=3/XSDEnumerationFacet=6"/>
     </nested>
-    <nested inputs="mvdXML.ecore#//SchemaNameMember1" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=4">
-      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC2XFINAL" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=4/XSDEnumerationFacet"/>
-      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC2X2FINAL" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=1"/>
-      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC2X3" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=2"/>
-      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC4" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=3"/>
+    <nested inputs="mvdXML.ecore#//RequirementType" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=4">
+      <nested inputs="mvdXML.ecore#//RequirementType/mandatory" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=4/XSDEnumerationFacet"/>
+      <nested inputs="mvdXML.ecore#//RequirementType/recommended" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=1"/>
+      <nested inputs="mvdXML.ecore#//RequirementType/notRelevant" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=2"/>
+      <nested inputs="mvdXML.ecore#//RequirementType/notRecommended" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=3"/>
+      <nested inputs="mvdXML.ecore#//RequirementType/excluded" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=4"/>
+      <nested inputs="mvdXML.ecore#//RequirementType/optional" outputs="MvdXmlXML.xsd#//RequirementType;XSDSimpleTypeDefinition=4/XSDEnumerationFacet=5"/>
     </nested>
-    <nested inputs="mvdXML.ecore#//StatusType" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=5">
-      <nested inputs="mvdXML.ecore#//StatusType/sample" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=5/XSDEnumerationFacet"/>
-      <nested inputs="mvdXML.ecore#//StatusType/proposal" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=1"/>
-      <nested inputs="mvdXML.ecore#//StatusType/draft" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=2"/>
-      <nested inputs="mvdXML.ecore#//StatusType/candidate" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=3"/>
-      <nested inputs="mvdXML.ecore#//StatusType/final" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=4"/>
-      <nested inputs="mvdXML.ecore#//StatusType/deprecated" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=5"/>
+    <nested inputs="mvdXML.ecore#//SchemaNameMember1" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=5">
+      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC2XFINAL" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=5/XSDEnumerationFacet"/>
+      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC2X2FINAL" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=1"/>
+      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC2X3" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=2"/>
+      <nested inputs="mvdXML.ecore#//SchemaNameMember1/IFC4" outputs="MvdXmlXML.xsd#//SchemaNameMember1;XSDSimpleTypeDefinition=5/XSDEnumerationFacet=3"/>
+    </nested>
+    <nested inputs="mvdXML.ecore#//StatusType" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6">
+      <nested inputs="mvdXML.ecore#//StatusType/sample" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6/XSDEnumerationFacet"/>
+      <nested inputs="mvdXML.ecore#//StatusType/proposal" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6/XSDEnumerationFacet=1"/>
+      <nested inputs="mvdXML.ecore#//StatusType/draft" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6/XSDEnumerationFacet=2"/>
+      <nested inputs="mvdXML.ecore#//StatusType/candidate" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6/XSDEnumerationFacet=3"/>
+      <nested inputs="mvdXML.ecore#//StatusType/final" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6/XSDEnumerationFacet=4"/>
+      <nested inputs="mvdXML.ecore#//StatusType/deprecated" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6/XSDEnumerationFacet=5"/>
+      <nested inputs="mvdXML.ecore#//StatusType/noStatus" outputs="MvdXmlXML.xsd#//StatusType;XSDSimpleTypeDefinition=6/XSDEnumerationFacet=6"/>
     </nested>
     <nested inputs="mvdXML.ecore#//ApplicabilityType" outputs="MvdXmlXML.xsd#//ApplicabilityType;XSDComplexTypeDefinition">
       <nested inputs="mvdXML.ecore#//ApplicabilityType/definitions" outputs="MvdXmlXML.xsd#//ApplicabilityType;XSDComplexTypeDefinition/XSDParticle/XSDModelGroup/XSDParticle"/>
@@ -54,6 +63,7 @@
       <nested inputs="mvdXML.ecore#//AttributeRule/attributeName" outputs="MvdXmlXML.xsd#//AttributeRule;XSDComplexTypeDefinition=1/XSDAttributeUse"/>
       <nested inputs="mvdXML.ecore#//AttributeRule/description" outputs="MvdXmlXML.xsd#//AttributeRule;XSDComplexTypeDefinition=1/XSDAttributeUse=1"/>
       <nested inputs="mvdXML.ecore#//AttributeRule/ruleID" outputs="MvdXmlXML.xsd#//AttributeRule;XSDComplexTypeDefinition=1/XSDAttributeUse=2"/>
+      <nested inputs="mvdXML.ecore#//AttributeRule/cardinality" outputs="MvdXmlXML.xsd#//AttributeRule;XSDComplexTypeDefinition=1/XSDAttributeUse=3"/>
       <nested inputs="mvdXML.ecore#//AttributeRule/entityRules" outputs="MvdXmlXML.xsd#//AttributeRule;XSDComplexTypeDefinition=1/XSDParticle/XSDModelGroup/XSDParticle"/>
       <nested inputs="mvdXML.ecore#//AttributeRule/constraints" outputs="MvdXmlXML.xsd#//AttributeRule;XSDComplexTypeDefinition=1/XSDParticle/XSDModelGroup/XSDParticle=1"/>
     </nested>
@@ -80,6 +90,8 @@
       <nested inputs="mvdXML.ecore#//Concept/definitions" outputs="MvdXmlXML.xsd#//Concept;XSDComplexTypeDefinition=4/XSDParticle/XSDModelGroup/XSDParticle"/>
       <nested inputs="mvdXML.ecore#//Concept/template" outputs="MvdXmlXML.xsd#//Concept;XSDComplexTypeDefinition=4/XSDParticle/XSDModelGroup/XSDParticle=1"/>
       <nested inputs="mvdXML.ecore#//Concept/requirements" outputs="MvdXmlXML.xsd#//Concept;XSDComplexTypeDefinition=4/XSDParticle/XSDModelGroup/XSDParticle=2"/>
+      <nested inputs="mvdXML.ecore#//Concept/rules" outputs="MvdXmlXML.xsd#//Concept;XSDComplexTypeDefinition=4/XSDAttributeUse=10"/>
+      <nested inputs="mvdXML.ecore#//Concept/subConcepts" outputs="MvdXmlXML.xsd#//Concept;XSDComplexTypeDefinition=4/XSDAttributeUse=11"/>
       <nested inputs="mvdXML.ecore#//Concept/templateRules" outputs="MvdXmlXML.xsd#//Concept;XSDComplexTypeDefinition=4/XSDParticle/XSDModelGroup/XSDParticle=3"/>
     </nested>
     <nested inputs="mvdXML.ecore#//Concept" outputs="MvdXmlXML.xsd#//Concept;XSDElementDeclaration=4"/>
@@ -146,6 +158,7 @@
       <nested inputs="mvdXML.ecore#//EntityRule/description" outputs="MvdXmlXML.xsd#//EntityRule;XSDComplexTypeDefinition=15/XSDAttributeUse"/>
       <nested inputs="mvdXML.ecore#//EntityRule/entityName" outputs="MvdXmlXML.xsd#//EntityRule;XSDComplexTypeDefinition=15/XSDAttributeUse=1"/>
       <nested inputs="mvdXML.ecore#//EntityRule/ruleID" outputs="MvdXmlXML.xsd#//EntityRule;XSDComplexTypeDefinition=15/XSDAttributeUse=2"/>
+      <nested inputs="mvdXML.ecore#//EntityRule/cardinality" outputs="MvdXmlXML.xsd#//EntityRule;XSDComplexTypeDefinition=15/XSDAttributeUse=3"/>
       <nested inputs="mvdXML.ecore#//EntityRule/references" outputs="MvdXmlXML.xsd#//EntityRule;XSDComplexTypeDefinition=15/XSDParticle/XSDModelGroup/XSDParticle"/>
       <nested inputs="mvdXML.ecore#//EntityRule/attributeRules" outputs="MvdXmlXML.xsd#//EntityRule;XSDComplexTypeDefinition=15/XSDParticle/XSDModelGroup/XSDParticle=1"/>
       <nested inputs="mvdXML.ecore#//EntityRule/constraints" outputs="MvdXmlXML.xsd#//EntityRule;XSDComplexTypeDefinition=15/XSDParticle/XSDModelGroup/XSDParticle=2"/>
@@ -248,6 +261,8 @@
     <nested inputs="mvdXML.ecore#//TemplateRuleType" outputs="MvdXmlXML.xsd#//TemplateRuleType;XSDComplexTypeDefinition=30">
       <nested inputs="mvdXML.ecore#//TemplateRuleType/description" outputs="MvdXmlXML.xsd#//TemplateRuleType;XSDComplexTypeDefinition=30/XSDAttributeUse"/>
       <nested inputs="mvdXML.ecore#//TemplateRuleType/parameters" outputs="MvdXmlXML.xsd#//TemplateRuleType;XSDComplexTypeDefinition=30/XSDAttributeUse=1"/>
+      <nested inputs="mvdXML.ecore#//TemplateRuleType/ruleID" outputs="MvdXmlXML.xsd#//TemplateRuleType;XSDComplexTypeDefinition=30/XSDAttributeUse=2"/>
+      <nested inputs="mvdXML.ecore#//TemplateRuleType/references" outputs="MvdXmlXML.xsd#//TemplateRuleType;XSDComplexTypeDefinition=30/XSDAttributeUse=3"/>
     </nested>
     <nested inputs="mvdXML.ecore#//TemplateRuleType" outputs="MvdXmlXML.xsd#//TemplateRuleType;XSDElementDeclaration=30"/>
     <nested inputs="mvdXML.ecore#//TemplatesType" outputs="MvdXmlXML.xsd#//TemplatesType;XSDComplexTypeDefinition=31">
@@ -258,5 +273,17 @@
       <nested inputs="mvdXML.ecore#//ViewsType/modelView" outputs="MvdXmlXML.xsd#//ViewsType;XSDComplexTypeDefinition=32/XSDParticle/XSDModelGroup/XSDParticle"/>
     </nested>
     <nested inputs="mvdXML.ecore#//ViewsType" outputs="MvdXmlXML.xsd#//ViewsType;XSDElementDeclaration=32"/>
+    <nested inputs="mvdXML.ecore#//Rules" outputs="MvdXmlXML.xsd#//Rules;XSDComplexTypeDefinition=33">
+      <nested inputs="mvdXML.ecore#//Rules/templateRules" outputs="MvdXmlXML.xsd#//Rules;XSDComplexTypeDefinition=33/XSDAttributeUse"/>
+    </nested>
+    <nested inputs="mvdXML.ecore#//Rules" outputs="MvdXmlXML.xsd#//Rules;XSDElementDeclaration=33"/>
+    <nested inputs="mvdXML.ecore#//SubConceptsType" outputs="MvdXmlXML.xsd#//SubConceptsType;XSDComplexTypeDefinition=34">
+      <nested inputs="mvdXML.ecore#//SubConceptsType/concepts" outputs="MvdXmlXML.xsd#//SubConceptsType;XSDComplexTypeDefinition=34/XSDAttributeUse"/>
+    </nested>
+    <nested inputs="mvdXML.ecore#//SubConceptsType" outputs="MvdXmlXML.xsd#//SubConceptsType;XSDElementDeclaration=34"/>
+    <nested inputs="mvdXML.ecore#//References" outputs="MvdXmlXML.xsd#//References;XSDComplexTypeDefinition=35">
+      <nested inputs="mvdXML.ecore#//References/concepts" outputs="MvdXmlXML.xsd#//References;XSDComplexTypeDefinition=35/XSDAttributeUse"/>
+    </nested>
+    <nested inputs="mvdXML.ecore#//References" outputs="MvdXmlXML.xsd#//References;XSDElementDeclaration=35"/>
   </nested>
 </xsd2ecore:XSD2EcoreMappingRoot>

@@ -16,6 +16,13 @@
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//Applicability/import"/>
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//Applicability/both"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML.ecore#//CardinalityType">
+      <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//CardinalityType/asSchema"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//CardinalityType/Zero"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//CardinalityType/ZeroToOne"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//CardinalityType/One"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//CardinalityType/OneToMany"/>
+    </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML.ecore#//CategoryType">
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//CategoryType/definition"/>
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//CategoryType/agreement"/>
@@ -38,6 +45,7 @@
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//RequirementType/notRelevant"/>
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//RequirementType/notRecommended"/>
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//RequirementType/excluded"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//RequirementType/optional"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="mvdXML.ecore#//SchemaNameMember1">
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//SchemaNameMember1/IFC2XFINAL"/>
@@ -52,6 +60,7 @@
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//StatusType/candidate"/>
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//StatusType/final"/>
       <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//StatusType/deprecated"/>
+      <genEnumLiterals ecoreEnumLiteral="mvdXML.ecore#//StatusType/noStatus"/>
     </genEnums>
     <genDataTypes ecoreDataType="mvdXML.ecore#//ApplicabilityObject"/>
     <genDataTypes ecoreDataType="mvdXML.ecore#//ApplicableEntityType"/>
@@ -76,6 +85,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/attributeName"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/ruleID"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/cardinality"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//AttributeRulesType">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRulesType/group"/>
@@ -90,6 +100,8 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/definitions"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/template"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/requirements"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/rules"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/subConcepts"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/templateRules"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Concept/author"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Concept/baseConcept"/>
@@ -176,6 +188,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/entityName"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/ruleID"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/cardinality"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//EntityRulesType">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRulesType/group"/>
@@ -265,12 +278,23 @@
     <genClasses ecoreClass="mvdXML.ecore#//TemplateRuleType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRuleType/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRuleType/parameters"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRuleType/ruleID"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//TemplateRuleType/references"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//TemplatesType">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//TemplatesType/conceptTemplate"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//ViewsType">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//ViewsType/modelView"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML.ecore#//Rules">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Rules/templateRules"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML.ecore#//SubConceptsType">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//SubConceptsType/concepts"/>
+    </genClasses>
+    <genClasses ecoreClass="mvdXML.ecore#//References">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//References/concepts"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

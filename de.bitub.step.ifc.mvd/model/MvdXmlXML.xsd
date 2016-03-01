@@ -49,6 +49,15 @@ Export means that the software application must be able to create a data set tha
       <xsd:enumeration value="both"/>
     </xsd:restriction>
   </xsd:simpleType>
+  <xsd:simpleType name="CardinalityType">
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="asSchema"/>
+      <xsd:enumeration value="Zero"/>
+      <xsd:enumeration value="ZeroToOne"/>
+      <xsd:enumeration value="One"/>
+      <xsd:enumeration value="OneToMany"/>
+    </xsd:restriction>
+  </xsd:simpleType>
   <xsd:simpleType name="CategoryType">
     <xsd:restriction base="xsd:NCName">
       <xsd:enumeration value="definition"/>
@@ -76,6 +85,7 @@ Export means that the software application must be able to create a data set tha
       <xsd:enumeration value="notRelevant"/>
       <xsd:enumeration value="notRecommended"/>
       <xsd:enumeration value="excluded"/>
+      <xsd:enumeration value="optional"/>
     </xsd:restriction>
   </xsd:simpleType>
   <xsd:simpleType name="SchemaNameMember1">
@@ -94,6 +104,7 @@ Export means that the software application must be able to create a data set tha
       <xsd:enumeration value="candidate"/>
       <xsd:enumeration value="final"/>
       <xsd:enumeration value="deprecated"/>
+      <xsd:enumeration value="noStatus"/>
     </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="ApplicabilityType">
@@ -120,6 +131,7 @@ Export means that the software application must be able to create a data set tha
         <xsd:documentation>Identifies the rule for referencing at template rules defined within concepts, where specific parameters are applied for this rule. NOTE The RuleID must be unique within the scope of its usage.</xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="cardinality" type="mvdxml:CardinalityType"/>
   </xsd:complexType>
   <xsd:element name="AttributeRule" type="mvdxml:AttributeRule"/>
   <xsd:complexType name="AttributeRulesType"/>
@@ -190,6 +202,8 @@ Export means that the software application must be able to create a data set tha
         <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="rules" type="xsd:string"/>
+    <xsd:attribute name="subConcepts" type="xsd:string"/>
   </xsd:complexType>
   <xsd:element name="Concept" type="mvdxml:Concept"/>
   <xsd:complexType name="ConceptRoot">
@@ -394,6 +408,7 @@ Export means that the software application must be able to create a data set tha
         <xsd:documentation>Identifies the rule for referencing at template rules defined within concepts, where specific parameters are applied for this rule. NOTE The RuleID must be unique within the scope of its usage.</xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="cardinality" type="mvdxml:CardinalityType"/>
   </xsd:complexType>
   <xsd:element name="EntityRule" type="mvdxml:EntityRule"/>
   <xsd:complexType name="EntityRulesType"/>
@@ -670,6 +685,8 @@ Export means that the software application must be able to create a data set tha
   <xsd:complexType name="TemplateRuleType">
     <xsd:attribute name="description" type="xsd:string"/>
     <xsd:attribute name="parameters" type="xsd:string" use="required"/>
+    <xsd:attribute name="ruleID" type="xsd:string"/>
+    <xsd:attribute name="references" type="xsd:string"/>
   </xsd:complexType>
   <xsd:element name="TemplateRuleType" type="mvdxml:TemplateRuleType"/>
   <xsd:complexType name="TemplatesType">
@@ -692,4 +709,24 @@ Export means that the software application must be able to create a data set tha
     </xsd:sequence>
   </xsd:complexType>
   <xsd:element name="ViewsType" type="mvdxml:ViewsType"/>
+  <xsd:complexType name="Rules">
+    <xsd:attribute name="templateRules" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:element name="Rules" type="mvdxml:Rules"/>
+  <xsd:complexType name="SubConceptsType">
+    <xsd:attribute name="concepts" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The Concept is an MVD specific concept assigned via a root concept to a model view. It has a reference to a concept template from which it re-uses the definition, it may add a specific definition that only relates to its particular usage for the root element.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="SubConceptsType" type="mvdxml:SubConceptsType"/>
+  <xsd:complexType name="References">
+    <xsd:attribute name="concepts" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The Concept is an MVD specific concept assigned via a root concept to a model view. It has a reference to a concept template from which it re-uses the definition, it may add a specific definition that only relates to its particular usage for the root element.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="References" type="mvdxml:References"/>
 </xsd:schema>
