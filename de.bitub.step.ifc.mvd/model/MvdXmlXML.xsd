@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns:mvdxml="http://buildingsmart-tech.org/mvdXML/mvdXML1-1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://buildingsmart-tech.org/mvdXML/mvdXML1-1">
+  <xsd:annotation>
+    <xsd:documentation>Change Log: 
+				1.1 release candidate
+					schema extensions
+						EntityRule.References.Template - new element that allows to reference other templates as partial templates, it allows to reuse common, smaller ConceptTemplate definitions
+						EntityRule.References.Template.@ref - reference to the partial template by uuid
+						EntityRule.References.@IdPrefix - an optional prefix for the RuleId name, used to prevent ambiguous RuleId's, if the same partial template is referenced twice in a concept template tree
+						Concept.TemplateRules - new element and tree structure to define a logical tree (with boolean operators) to combine several template rules
+						ConceptRoot.Applicability - new element to check, whether the instance of the applicableRootEntity is applicable, allows for more conditions (like certain property values)
+						@applicableSchema - defined as extensible enumeration of standard IFC schema identifiers.
+					schema changes - strict version: removed, transitional version: deprecated 
+						AbstractRule - abstract element and conceptType removed, attributes moved to AttributeRule and EntityRule
+						ConceptTemplate.Rules - restricted to AttributeRule, was an agreement in V1.0, now enforced by schema
+						AttributeRule.@Cardinality - removed/deprecated: this attribute shall not be used to improse a restriction on the cardinality, restrictions are all handled by template rules
+						EntityRule.@Cardinality - removed/deprecated: this attribute shall not be used to improse a restriction on the cardinality, restrictions are all handled by template rules
+						EntityRule.EntityRules - removed/deprecated: There is no usage for an EntityRule to directly contain other EntityRules, without an intermediate AttributeRules
+						RootConcept.Requirements - removed/deprecated: requirements are only valid for concepts, not for a root concept
+						Concept.Rules  - removed/deprecated: AttributeRules and EntityRules at this level are not legal, replaces by TemplateRules that only allow TemplateRule, and boolean logic
+						Concept.SubConcepts - removed/deprecated: the inclusion of SubConcepts has no functionality so far, in order to reduce complexity it should not be used, concepts should be flat
+						Concept.Rules - removed/deprecated: the old Rules structure did not allow for logical combinations of individual rules, it was not defined, what boolean logic should be applied to more than one rule
+						Cardinaltity - simple type removed/deprecated, not used any more in AttributeRule or EntityRule
+				1.1 draft:
+					schema improvements:
+						- new complex type GenericReference (used by ModelView and Concept)
+						- simplified definition of EntityRule and TemplateRule
+						- definition of applicability attribute changed for ExchangeRequirement and Requirement  
+						- minOccurs changed from 1 to 0 for ModelView.Roots and mvdXML.Templates 
+						- maxOccurs added to several definitions, mainly for clarification 
+						- definition and use of applicability (was xs:attribute now xs:simpleType)
+						- ConceptTemplate.applicableSchema changed to a list of String types
+					schema extensions:
+						- cardinality attribute of AttributeRule and EntityRule extended to support definition of any min and max settings 
+						- baseConcept and override attribute added to Concept to reference the "supertype" concept
+						- tags attribute added to Definitions
+				1.0: first published release
+		</xsd:documentation>
+  </xsd:annotation>
+  <xsd:simpleType name="Applicability">
+    <xsd:annotation>
+      <xsd:documentation>
+Export means that the software application must be able to create a data set that fulfills defined requirements. If an requirement is defined for import only, it defines the data set that must be properly processed by an application. NOTE  The differentiation between import and export origins from software certification and does not have any meaning for data validation applications. 
+	</xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="export"/>
+      <xsd:enumeration value="import"/>
+      <xsd:enumeration value="both"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="CategoryType">
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="definition"/>
+      <xsd:enumeration value="agreement"/>
+      <xsd:enumeration value="diagram"/>
+      <xsd:enumeration value="instantiation"/>
+      <xsd:enumeration value="example"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="OperatorType">
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="and"/>
+      <xsd:enumeration value="or"/>
+      <xsd:enumeration value="not"/>
+      <xsd:enumeration value="nand"/>
+      <xsd:enumeration value="nor"/>
+      <xsd:enumeration value="xor"/>
+      <xsd:enumeration value="nxor"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RequirementType">
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="mandatory"/>
+      <xsd:enumeration value="recommended"/>
+      <xsd:enumeration value="notRelevant"/>
+      <xsd:enumeration value="notRecommended"/>
+      <xsd:enumeration value="excluded"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="SchemaNameMember1">
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="IFC2XFINAL"/>
+      <xsd:enumeration value="IFC2X2FINAL"/>
+      <xsd:enumeration value="IFC2X3"/>
+      <xsd:enumeration value="IFC4"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="StatusType">
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="sample"/>
+      <xsd:enumeration value="proposal"/>
+      <xsd:enumeration value="draft"/>
+      <xsd:enumeration value="candidate"/>
+      <xsd:enumeration value="final"/>
+      <xsd:enumeration value="deprecated"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="ApplicabilityType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="definitions" type="mvdxml:Definitions"/>
+      <xsd:element maxOccurs="1" minOccurs="1" name="template" type="mvdxml:GenericReference"/>
+      <xsd:element maxOccurs="1" minOccurs="1" name="templateRules" type="mvdxml:TemplateRules"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="ApplicabilityType" type="mvdxml:ApplicabilityType"/>
+  <xsd:complexType name="AttributeRule">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="entityRules" type="mvdxml:EntityRulesType"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="constraints" type="mvdxml:ConstraintsType"/>
+    </xsd:sequence>
+    <xsd:attribute name="attributeName" type="xsd:string" use="required"/>
+    <xsd:attribute name="description" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Optional description of the rule.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="ruleID" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Identifies the rule for referencing at template rules defined within concepts, where specific parameters are applied for this rule. NOTE The RuleID must be unique within the scope of its usage.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="AttributeRule" type="mvdxml:AttributeRule"/>
+  <xsd:complexType name="AttributeRulesType"/>
+  <xsd:element name="AttributeRulesType" type="mvdxml:AttributeRulesType"/>
+  <xsd:complexType name="BodyType">
+    <xsd:attribute name="value" type="xsd:string"/>
+    <xsd:attribute default="en" name="lang" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Locale identifier based on RFC 1766 language codes to indicate the default locale. Examples are ‘en’, ‘de’, ‘en-GB’, ’de-CH’.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="tags" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>List of tags that classify the element. All tags are separated through whitespaces per default. A semicolon must be used if given tags consists of multiple words.
+												</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="BodyType" type="mvdxml:BodyType"/>
+  <xsd:complexType name="Concept">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="definitions" type="mvdxml:Definitions"/>
+      <xsd:element maxOccurs="1" minOccurs="1" name="template" type="mvdxml:GenericReference"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="requirements" type="mvdxml:Requirements"/>
+      <xsd:element maxOccurs="1" minOccurs="1" name="templateRules" type="mvdxml:TemplateRules"/>
+    </xsd:sequence>
+    <xsd:attribute name="author" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The author(s) of this element of the mvd definition. Authors are separated by semicolon.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="baseConcept" type="xsd:string"/>
+    <xsd:attribute name="code" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Human readable reference value of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="copyright" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The copyright under which the work is published. NOTE  If adopted by buildingSMART International, the copyright shall lie either with buildingSMART International, or is governed by a well-recognized open license (e.g. creative commons, or open source licences such as BSD or GNU).
+</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute default="false" name="override" type="xsd:string"/>
+    <xsd:attribute name="owner" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The legal owner of this element of the mvd definition NOTE  Official Model View Definitions by buildingSMART International shall have ownership assigned to buildingSMART or another accepted standardization organization.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="status" type="mvdxml:StatusType">
+      <xsd:annotation>
+        <xsd:documentation>The status information of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="uuid" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Universally unique identifier. This is used as a persistent identifier, and must never change. It is string type with a fixed length of 36 characters, which should follow a specific pattern.&gt;
+				</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="version" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="Concept" type="mvdxml:Concept"/>
+  <xsd:complexType name="ConceptRoot">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="definitions" type="mvdxml:Definitions"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="applicability" type="mvdxml:ApplicabilityType">
+        <xsd:annotation>
+          <xsd:documentation>A set of TemplateRules, based on a template, which describe the conditions, under which the concepts apply to the applicableRootEntity. Those conditions need to validate to true as a prerequisite for checking the TemplateRules imposed at the concepts.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element maxOccurs="1" minOccurs="0" name="concepts" type="mvdxml:ConceptsType">
+        <xsd:annotation>
+          <xsd:documentation>List of concepts defined within scope of the concept root.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="applicableRootEntity" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Identifies the class or data type of instance being described or validated, i.e. the IFC entity (deriving from IfcRoot) for which the concepts apply. The concepts apply to this IFC entity or its subtypes (respectively instances of those classes in case of validation).</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="author" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The author(s) of this element of the mvd definition. Authors are separated by semicolon.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="code" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Human readable reference value of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="copyright" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The copyright under which the work is published. NOTE  If adopted by buildingSMART International, the copyright shall lie either with buildingSMART International, or is governed by a well-recognized open license (e.g. creative commons, or open source licences such as BSD or GNU).
+</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="owner" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The legal owner of this element of the mvd definition NOTE  Official Model View Definitions by buildingSMART International shall have ownership assigned to buildingSMART or another accepted standardization organization.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="status" type="mvdxml:StatusType">
+      <xsd:annotation>
+        <xsd:documentation>The status information of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="uuid" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Universally unique identifier. This is used as a persistent identifier, and must never change. It is string type with a fixed length of 36 characters, which should follow a specific pattern.&gt;
+				</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="version" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="ConceptRoot" type="mvdxml:ConceptRoot"/>
+  <xsd:complexType name="ConceptsType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="concept" type="mvdxml:Concept">
+        <xsd:annotation>
+          <xsd:documentation>Each Concept indicates use of a particular template for the applicable root entity.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="ConceptsType" type="mvdxml:ConceptsType"/>
+  <xsd:complexType name="ConceptTemplate">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="definitions" type="mvdxml:Definitions"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="rules" type="mvdxml:RulesType">
+        <xsd:annotation>
+          <xsd:documentation>Set of attributes defined at applicable Entity, where each attribute may have value constraints and/or graphs of object instances defined. If an attribute is not defined, then the requirements are the same as indicated for the schema.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element maxOccurs="1" minOccurs="0" name="subTemplates" type="mvdxml:SubTemplatesType">
+        <xsd:annotation>
+          <xsd:documentation>Set of sub-templates, having a subset of applicable entities, which further define a concept template for particular usage.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="applicableEntity" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Indicates the entities, including all derived entities, for which the concept applies. It is recommended to use a single base class. This value provides the context for any attribute rules and is used within tools to filter the list of available templates for particular entities. For a sub template, the applicable entity must be the same type or a subtype of the outer template. This value may be blank to indicate an abstract template that cannot be instantiated, containing sub templates for specific entities.
+		</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="applicableSchema" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Identifies the default schema for which the template applies, such as IFC2X_FINAL, IFC2X2_FINAL, IFC2X3, or IFC4. The template may be used for model views of other schemas, if all enclosed rules resolve to available attributes and types.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="author" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The author(s) of this element of the mvd definition. Authors are separated by semicolon.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="code" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Human readable reference value of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="copyright" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The copyright under which the work is published. NOTE  If adopted by buildingSMART International, the copyright shall lie either with buildingSMART International, or is governed by a well-recognized open license (e.g. creative commons, or open source licences such as BSD or GNU).
+</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute default="false" name="isPartial" type="xsd:string"/>
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="owner" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The legal owner of this element of the mvd definition NOTE  Official Model View Definitions by buildingSMART International shall have ownership assigned to buildingSMART or another accepted standardization organization.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="status" type="mvdxml:StatusType">
+      <xsd:annotation>
+        <xsd:documentation>The status information of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="uuid" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Universally unique identifier. This is used as a persistent identifier, and must never change. It is string type with a fixed length of 36 characters, which should follow a specific pattern.&gt;
+				</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="version" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="ConceptTemplate" type="mvdxml:ConceptTemplate"/>
+  <xsd:complexType name="ConstraintsType"/>
+  <xsd:element name="ConstraintsType" type="mvdxml:ConstraintsType"/>
+  <xsd:complexType name="ConstraintsType1"/>
+  <xsd:element name="ConstraintsType1" type="mvdxml:ConstraintsType1"/>
+  <xsd:complexType name="ConstraintType">
+    <xsd:attribute name="expression" type="xsd:string" use="required"/>
+  </xsd:complexType>
+  <xsd:element name="ConstraintType" type="mvdxml:ConstraintType"/>
+  <xsd:complexType name="ConstraintType1">
+    <xsd:attribute name="expression" type="xsd:string" use="required"/>
+  </xsd:complexType>
+  <xsd:element name="ConstraintType1" type="mvdxml:ConstraintType1"/>
+  <xsd:complexType name="Definitions">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="definition" type="mvdxml:DefinitionType">
+        <xsd:annotation>
+          <xsd:documentation>
+			The element definition contains text and explanatory remarks. It also allows to add links to additional figures, diagrams, examples, and other external documents.
+			</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="Definitions" type="mvdxml:Definitions"/>
+  <xsd:complexType name="DefinitionType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="body" type="mvdxml:BodyType">
+        <xsd:annotation>
+          <xsd:documentation>The element holds the definition text or explanatory remarks. It is qualified by a language tag. It also holds tags that further classify the nature of the definition or remark. NOTE  In order to correctly encapsulate the HTML formatted text, the content shall be tagged by     to preserve the HTML code.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="link" type="mvdxml:LinkType">
+        <xsd:annotation>
+          <xsd:documentation>The element holds all links to additional documentation content, often referenced as a link to external resources.
+								</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="DefinitionType" type="mvdxml:DefinitionType"/>
+  <xsd:complexType name="DocumentRoot"/>
+  <xsd:element name="DocumentRoot" type="mvdxml:DocumentRoot"/>
+  <xsd:complexType name="EntityRule">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="references" type="mvdxml:ReferencesType"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="attributeRules" type="mvdxml:AttributeRulesType"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="constraints" type="mvdxml:ConstraintsType1"/>
+    </xsd:sequence>
+    <xsd:attribute name="description" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Optional description of the rule.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="entityName" type="xsd:string" use="required"/>
+    <xsd:attribute name="ruleID" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Identifies the rule for referencing at template rules defined within concepts, where specific parameters are applied for this rule. NOTE The RuleID must be unique within the scope of its usage.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="EntityRule" type="mvdxml:EntityRule"/>
+  <xsd:complexType name="EntityRulesType"/>
+  <xsd:element name="EntityRulesType" type="mvdxml:EntityRulesType"/>
+  <xsd:complexType name="ExchangeRequirementsType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="exchangeRequirement" type="mvdxml:ExchangeRequirementType">
+        <xsd:annotation>
+          <xsd:documentation>The ExchangeRequirement element is the description of an Exchange Requirement model (ERM) that is covered by the MVD. An ERM covers the Exchange Requirements (ER) that are identified for a particular exchange scenario that is covered by the MVD. ERM's may add additional constraints to the use of concepts and are an important part of later certification and validation processes. An ERM can be referenced from a Concept element to impose specific constraints for exchanges that reference this ERM. </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="ExchangeRequirementsType" type="mvdxml:ExchangeRequirementsType"/>
+  <xsd:complexType name="ExchangeRequirementType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="definitions" type="mvdxml:Definitions"/>
+    </xsd:sequence>
+    <xsd:attribute name="applicability" type="mvdxml:Applicability">
+      <xsd:annotation>
+        <xsd:documentation>Identifies if the ERM is specific for import or export. If such value is provided, then any referencing requirements must match; for example, if such value indicates export, then referencing requirements may use export but not import; if such value is not provided, then referencing requirements may use any value. NOTE  The differentiation between import and export origins from software certification and does not have any meaning for data validation applications.
+								</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="author" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The author(s) of this element of the mvd definition. Authors are separated by semicolon.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="code" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Human readable reference value of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="copyright" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The copyright under which the work is published. NOTE  If adopted by buildingSMART International, the copyright shall lie either with buildingSMART International, or is governed by a well-recognized open license (e.g. creative commons, or open source licences such as BSD or GNU).
+</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="owner" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The legal owner of this element of the mvd definition NOTE  Official Model View Definitions by buildingSMART International shall have ownership assigned to buildingSMART or another accepted standardization organization.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="status" type="mvdxml:StatusType">
+      <xsd:annotation>
+        <xsd:documentation>The status information of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="uuid" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Universally unique identifier. This is used as a persistent identifier, and must never change. It is string type with a fixed length of 36 characters, which should follow a specific pattern.&gt;
+				</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="version" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="ExchangeRequirementType" type="mvdxml:ExchangeRequirementType"/>
+  <xsd:complexType name="GenericReference">
+    <xsd:attribute name="href" type="xsd:string"/>
+    <xsd:attribute name="ref" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:element name="GenericReference" type="mvdxml:GenericReference"/>
+  <xsd:complexType name="LinkType">
+    <xsd:attribute name="category" type="mvdxml:CategoryType">
+      <xsd:annotation>
+        <xsd:documentation>Indication about the category of the linked content.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="href" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>URL to referenced content, particularly for diagrams and examples that are manually generated. This is used to reference any external files such that they are included when generating documentation. NOTE  URL’s local to the file system shall be relative. 
+										</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute default="en" name="lang" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Locale identifier based on RFC 1766 language codes to indicate the default locale. Examples are ‘en’, ‘de’, ‘en-GB’, ’de-CH’.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="title" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Human readable name. This is used as the header of the link content and entry within table of contents when generating documentation.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="LinkType" type="mvdxml:LinkType"/>
+  <xsd:complexType name="ModelView">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="definitions" type="mvdxml:Definitions"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="baseView" type="mvdxml:GenericReference">
+        <xsd:annotation>
+          <xsd:documentation>Reference to a base model view definition (in case that this model view represents an add-on model view that extents a base view).</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element maxOccurs="1" minOccurs="0" name="exchangeRequirements" type="mvdxml:ExchangeRequirementsType">
+        <xsd:annotation>
+          <xsd:documentation>List of exchange requirements defined within this model view. They should appear in logical order.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element maxOccurs="1" minOccurs="0" name="roots" type="mvdxml:RootsType">
+        <xsd:annotation>
+          <xsd:documentation>List of root concepts defined within scope of the model view.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="applicableSchema" type="xsd:string" use="required"/>
+    <xsd:attribute name="author" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The author(s) of this element of the mvd definition. Authors are separated by semicolon.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="code" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Human readable reference value of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="copyright" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The copyright under which the work is published. NOTE  If adopted by buildingSMART International, the copyright shall lie either with buildingSMART International, or is governed by a well-recognized open license (e.g. creative commons, or open source licences such as BSD or GNU).
+</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="owner" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The legal owner of this element of the mvd definition NOTE  Official Model View Definitions by buildingSMART International shall have ownership assigned to buildingSMART or another accepted standardization organization.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="status" type="mvdxml:StatusType">
+      <xsd:annotation>
+        <xsd:documentation>The status information of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="uuid" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Universally unique identifier. This is used as a persistent identifier, and must never change. It is string type with a fixed length of 36 characters, which should follow a specific pattern.&gt;
+				</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="version" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="ModelView" type="mvdxml:ModelView"/>
+  <xsd:complexType name="MvdXML">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="0" name="templates" type="mvdxml:TemplatesType">
+        <xsd:annotation>
+          <xsd:documentation>a list of reusable concept templates, that define the graph within the base IFC schema representing the entities and attributes needed to support the functional unit</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element maxOccurs="1" minOccurs="0" name="views" type="mvdxml:ViewsType">
+        <xsd:annotation>
+          <xsd:documentation>a list of model view definitions, that contains the necessary entities and associated concepts to define the sub schema of the base schema to support the exchange requirements</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="author" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The author(s) of this element of the mvd definition. Authors are separated by semicolon.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="code" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Human readable reference value of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="copyright" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The copyright under which the work is published. NOTE  If adopted by buildingSMART International, the copyright shall lie either with buildingSMART International, or is governed by a well-recognized open license (e.g. creative commons, or open source licences such as BSD or GNU).
+</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="owner" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The legal owner of this element of the mvd definition NOTE  Official Model View Definitions by buildingSMART International shall have ownership assigned to buildingSMART or another accepted standardization organization.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="status" type="mvdxml:StatusType">
+      <xsd:annotation>
+        <xsd:documentation>The status information of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="uuid" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Universally unique identifier. This is used as a persistent identifier, and must never change. It is string type with a fixed length of 36 characters, which should follow a specific pattern.&gt;
+				</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="version" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="MvdXML" type="mvdxml:MvdXML"/>
+  <xsd:complexType name="ReferencesType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="1" name="template" type="mvdxml:GenericReference"/>
+    </xsd:sequence>
+    <xsd:attribute name="idPrefix" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:element name="ReferencesType" type="mvdxml:ReferencesType"/>
+  <xsd:complexType name="Requirements">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="requirement" type="mvdxml:RequirementType1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="Requirements" type="mvdxml:Requirements"/>
+  <xsd:complexType name="RequirementType1">
+    <xsd:attribute name="value" type="xsd:string"/>
+    <xsd:attribute name="applicability" type="mvdxml:Applicability"/>
+    <xsd:attribute name="exchangeRequirement" type="xsd:string" use="required"/>
+    <xsd:attribute name="requirement" type="mvdxml:RequirementType" use="required"/>
+  </xsd:complexType>
+  <xsd:element name="RequirementType1" type="mvdxml:RequirementType1"/>
+  <xsd:complexType name="RootsType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="conceptRoot" type="mvdxml:ConceptRoot">
+        <xsd:annotation>
+          <xsd:documentation>The ConceptRoot element represents the root element (other terms are "leaf node class", "variable concept") that represent the fundamental parts of an MVD that is represented by a collection of supported concepts. It has an applicable leaf-node IFC entity. </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="RootsType" type="mvdxml:RootsType"/>
+  <xsd:complexType name="RulesType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="attributeRule" type="mvdxml:AttributeRule">
+        <xsd:annotation>
+          <xsd:documentation>An atribute rule, defined for an attribute of the applicable entity. It declares the root element of the rule tree. It is allowed to define rules for attributes that are defined at subtypes of the applicable entity.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="RulesType" type="mvdxml:RulesType"/>
+  <xsd:complexType name="SubTemplatesType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="conceptTemplate" type="mvdxml:ConceptTemplate">
+        <xsd:annotation>
+          <xsd:documentation>The concept template holds the common definitions of a concept, that are independent of its use within a root concept. Concept nodes reference a concept template to share the common description. This element represents the reusable concepts; it may have zero-to-many sub concept template's and thereby may form a tree of related reusable concepts. Within the tree it may refer to shared partial concepts. Each concept template has an applicable schema and may have applicable root entities (i.e. concept roots to which the concept template applies).</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="SubTemplatesType" type="mvdxml:SubTemplatesType"/>
+  <xsd:complexType name="TemplateRules">
+    <xsd:attribute name="description" type="xsd:string"/>
+    <xsd:attribute name="operator" type="mvdxml:OperatorType"/>
+  </xsd:complexType>
+  <xsd:element name="TemplateRules" type="mvdxml:TemplateRules"/>
+  <xsd:complexType name="TemplateRuleType">
+    <xsd:attribute name="description" type="xsd:string"/>
+    <xsd:attribute name="parameters" type="xsd:string" use="required"/>
+  </xsd:complexType>
+  <xsd:element name="TemplateRuleType" type="mvdxml:TemplateRuleType"/>
+  <xsd:complexType name="TemplatesType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="conceptTemplate" type="mvdxml:ConceptTemplate">
+        <xsd:annotation>
+          <xsd:documentation>The ConceptTemplate element represents the reusable concepts, it may have one-to-many sub concept templates and thereby may form a tree of related reusable concepts. Each concept template has an applicable schema and may have applicable root entities (i.e. concept roots to which the concept template applies). </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="TemplatesType" type="mvdxml:TemplatesType"/>
+  <xsd:complexType name="ViewsType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="modelView" type="mvdxml:ModelView">
+        <xsd:annotation>
+          <xsd:documentation>The ModelView element is the description of a Model View Definition (MVD), it is specific to an IFC schema release and contains one-to-many concept roots. It includes the reference to zero-to-many applicable exchange requirements.</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="ViewsType" type="mvdxml:ViewsType"/>
+</xsd:schema>
