@@ -100,8 +100,6 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/definitions"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/template"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/requirements"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/rules"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/subConcepts"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Concept/templateRules"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Concept/author"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Concept/baseConcept"/>
@@ -151,15 +149,8 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//ConstraintsType/group"/>
       <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//ConstraintsType/constraint"/>
     </genClasses>
-    <genClasses ecoreClass="mvdXML.ecore#//ConstraintsType1">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//ConstraintsType1/group"/>
-      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//ConstraintsType1/constraint"/>
-    </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//ConstraintType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//ConstraintType/expression"/>
-    </genClasses>
-    <genClasses ecoreClass="mvdXML.ecore#//ConstraintType1">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//ConstraintType1/expression"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//Definitions">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Definitions/definition"/>
@@ -253,11 +244,11 @@
     <genClasses ecoreClass="mvdXML.ecore#//Requirements">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//Requirements/requirement"/>
     </genClasses>
-    <genClasses ecoreClass="mvdXML.ecore#//RequirementType1">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//RequirementType1/value"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//RequirementType1/applicability"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//RequirementType1/exchangeRequirement"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//RequirementType1/requirement"/>
+    <genClasses ecoreClass="mvdXML.ecore#//Requirement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/applicability"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/exchangeRequirement"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/requirement"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//RootsType">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//RootsType/conceptRoot"/>

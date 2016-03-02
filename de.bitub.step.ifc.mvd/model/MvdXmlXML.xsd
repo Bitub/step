@@ -202,8 +202,6 @@ Export means that the software application must be able to create a data set tha
         <xsd:documentation>Sequential version number of this element of the mvd definition.</xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="rules" type="xsd:string"/>
-    <xsd:attribute name="subConcepts" type="xsd:string"/>
   </xsd:complexType>
   <xsd:element name="Concept" type="mvdxml:Concept"/>
   <xsd:complexType name="ConceptRoot">
@@ -351,16 +349,10 @@ Export means that the software application must be able to create a data set tha
   <xsd:element name="ConceptTemplate" type="mvdxml:ConceptTemplate"/>
   <xsd:complexType name="ConstraintsType"/>
   <xsd:element name="ConstraintsType" type="mvdxml:ConstraintsType"/>
-  <xsd:complexType name="ConstraintsType1"/>
-  <xsd:element name="ConstraintsType1" type="mvdxml:ConstraintsType1"/>
   <xsd:complexType name="ConstraintType">
     <xsd:attribute name="expression" type="xsd:string" use="required"/>
   </xsd:complexType>
   <xsd:element name="ConstraintType" type="mvdxml:ConstraintType"/>
-  <xsd:complexType name="ConstraintType1">
-    <xsd:attribute name="expression" type="xsd:string" use="required"/>
-  </xsd:complexType>
-  <xsd:element name="ConstraintType1" type="mvdxml:ConstraintType1"/>
   <xsd:complexType name="Definitions">
     <xsd:sequence>
       <xsd:element maxOccurs="unbounded" minOccurs="1" name="definition" type="mvdxml:DefinitionType">
@@ -395,7 +387,7 @@ Export means that the software application must be able to create a data set tha
     <xsd:sequence>
       <xsd:element maxOccurs="1" minOccurs="0" name="references" type="mvdxml:ReferencesType"/>
       <xsd:element maxOccurs="1" minOccurs="0" name="attributeRules" type="mvdxml:AttributeRulesType"/>
-      <xsd:element maxOccurs="1" minOccurs="0" name="constraints" type="mvdxml:ConstraintsType1"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="constraints" type="mvdxml:ConstraintsType"/>
     </xsd:sequence>
     <xsd:attribute name="description" type="xsd:string">
       <xsd:annotation>
@@ -636,17 +628,17 @@ Export means that the software application must be able to create a data set tha
   <xsd:element name="ReferencesType" type="mvdxml:ReferencesType"/>
   <xsd:complexType name="Requirements">
     <xsd:sequence>
-      <xsd:element maxOccurs="unbounded" minOccurs="1" name="requirement" type="mvdxml:RequirementType1"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="requirement" type="mvdxml:Requirement"/>
     </xsd:sequence>
   </xsd:complexType>
   <xsd:element name="Requirements" type="mvdxml:Requirements"/>
-  <xsd:complexType name="RequirementType1">
+  <xsd:complexType name="Requirement">
     <xsd:attribute name="value" type="xsd:string"/>
     <xsd:attribute name="applicability" type="mvdxml:Applicability"/>
     <xsd:attribute name="exchangeRequirement" type="xsd:string" use="required"/>
     <xsd:attribute name="requirement" type="mvdxml:RequirementType" use="required"/>
   </xsd:complexType>
-  <xsd:element name="RequirementType1" type="mvdxml:RequirementType1"/>
+  <xsd:element name="Requirement" type="mvdxml:Requirement"/>
   <xsd:complexType name="RootsType">
     <xsd:sequence>
       <xsd:element maxOccurs="unbounded" minOccurs="1" name="conceptRoot" type="mvdxml:ConceptRoot">
