@@ -10,6 +10,7 @@ Require-Bundle: de.bitub.step.p21.antlr;bundle-version="0.1.0",
  org.eclipse.emf.ecore,
  org.eclipse.emf.ecore.xmi
 Export-Package: de.bitub.step.p21;uses:="org.eclipse.emf.ecore",
+ de.bitub.step.p21.mapper,
  de.bitub.step.p21.util
 Import-Package: org.buildingsmart.ifc4,
  org.buildingsmart.ifc4.impl
