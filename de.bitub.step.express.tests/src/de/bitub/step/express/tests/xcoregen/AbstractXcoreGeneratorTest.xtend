@@ -2,7 +2,7 @@ package de.bitub.step.express.tests.xcoregen
 
 import com.google.inject.Inject
 import de.bitub.step.express.Schema
-import de.bitub.step.generator.XcoreGenerator
+import de.bitub.step.xcore.XcoreGenerator
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
