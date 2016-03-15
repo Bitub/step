@@ -21,19 +21,22 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional,
  org.eclipse.core.resources;bundle-version="3.9.1",
  org.apache.log4j;bundle-version="1.2.15",
- org.eclipse.equinox.common;bundle-version="3.7.0"
+ org.eclipse.equinox.common;bundle-version="3.7.0",
+ de.bitub.riemi.graph;bundle-version="0.1.0",
+ org.eclipse.emf.ecore.xcore.lib
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: de.bitub.step,
- de.bitub.step.express,
- de.bitub.step.express.impl,
- de.bitub.step.express.util,
- de.bitub.step.formatting,
- de.bitub.step.generator,
- de.bitub.step.generator.util,
- de.bitub.step.parser.antlr,
- de.bitub.step.parser.antlr.internal,
- de.bitub.step.scoping,
- de.bitub.step.serializer,
- de.bitub.step.services,
- de.bitub.step.validation
+Export-Package: de.bitub.step;uses:="com.google.inject,org.eclipse.xtext.common.types,org.eclipse.xtext",
+ de.bitub.step.express;uses:="org.eclipse.emf.ecore,org.eclipse.emf.common.util",
+ de.bitub.step.express.impl; uses:="org.eclipse.emf.ecore,  org.eclipse.emf.ecore.impl,  org.eclipse.emf.common.util,  de.bitub.step.express,  org.eclipse.emf.common.notify",
+ de.bitub.step.express.util; uses:="org.eclipse.emf.ecore,  de.bitub.step.express,  org.eclipse.emf.common.notify,  org.eclipse.emf.common.notify.impl,  org.eclipse.emf.ecore.util",
+ de.bitub.step.formatting;uses:="org.eclipse.xtext.formatting.impl",
+ de.bitub.step.generator; uses:="org.eclipse.emf.ecore,  org.eclipse.xtext.generator,  de.bitub.step.express,  org.eclipse.emf.ecore.resource",
+ de.bitub.step.generator.util;uses:="org.eclipse.emf.ecore,de.bitub.step.express",
+ de.bitub.step.parser.antlr;uses:="de.bitub.step.services,org.eclipse.xtext.parser.antlr,de.bitub.step.parser.antlr.internal",
+ de.bitub.step.parser.antlr.internal; uses:="org.eclipse.emf.ecore,  de.bitub.step.services,  org.eclipse.xtext.parser.antlr,  org.antlr.runtime",
+ de.bitub.step.scoping; uses:="org.eclipse.emf.ecore,  org.eclipse.xtext.scoping.impl,  de.bitub.step.express,  org.eclipse.xtext.scoping",
+ de.bitub.step.serializer; uses:="org.eclipse.emf.ecore,  org.eclipse.xtext.nodemodel,  de.bitub.step.services,  org.eclipse.xtext.serializer.analysis,  de.bitub.step.express,  org.eclipse.xtext.serializer.sequencer,  org.eclipse.xtext",
+ de.bitub.step.services;uses:="org.eclipse.xtext.common.services,org.eclipse.xtext.service,org.eclipse.xtext",
+ de.bitub.step.validation;uses:="de.bitub.step.express"
+
