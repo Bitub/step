@@ -25,7 +25,7 @@ class CsvTest extends AbstractXcoreGeneratorTest {
 		val ifc4SchemaText = readModel(
 			class.classLoader.getResourceAsStream("de/bitub/step/express/tests/xcoregen/" + "IFC4_ADD1.exp"))
 
-		bundler = new EXPRESSSchemaBundler(parseSchema(ifc4SchemaText));
+		bundler = new EXPRESSSchemaBundler(ifc4SchemaText.generateEXPRESS);
 	}
 
 	@Test

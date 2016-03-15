@@ -27,31 +27,30 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
  * Shorthand utility method to derive more information about model elements of EXPRESS.
  */
 class EXPRESSExtension {
-	
-	
+
 	/**
 	 * True, if sup is a supertype of sub.
 	 */
 	def static isSupertypeOf(Entity sup, Entity sub) {
-		
-		if(sup == sub) {
-			
+
+		if (sup == sub) {
+
 			return false;
 		}
-		
+
 		var queue = newLinkedList(sub)
-		while(!queue.empty) {
-		
+		while (!queue.empty) {
+
 			var e = queue.poll
-			if(e == sup) {
-				
+			if (e == sup) {
+
 				return true
 			} else {
-				
+
 				queue += e.supertype
 			}
 		}
-		
+
 		false
 	}
 
@@ -59,34 +58,33 @@ class EXPRESSExtension {
 	 * True, if sub is a subtype of sup.
 	 */
 	def static isSubtypeOf(Entity sub, Entity sup) {
-		
-		if(sup == sub) {
-			
+
+		if (sup == sub) {
+
 			return false;
 		}
-		
+
 		var queue = newLinkedList(sub)
-		while(!queue.empty) {
-		
+		while (!queue.empty) {
+
 			var e = queue.poll
-			if(e == sub) {
-				
+			if (e == sub) {
+
 				return true
 			} else {
-				
+
 				queue += e.subtype
 			}
 		}
-		
+
 		false
 	}
-	
 
 	/**
 	 * Get the antity container for the given attribute.
 	 */
 	def static containingEntity(Attribute attribute) {
-		
+
 		attribute.getContainerOfType(typeof(Entity))
 	}
 
@@ -94,11 +92,22 @@ class EXPRESSExtension {
 	 * Get all derived attributes of the given entity.
 	 */
 	def static getDerivedAttribute(Entity entity) {
-		
+
 		entity.attribute.filter[it.expression != null]
 	}
 
-	def static explicit(Entity entity) {
+	/**
+	 * Get all inverse attributes of the given entity.
+	 */
+	def static getInverseAttribute(Entity entity) {
+		entity.attribute.filter[it.opposite == null]
+	}
+
+	/**
+	 * Get all explicit attributes of the given entity.
+	 * These are all non-derived and non-inverse attributes.
+	 */
+	def static getExplicitAttribute(Entity entity) {
 		entity.attribute.filter[it.expression == null].filter[it.opposite == null]
 	}
 
@@ -106,7 +115,7 @@ class EXPRESSExtension {
 	 * Get all inverse attributes of the given entity.
 	 */
 	def static getDeclaringInverseAttribute(Entity entity) {
-		
+
 		entity.attribute.filter[it.opposite != null]
 	}
 
@@ -114,7 +123,7 @@ class EXPRESSExtension {
 	 * Whether the current data type is translated to a nested aggregation.
 	 */
 	def dispatch boolean isNestedAggregation(DataType c) {
-		
+
 		false
 	}
 
@@ -122,7 +131,7 @@ class EXPRESSExtension {
 	 * Whether the current reference type is translated to a nested aggregation.
 	 */
 	def dispatch boolean isNestedAggregation(ReferenceType c) {
-		
+
 		(c.instance instanceof Type) && (c.instance as Type).datatype.nestedAggregation
 	}
 
@@ -130,7 +139,7 @@ class EXPRESSExtension {
 	 * Whether the current collection type is translated to a nested aggregation.
 	 */
 	def dispatch boolean isNestedAggregation(CollectionType c) {
-		
+
 		c.type instanceof CollectionType
 	}
 
@@ -138,7 +147,7 @@ class EXPRESSExtension {
 	 * True, if derived.
 	 */
 	def isDerivedAttribute(Attribute a) {
-		
+
 		null != a.expression
 	}
 
@@ -149,7 +158,6 @@ class EXPRESSExtension {
 
 		null != a.opposite
 	}
-	
 
 	/**
 	 * True, if attribute's type is a one to many relation in the cases of
@@ -165,14 +173,14 @@ class EXPRESSExtension {
 
 			val t = a.type as CollectionType
 
-			return t.upperBound > 1 || t.many || t.upperRef != null || t.lowerRef != null 				
+			return t.upperBound > 1 || t.many || t.upperRef != null || t.lowerRef != null
 		}
 
 		false
 	}
-	
+
 	def dispatch DataType refersDatatype(Attribute a) {
-		
+
 		a.type.refersDatatype
 	}
 
@@ -212,8 +220,7 @@ class EXPRESSExtension {
 	 */
 	def isReferable(DataType t) {
 
-		switch(t.refersDatatype) {
-			
+		switch (t.refersDatatype) {
 			ReferenceType:
 				// Entity only
 				true
@@ -221,28 +228,27 @@ class EXPRESSExtension {
 				// The only class-wrapped type		
 				true
 			default:
-				false			
+				false
 		}
 	}
-	
+
 	def isSelect(Attribute a) {
-		
+
 		a.type.refersDatatype instanceof SelectType
 	}
-	
+
 	def isEnum(Attribute a) {
-		
+
 		a.refersDatatype instanceof EnumType
-	}	
-	
+	}
+
 	def isContainedInAbstractEntity(Attribute a) {
-		
+
 		(a.eContainer as Entity).isAbstract;
 	}
-	
-	
+
 	def dispatch ExpressConcept refersConcept(Attribute c) {
-		
+
 		c.type.refersConcept
 	}
 
@@ -250,13 +256,12 @@ class EXPRESSExtension {
 	 * Returns the transitively referred concept, if there's any referenced
 	 */
 	def dispatch ExpressConcept refersConcept(ExpressConcept c) {
-	
-		switch(c) {
-			
+
+		switch (c) {
 			Type: (c as Type).datatype.refersConcept
 			default: c
-		} 		
-	}	
+		}
+	}
 
 	/**
 	 * Returns the transitively referred concept, if there's any referenced
@@ -264,7 +269,6 @@ class EXPRESSExtension {
 	def dispatch ExpressConcept refersConcept(DataType dataType) {
 
 		switch (dataType) {
-			
 			ReferenceType: dataType.instance.refersConcept
 			CollectionType: dataType.type.refersConcept
 			default: null
@@ -281,7 +285,7 @@ class EXPRESSExtension {
 		while (null != eAttr && !(eAttr instanceof Attribute)) {
 			eAttr = eAttr.eContainer
 		}
-		
+
 		eAttr as Attribute
 	}
 
@@ -290,7 +294,7 @@ class EXPRESSExtension {
 	 */
 	def boolean isNamedAlias(ExpressConcept e) {
 
-		switch(e) {
+		switch (e) {
 			Type:
 				(e as Type).datatype instanceof ReferenceType
 			default:
@@ -321,7 +325,5 @@ class EXPRESSExtension {
 			default: false
 		}
 	}
-	
-	
-	
+
 }

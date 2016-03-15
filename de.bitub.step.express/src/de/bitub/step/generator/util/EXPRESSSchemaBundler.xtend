@@ -5,34 +5,32 @@ import bitub.base.graph.Graph
 import bitub.base.graph.GraphFactory
 import bitub.base.graph.NodeTypeEnum
 import bitub.base.graph.Vertex
-import com.google.common.collect.Lists
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.Entity
 import de.bitub.step.express.EnumType
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
+import de.bitub.step.util.EXPRESSExtension
+import com.google.inject.Inject
+import java.util.function.Function
+import java.util.List
 import java.util.HashSet
 import java.util.LinkedList
-import java.util.List
 import java.util.Queue
 import java.util.Set
-import java.util.function.Function
-import java.util.stream.Collectors
 import java.util.stream.Stream
-import com.google.inject.Inject
+import com.google.common.collect.Lists
+import java.util.stream.Collectors
 
 class EXPRESSSchemaBundler {
 
-	private final Schema schema;
-
 	private final Graph graph = GraphFactory.eINSTANCE.createGraph
 
-	@Inject extension XcoreUtil
+	@Inject extension EXPRESSExtension schemaUtil
 
 	new(Schema schema) {
-		this.schema = schema;
-		init(schema);
+		schema.initGraph
 	}
 
 	private def createEdgeWithName(Vertex from, Vertex to, EdgeTypeEnum edgeType, String name) {
@@ -43,7 +41,7 @@ class EXPRESSSchemaBundler {
 
 		[Attribute attr|val expressConcept = attr.type.refersConcept
 			if (expressConcept instanceof Type) {
-				val dataType = attr.type.refersTransitiveDatatype
+				val dataType = attr.type.refersDatatype
 				if (dataType instanceof SelectType || dataType instanceof EnumType) {
 					val to = graph.getById((dataType.eContainer as Type).name)
 					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
@@ -55,7 +53,7 @@ class EXPRESSSchemaBundler {
 			}]
 	}
 
-	private def init(Schema schema) {
+	private def initGraph(Schema schema) {
 
 		// prepare (Entity/Select/Enum)
 		//
@@ -64,7 +62,7 @@ class EXPRESSSchemaBundler {
 		]
 
 		schema.type.forEach [
-			val dataType = it.refersTransitiveDatatype
+			val dataType = (it as Type).refersDatatype
 			if (dataType instanceof SelectType) {
 				graph.addVertex(it.name, NodeTypeEnum.SELECT)
 			}
@@ -87,18 +85,18 @@ class EXPRESSSchemaBundler {
 			//
 			// (Entity) -[INVERSE]-> (Entity)
 			//
-			XcoreUtil.inverse(it).forEach [
+			EXPRESSExtension.getInverseAttribute(it).forEach [
 				val to = graph.getById((it.opposite.eContainer as Entity).name)
 				from.createEdgeWithName(to, EdgeTypeEnum.INVERSE, it.name)
 			]
 			//
 			// (Entity) -[ATTR]-> (Entity/Select/Enumeration)
 			//
-			XcoreUtil.explicit(it).forEach[from.createTypedEdge(EdgeTypeEnum.ATTRIBUTE).apply(it)]
+			EXPRESSExtension.getExplicitAttribute(it).forEach[from.createTypedEdge(EdgeTypeEnum.ATTRIBUTE).apply(it)]
 			//
 			// (Entity) -[DERIVED]-> (Entity/Select/Enumeration)
 			//
-			XcoreUtil.derived(it).forEach[from.createTypedEdge(EdgeTypeEnum.DERIVED).apply(it)]
+			EXPRESSExtension.getDerivedAttribute(it).forEach[from.createTypedEdge(EdgeTypeEnum.DERIVED).apply(it)]
 		]
 
 		// prepare edges(Entity -ATTR-> Entity/Select/Enumeration)
@@ -116,7 +114,7 @@ class EXPRESSSchemaBundler {
 				// Select -> Enum / Select
 				if (it instanceof Type) {
 
-					val selectOrEnum = (it as Type).refersTransitiveDatatype
+					val selectOrEnum = (it as Type).refersDatatype
 					if (selectOrEnum instanceof SelectType || selectOrEnum instanceof EnumType) {
 						val to = graph.getById((selectOrEnum.eContainer as Type).name)
 						from.createEdgeWithName(to, EdgeTypeEnum.ATTRIBUTE, it.name)
@@ -159,10 +157,6 @@ class EXPRESSSchemaBundler {
 		visited as Set<Vertex>
 	}
 
-	def listEntityNames() {
-		this.schema.entity.forEach[entity|System.out.println(entity)];
-	}
-
 	def allConnected(Entity entity) {
 
 		// get sub and super entities
@@ -183,7 +177,7 @@ class EXPRESSSchemaBundler {
 	}
 
 	def inverseEntities(Entity entity) {
-		Lists.newArrayList(XcoreUtil.inverse(entity).map[it.opposite.eContainer as Entity]) as List<Entity>
+		Lists.newArrayList(EXPRESSExtension.getInverseAttribute(entity).map[it.opposite.eContainer as Entity]) as List<Entity>
 	}
 
 	def inverseEntitiesInInheritanceChain(Entity entity) {

@@ -614,21 +614,21 @@ class XcoreGenerator implements IGenerator {
 	 */	
 	def private String generateWrapperNestedCollector(String primitiveTypeField) {
 
-		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
-			
-			return nestedAggregationQN.get(primitiveTypeRef)
-		}
-		
-		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''Array''')
-				
-		secondStageCache +=
-		'''
-		
-		@XpressModel(kind="new")
-		type «typeWrap» wraps «primitiveTypeRef»
-		'''
-		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
-		return typeWrap
+//		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
+//			
+//			return nestedAggregationQN.get(primitiveTypeRef)
+//		}
+//		
+//		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''Array''')
+//				
+//		secondStageCache +=
+//		'''
+//		
+//		@XpressModel(kind="new")
+//		type «typeWrap» wraps «primitiveTypeRef»
+//		'''
+//		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
+//		return typeWrap
 	}
 	
 	

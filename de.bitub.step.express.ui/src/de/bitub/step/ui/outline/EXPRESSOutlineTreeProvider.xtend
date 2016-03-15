@@ -9,7 +9,6 @@
  *  Bernold Kraft - initial implementation and initial documentation
  *  Sebastian Riemschüssel - add documentation and SelectType Outline Label
  */
-
 package de.bitub.step.ui.outline
 
 import com.google.inject.Inject
@@ -105,7 +104,7 @@ class EXPRESSOutlineTreeProvider extends DefaultOutlineTreeProvider {
 		val type = switch e.datatype {
 			EnumType: "Enum"
 			SelectType: "Select"
-			CollectionType: "Type : "+ e.datatype.nameOf
+			CollectionType: "Type : " + e.datatype.nameOf
 			default: "Type"
 		}
 
@@ -121,13 +120,14 @@ class EXPRESSOutlineTreeProvider extends DefaultOutlineTreeProvider {
 	 */
 	def Object _text(Attribute a) {
 
-		val StyledString s = new StyledString(if (a.expression != null)
-			"derived "
-		else
-			"" + if (a.opposite != null)
-				"inverse "
+		val StyledString s = new StyledString(
+			if (a.expression != null)
+				"derived "
 			else
-				"" + if(a.optional) "optional " else "",
+				"" + if (a.opposite != null)
+					"inverse "
+				else
+					"" + if(a.optional) "optional " else "",
 			stylerFactory.createXtextStyleAdapterStyler(typeTextStyleIndication(8)));
 
 		s.append(nameOf(a));

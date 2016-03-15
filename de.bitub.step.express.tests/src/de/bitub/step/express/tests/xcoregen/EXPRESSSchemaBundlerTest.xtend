@@ -8,7 +8,6 @@ import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.Entity
 import de.bitub.step.express.Schema
 import de.bitub.step.generator.util.EXPRESSSchemaBundler
-import de.bitub.step.generator.util.XcoreUtil
 import java.util.Collection
 import java.util.function.Function
 import java.util.stream.Collectors
@@ -17,10 +16,14 @@ import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.google.inject.Inject
+import de.bitub.step.util.EXPRESSExtension
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
 class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
+
+	@Inject extension EXPRESSExtension
 
 	EXPRESSSchemaBundler bundler = null;
 	Schema ifc4Add1 = null;
@@ -33,7 +36,7 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 
 		val ifc4SchemaText = readModel(class.classLoader.getResourceAsStream(fileName))
 
-		ifc4Add1 = parseSchema(ifc4SchemaText)
+		ifc4Add1 = ifc4SchemaText.generateEXPRESS
 		bundler = new EXPRESSSchemaBundler(ifc4Add1);
 	}
 
@@ -76,7 +79,7 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 
 		ifc4Add1.entity.forEach [ entity |
 			val from = graph.getById(entity.name)
-			XcoreUtil.inverse(entity).forEach [ inverseAttr |
+			EXPRESSExtension.getInverseAttribute(entity).forEach [ inverseAttr |
 				val to = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
 				from.createEdgeTo(to, EdgeTypeEnum.INVERSE);
 			];
@@ -84,7 +87,7 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 
 		ifc4Add1.entity.forEach [ entity |
 			val sub = graph.getById(entity.name)
-			XcoreUtil.inverse(entity).forEach [ inverseAttr |
+			EXPRESSExtension.getInverseAttribute(entity).forEach [ inverseAttr |
 				val supers = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
 				sub.createEdgeTo(supers, EdgeTypeEnum.EXTENDS);
 			];
@@ -99,7 +102,7 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 				val rootedEntities = bundler.family(e);
 
 				System.out.println(rootedEntities.size)
-				rootedEntities.forEach[entity|System.out.println(entity)]
+				rootedEntities.forEach[entity|System::out.println(entity)]
 
 				val resourceEntities = ifc4Add1.entity.stream().filter(entity|!rootedEntities.contains(entity)).
 					collect(Collectors.toList());

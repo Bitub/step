@@ -26,7 +26,7 @@ class GraphTest extends AbstractXcoreGeneratorTest {
 	@Before
 	def void loadSchema() {
 		val fileName = "de/bitub/step/express/tests/xcoregen/" + "IFC4_ADD1.exp";
-		ifc4Add1 = parseSchema(readModel(class.classLoader.getResourceAsStream(fileName)))
+		ifc4Add1 = readModel(class.classLoader.getResourceAsStream(fileName)).generateEXPRESS
 		bundler = new EXPRESSSchemaBundler(ifc4Add1);
 	}
 

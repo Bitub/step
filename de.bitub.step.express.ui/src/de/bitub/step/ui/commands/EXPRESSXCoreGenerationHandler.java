@@ -31,11 +31,12 @@ import org.eclipse.xtext.util.StringInputStream;
 
 import de.bitub.step.xcore.XcoreGenerator;
 
-
 /**
  * <!-- begin-user-doc -->
- * Dedicated command handler to transform EXPRESS into OclInEcore files manually.
+ * Dedicated command handler to transform EXPRESS into OclInEcore files
+ * manually.
  * <!-- end-user-doc -->
+ * 
  * @generated NOT
  * @author bernold - 18.01.2015
  */
@@ -47,35 +48,36 @@ public class EXPRESSXCoreGenerationHandler extends AbstractHandler implements IH
   {
     ISelection selection = HandlerUtil.getCurrentSelection(event);
     if (selection instanceof IStructuredSelection) {
-      
+
       IStructuredSelection structuredSelection = (IStructuredSelection) selection;
       Object firstElement = structuredSelection.getFirstElement();
-      
+
       if (firstElement instanceof IFile) {
-        
+
         IFile file = (IFile) firstElement;
-        
+
         URI uri = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
         ResourceSet rs = new ResourceSetImpl();
         Resource xtextResource = rs.getResource(uri, true);
-        
+
         XcoreGenerator oclInEcoreGenerator = new XcoreGenerator();
         // TODO file.getProject().getFullPath().toString()
-        
-        IFile genFile = file.getParent().getFile(new Path(file.getName()+".xcore")); //$NON-NLS-1$
-        
+
+        IFile genFile = file.getParent().getFile(new Path(file.getName() + ".xcore")); //$NON-NLS-1$
+
         CharSequence charSequence = oclInEcoreGenerator.compile(xtextResource);
         try {
-                 
-          if(genFile.exists()) {
+
+          if (genFile.exists()) {
             genFile.delete(true, new NullProgressMonitor());
           }
-          genFile.create(new StringInputStream(charSequence.toString()), IResource.FORCE|IResource.REPLACE, new NullProgressMonitor());
+          genFile.create(new StringInputStream(charSequence.toString()), IResource.FORCE | IResource.REPLACE,
+              new NullProgressMonitor());
         }
         catch (CoreException e1) {
 
           e1.printStackTrace();
-        }        
+        }
       }
     }
     return null;
