@@ -39,3 +39,8 @@ target/
 de.bitub.step.express/schemas/
 de.bitub.step.p21/docs/
 de.bitub.step.p21.antlr/src-gen/
+org.buildingsmart.mvd.edit/
+org.buildingsmart.mvd.editor/
+org.buildingsmart.mvd.tests/
+de.bitub.step.express.tests/csv/
+de.bitub.step.express.tests/examples/
