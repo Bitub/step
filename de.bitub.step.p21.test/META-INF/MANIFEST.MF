@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Test
+Bundle-SymbolicName: de.bitub.step.p21.test
+Bundle-Version: 1.0.0.qualifier
+Export-Package: de.bitub.step.p21.test
+Require-Bundle: org.buildingsmart.ifc4,
+ de.bitub.step.p21
+Import-Package: org.buildingsmart.ifc4
