@@ -1,9 +1,14 @@
 package de.bitub.step.express.tests.xcoregen
 
+import bitub.base.graph.EdgeTypeEnum
+import bitub.base.graph.GraphFactory
+import bitub.base.graph.NodeTypeEnum
+import de.bitub.riemi.graph.main.GraphConstructionTest
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.Entity
 import de.bitub.step.express.Schema
 import de.bitub.step.generator.util.EXPRESSSchemaBundler
+import de.bitub.step.generator.util.XcoreUtil
 import java.util.Collection
 import java.util.function.Function
 import java.util.stream.Collectors
@@ -58,21 +63,34 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 	@Test
 	def testAllInverseEntitySets() {
 
-		//		ifc4Add1.entity.stream.map [ entity |
-		//			System.out.println("" + entity.name);
-		//			bundler.inverseComponent(entity);
-		//		].filter([set|!set.empty]).max([a, b|Integer.max(a.size, b.size)]).ifPresent [ set |
-		//			System.out.println("NEW COMPOUND")
-		//			set.forEach [ e |
-		//				System.out.println(e.name)
-		//			]
-		//		];
-		ifc4Add1.entity.stream.map [ entity |
-			System.out.println("ENTITY " + entity.name);
-			bundler.inverseComponent(entity);
-		].filter([set|!set.empty]).forEach [ set |
-			System.out.println(set.stream.map[e|e.name].collect(Collectors.joining(", ", " -> ", "\n")))
-		];
+		val graph = GraphFactory.eINSTANCE.createGraph
+
+		// create all graph nodes (entities)
+		ifc4Add1.entity.map [ entity |
+			val node = GraphFactory.eINSTANCE.createVertex;
+			node.name = entity.name
+			node.add(NodeTypeEnum.ENTITY);
+			node.setGraph(graph);
+			node
+		].toMap[it.name];
+
+		ifc4Add1.entity.forEach [ entity |
+			val from = graph.getById(entity.name)
+			XcoreUtil.inverse(entity).forEach [ inverseAttr |
+				val to = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
+				from.createEdgeTo(to, EdgeTypeEnum.INVERSE);
+			];
+		]
+
+		ifc4Add1.entity.forEach [ entity |
+			val sub = graph.getById(entity.name)
+			XcoreUtil.inverse(entity).forEach [ inverseAttr |
+				val supers = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
+				sub.createEdgeTo(supers, EdgeTypeEnum.EXTENDS);
+			];
+		]
+
+		GraphConstructionTest.storeAsXMI(graph);
 	}
 
 	def void testAllConnected() {

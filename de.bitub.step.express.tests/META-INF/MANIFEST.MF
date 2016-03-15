@@ -19,7 +19,8 @@ Require-Bundle: de.bitub.step.express,
  org.eclipse.xtext.xbase.junit;bundle-version="[2.7.3,3.0.0)",
  org.eclipse.xtext.xbase.ui;bundle-version="[2.7.3,3.0.0)",
  org.eclipse.ui.workbench;resolution:=optional,
- org.eclipse.xtext.xbase.lib
+ org.eclipse.xtext.xbase.lib,
+ de.bitub.riemi.graph;bundle-version="0.1.0"
 Import-Package: org.apache.log4j,
  org.hamcrest.core,
  org.junit;version="4.5.0",
