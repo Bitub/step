@@ -97,13 +97,6 @@ class EXPRESSExtension {
 	}
 
 	/**
-	 * Get all inverse attributes of the given entity.
-	 */
-	def static getInverseAttribute(Entity entity) {
-		entity.attribute.filter[it.opposite == null]
-	}
-
-	/**
 	 * Get all explicit attributes of the given entity.
 	 * These are all non-derived and non-inverse attributes.
 	 */

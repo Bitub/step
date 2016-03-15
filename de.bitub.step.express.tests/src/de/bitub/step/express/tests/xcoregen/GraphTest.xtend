@@ -40,6 +40,25 @@ class GraphTest extends AbstractXcoreGeneratorTest {
 	}
 
 	@Test
+	def void testSourceAndSinks() {
+		val graph = bundler.graph
+
+		graph.sources.forEach[System::out.println("SOURCE: " + it)]
+		Assert.assertEquals(411/* sources */, graph.sources.size)
+
+		graph.sinks.forEach[System::out.println("SINK: " + it)]
+		Assert.assertEquals(26/* sinks */, graph.sinks.size)
+	}
+
+	@Test
+	def void testForUnconnectedVertices() {
+		val graph = bundler.graph
+
+		graph.unconnected.forEach[System::out.println("UNCONNECTED: " + it)]
+		Assert.assertEquals(0/* unconnected */, graph.unconnected.size)
+	}
+
+	@Test
 	def testInverseComponentCreation() {
 		newArrayList("IfcProperty", "IfcElement").forEach [
 			val set = bundler.inverseComponent(it)

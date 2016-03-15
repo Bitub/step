@@ -5,6 +5,7 @@ import bitub.base.graph.Graph
 import bitub.base.graph.GraphFactory
 import bitub.base.graph.NodeTypeEnum
 import bitub.base.graph.Vertex
+import com.google.common.collect.Lists
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.Entity
 import de.bitub.step.express.EnumType
@@ -12,24 +13,31 @@ import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
 import de.bitub.step.util.EXPRESSExtension
-import com.google.inject.Inject
-import java.util.function.Function
-import java.util.List
 import java.util.HashSet
 import java.util.LinkedList
+import java.util.List
 import java.util.Queue
 import java.util.Set
-import java.util.stream.Stream
-import com.google.common.collect.Lists
+import java.util.function.Function
 import java.util.stream.Collectors
+import java.util.stream.Stream
+import org.apache.log4j.Logger
+import org.apache.log4j.FileAppender
+import org.apache.log4j.ConsoleAppender
+import de.bitub.step.express.ExpressConcept
+import de.bitub.step.express.ReferenceType
+import de.bitub.step.express.BuiltInType
 
 class EXPRESSSchemaBundler {
 
+	val static final LOGGER = Logger.getLogger(EXPRESSSchemaBundler)
+
 	private final Graph graph = GraphFactory.eINSTANCE.createGraph
 
-	@Inject extension EXPRESSExtension schemaUtil
+	private extension EXPRESSExtension schemaUtil = new EXPRESSExtension
 
 	new(Schema schema) {
+		LOGGER.addAppender(new ConsoleAppender)
 		schema.initGraph
 	}
 
@@ -39,18 +47,27 @@ class EXPRESSSchemaBundler {
 
 	private def createTypedEdge(Vertex from, EdgeTypeEnum edgeTypeEnum) {
 
-		[Attribute attr|val expressConcept = attr.type.refersConcept
-			if (expressConcept instanceof Type) {
-				val dataType = attr.type.refersDatatype
+		[ Attribute attr |
+			val dataType = attr.type.refersDatatype
+			val entityType = attr.type.refersConcept
+			if (attr.type.isReferable) { // Selects and Entities
+
 				if (dataType instanceof SelectType || dataType instanceof EnumType) {
 					val to = graph.getById((dataType.eContainer as Type).name)
 					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
 				}
+
+				if (entityType instanceof Entity) {
+					val to = graph.getById(entityType.name)
+					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
+				}
+			} else {
+				if (dataType instanceof EnumType) {
+					val to = graph.getById((dataType.eContainer as Type).name)
+					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
+				}
 			}
-			if (expressConcept instanceof Entity) {
-				val to = graph.getById(expressConcept.name)
-				from.createEdgeWithName(to, edgeTypeEnum, attr.name)
-			}]
+		]
 	}
 
 	private def initGraph(Schema schema) {
@@ -62,7 +79,7 @@ class EXPRESSSchemaBundler {
 		]
 
 		schema.type.forEach [
-			val dataType = (it as Type).refersDatatype
+			val dataType = schemaUtil.refersDatatype(it)
 			if (dataType instanceof SelectType) {
 				graph.addVertex(it.name, NodeTypeEnum.SELECT)
 			}
@@ -85,21 +102,25 @@ class EXPRESSSchemaBundler {
 			//
 			// (Entity) -[INVERSE]-> (Entity)
 			//
-			EXPRESSExtension.getInverseAttribute(it).forEach [
-				val to = graph.getById((it.opposite.eContainer as Entity).name)
+			EXPRESSExtension.getDeclaringInverseAttribute(it).forEach [
+				val to = graph.getById(EXPRESSExtension.containingEntity(it.opposite).name)
 				from.createEdgeWithName(to, EdgeTypeEnum.INVERSE, it.name)
 			]
 			//
 			// (Entity) -[ATTR]-> (Entity/Select/Enumeration)
 			//
-			EXPRESSExtension.getExplicitAttribute(it).forEach[from.createTypedEdge(EdgeTypeEnum.ATTRIBUTE).apply(it)]
+			EXPRESSExtension.getExplicitAttribute(it).forEach [
+				from.createTypedEdge(EdgeTypeEnum.ATTRIBUTE).apply(it)
+			]
 			//
 			// (Entity) -[DERIVED]-> (Entity/Select/Enumeration)
 			//
-			EXPRESSExtension.getDerivedAttribute(it).forEach[from.createTypedEdge(EdgeTypeEnum.DERIVED).apply(it)]
+			EXPRESSExtension.getDerivedAttribute(it).forEach [
+				from.createTypedEdge(EdgeTypeEnum.DERIVED).apply(it)
+			]
 		]
 
-		// prepare edges(Entity -ATTR-> Entity/Select/Enumeration)
+		// prepare edges(Select -ATTR-> Entity/Select/Enumeration)
 		//
 		schema.type.map[it.datatype].filter(typeof(SelectType)).forEach [
 			val from = graph.getById((it.eContainer as Type).name)
@@ -126,6 +147,14 @@ class EXPRESSSchemaBundler {
 
 	def getGraph() {
 		graph
+	}
+
+	def getAllSources() {
+		graph.sources
+	}
+
+	def getAllSinks() {
+		graph.sinks
 	}
 
 	def inverseDefiningVertices() {
@@ -177,7 +206,7 @@ class EXPRESSSchemaBundler {
 	}
 
 	def inverseEntities(Entity entity) {
-		Lists.newArrayList(EXPRESSExtension.getInverseAttribute(entity).map[it.opposite.eContainer as Entity]) as List<Entity>
+		Lists.newArrayList(EXPRESSExtension.getDeclaringInverseAttribute(entity).map[it.opposite.eContainer as Entity]) as List<Entity>
 	}
 
 	def inverseEntitiesInInheritanceChain(Entity entity) {

@@ -31,7 +31,7 @@ class CsvTest extends AbstractXcoreGeneratorTest {
 	@Test
 	def void printNodesCSV() {
 
-		val pr = pr("./csv/nodes.csv")
+		val pr = pr("./csv/nodes2.csv")
 
 		pr.println(":ID,:LABEL,Name") // header
 
@@ -44,7 +44,7 @@ class CsvTest extends AbstractXcoreGeneratorTest {
 	@Test
 	def void printEdgesCSV() {
 
-		val pr = pr("./csv/edges.csv")
+		val pr = pr("./csv/edges2.csv")
 
 		pr.println(":START_ID,:END_ID,:TYPE,Name"); // header
 

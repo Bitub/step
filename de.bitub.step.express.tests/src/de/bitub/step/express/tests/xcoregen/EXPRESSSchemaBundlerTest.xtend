@@ -79,7 +79,7 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 
 		ifc4Add1.entity.forEach [ entity |
 			val from = graph.getById(entity.name)
-			EXPRESSExtension.getInverseAttribute(entity).forEach [ inverseAttr |
+			EXPRESSExtension.getDeclaringInverseAttribute(entity).forEach [ inverseAttr |
 				val to = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
 				from.createEdgeTo(to, EdgeTypeEnum.INVERSE);
 			];
@@ -87,7 +87,7 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 
 		ifc4Add1.entity.forEach [ entity |
 			val sub = graph.getById(entity.name)
-			EXPRESSExtension.getInverseAttribute(entity).forEach [ inverseAttr |
+			EXPRESSExtension.getDeclaringInverseAttribute(entity).forEach [ inverseAttr |
 				val supers = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
 				sub.createEdgeTo(supers, EdgeTypeEnum.EXTENDS);
 			];
