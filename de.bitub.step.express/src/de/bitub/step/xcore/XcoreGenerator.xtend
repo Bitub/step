@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2015  Bernold Kraft and others (Berlin, Germany).
+ * Copyright (c) 2015,2016  Bernold Kraft and others (Berlin, Germany).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -125,24 +125,20 @@ class XcoreGenerator implements IGenerator {
 		@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
 		@GenModel(
 			«IF Options.COPYRIGHT_NOTICE.option»copyrightText="«Options.COPYRIGHT_NOTICE.optionText»",«ENDIF»
-			modelDirectory="«folder»"
-			adapterFactory="false", 
+			modelDirectory="«folder»",
+			adapterFactory="false",
+			forceOverwrite="true",
 			updateClasspath="false",
 			complianceLevel="8.0",
-			optimizedHasChildren="true",
-			
-			«IF Options.ENABLE_CDO.optionTrue»			 
+			optimizedHasChildren="true"«IF Options.ENABLE_CDO.optionTrue»,
+									 
 			rootExtendsInterface="org.eclipse.emf.cdo.CDOObject", 
 			rootExtendsclassRef="org.eclipse.emf.internal.cdo.CDOObjectImpl", 
 			importerID="org.eclipse.emf.importer.ecore", 
 			featureDelegation="Dynamic", 
 			providerRootExtendsclassRef="org.eclipse.emf.cdo.edit.CDOItemProviderAdapter"«ENDIF»
 		)
-		
-		annotation "http://www.eclipse.org/OCL/Import" as Import
-		annotation "http://www.bitub.de/express/XpressModel" as XpressModel
-		annotation "http://www.bitub.de/express/P21" as P21
-		
+				
 		// THIS FILE IS GENERATED (TIMESTAMP «new Date().toString()»). ANY CHANGE WILL BE LOST.
 		'''
 	}
@@ -161,6 +157,10 @@ class XcoreGenerator implements IGenerator {
 
 		'''		
 		package «name»
+				
+		annotation "http://www.eclipse.org/OCL/Import" as Import
+		annotation "http://www.bitub.de/express/XpressModel" as XpressModel
+		annotation "http://www.bitub.de/express/P21" as P21
 				
 		'''		
 	}
@@ -289,46 +289,52 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	
-	/**
-	 * Compiles an annotation, if an alias exists other returns an empty statement.
-	 * Empty annotation for entities (done before class statement)
-	 */	
-	def dispatch CharSequence compileInlineAnnotation(Entity t) {
+	def dispatch CharSequence compileAnnotation(Entity e) {
 		
-		''''''
+		'''@XpressModel(name="«e.name»",kind="generated")'''
 	}
 	
-	/**
-	 * Compiles an annotation, if an alias exists other returns an empty statement.
-	 */
-	def dispatch CharSequence compileInlineAnnotation(Type t) {
+	def dispatch CharSequence compileAnnotation(Attribute a) {
+		
+		var annotations = newArrayList
+		if(a.hasDelegate) {
+			annotations += '''pattern="delegate"''' 
+		}
+		if(a.select) {
+			annotations += '''select="«(a.refersDatatype.eContainer as Type).name.toFirstUpper»"'''
+		}
+			
+		'''«IF !annotations.empty»@XpressModel(«annotations.join(',')») «
+			ENDIF»«IF !a.declaringInverseAttribute»@P21 «ENDIF»'''
+	}
+	
+	def dispatch CharSequence compileAnnotation(Type t) {
 	
 		val alias = t.refersDatatype
 		
 		switch(alias) {
 			
 			BuiltInType: {
-				// End point is a builtin datatype
-				'''@XpressModel(name="«t.name»", kind="mapped", qualifiedName="«t.datatype.qualifiedName»")'''
+				
+				'''@XpressModel(name="«t.name»", kind="mapped", qualifiedName="«t.datatype.qualifiedName»")
+				'''
 			}
 			ReferenceType: {
 			
-				val qn = t.fullyQualifiedName
-				if(qn.hasDelegate) {
-					'''@XpressModel(name="«t.name»", kind="mapped", type="nested", classRef="«qn.delegateQN»[]")'''
-				} else {
-					'''@XpressModel(name="«t.name»", kind="mapped", classRef="«t.datatype.qualifiedName»")'''				
-				}
+				'''@XpressModel(name="«t.name»", kind="mapped" «IF t.datatype.hasDelegate», pattern="nested"«ENDIF»)
+				'''
 			}
 			GenericType: {
 				
-				'''@XpressModel(name="«t.name»", kind="mapped", qualifiedName="«alias.qualifiedName»")'''
+				'''@XpressModel(name="«t.name»", kind="mapped", qualifiedName="«alias.qualifiedName»")
+				'''
 			}
 			SelectType: {
 				
 				if(t.aliasType) {
 					
-					'''@XpressModel(name="«t.name»", kind="mapped", classRef="«alias.qualifiedName»")'''
+					'''@XpressModel(name="«t.name»", kind="mapped", classRef="«alias.qualifiedName»")
+					'''
 				}
 			}
 			
@@ -336,7 +342,8 @@ class XcoreGenerator implements IGenerator {
 				
 				if(t.aliasType) {
 					
-					'''@XpressModel(name="«t.name»", kind="omitted")'''
+					'''@XpressModel(name="«t.name»", kind="omitted")
+					'''
 				} else {
 					''''''					
 				}
@@ -369,16 +376,12 @@ class XcoreGenerator implements IGenerator {
 				
 		// Base container of «s.name»
 		@GenModel(documentation="Generated container class of «s.name»")
-		@XpressModel(kind="new")
+		@XpressModel(kind="new", pattern="container")
 		class «s.name» {
 					
 		«FOR e:s.entity.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
 		«ENDFOR»
-		
-		// persisted SELECTS
-		
-		«FOR t:s.type.filter[datatype instanceof SelectType]»  contains «t.name.toFirstUpper»[] «t.name.toFirstLower»
-		«ENDFOR»
+				
 		}
 		
 		// --- TYPE DEFINITIONS ------------------------------
@@ -405,23 +408,19 @@ class XcoreGenerator implements IGenerator {
 	 */	
 	def dispatch compileConcept(Entity e) {
 		
+		// TODO Enable derived attributes
 		'''
 		
 		@GenModel(documentation="Class definition of «e.name»")
-		@XpressModel(name="«e.name»",kind="generated")
+		«e.compileAnnotation»
 		«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
 		
-		  «FOR a : e.attribute»
-		  
-		  «IF !a.derivedAttribute»
-		  @GenModel(documentation="Attribute definition of «a.name»")
-		  «IF !a.declaringInverseAttribute»
-		  @P21
-		  «ENDIF»
-		  «a.compileAttribute»
-		  
-		  «ENDIF»
-		  «ENDFOR»
+		  «FOR a : e.attribute
+		  	»«IF !a.derivedAttribute»
+		  	@GenModel(documentation="Attribute definition of «a.name»")
+		  	«a.compileAttribute
+		  	»«ENDIF
+		  »«ENDFOR»
 		}
 		'''
 	}
@@ -481,10 +480,10 @@ class XcoreGenerator implements IGenerator {
 		
 		''' 
 		   «FOR c : conceptSet.filter[it instanceof Entity]»
-			«c.compileInlineAnnotation»refers «c.name.toFirstUpper» «c.name.toFirstLower»
+			«c.compileAnnotation»refers «c.name.toFirstUpper» «c.name.toFirstLower»
 		   «ENDFOR»
 		   «FOR t : conceptSet.filter[it instanceof Type].map[it as Type]»
-			«t.compileInlineAnnotation»«IF t.namedAlias && !t.builtinAlias»refers «ENDIF»«t.datatype.qualifiedName» «t.name.toFirstLower»
+			«t.compileAnnotation»«IF t.namedAlias && !t.builtinAlias»refers «ENDIF»«t.datatype.qualifiedName» «t.name.toFirstLower»
 		   «ENDFOR»
 		'''
 	}
@@ -498,6 +497,7 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence qualifiedName(SelectType t) {
 		
+		// TODO Mark select for persistency
 		'''«(t.eContainer as Type).name.toFirstUpper»'''
 	}
 	
@@ -508,35 +508,20 @@ class XcoreGenerator implements IGenerator {
 	 * <li>unique inverse relations</li>
 	 * </ul> 
 	 */
-	def dispatch CharSequence qualifiedName(ReferenceType r) { // TODO
-		//TODO
+	def dispatch CharSequence qualifiedName(ReferenceType r) { 
+
 		val attribute = r.hostingAttribute	
 		val dataType = r.refersDatatype
 	
-		'''«IF r.referable
-			»«IF attribute.nonUniqueRelation || Options.FORCE_UNIQUE_DELEGATES.option
-				»«attribute.createDelegateQN
-			»«ELSE			
-			»«ENDIF»
-		«ELSE
-			»«dataType.compileDatatype»			
-		«ENDIF»
-		'''
-	
-//		'''«IF alias.builtinAlias
-//				»«alias.compileDatatype»«
-//			ELSE
-//				»«
-//				IF parentAttribute != null && (parentAttribute.inverseManyToManyRelation || parentAttribute.nonUniqueRelation)
-//					»«parentAttribute.delegateRef»«
-//				ELSE
-//					»«IF alias instanceof ReferenceType
-//							»«alias.instance.name.toFirstUpper
-//					»«ELSE
-//						»«alias.qualifiedName
-//					»«ENDIF»«
-//				ENDIF»«
-//			ENDIF»'''	
+		'''«IF r.referable»
+				«IF attribute.nonUniqueRelation || Options.FORCE_UNIQUE_DELEGATES.option
+					»«attribute.createDelegateQN
+				»«ELSE
+					»«r.instance.name.toFirstUpper
+				»«ENDIF
+			»«ELSE
+				»«dataType.qualifiedName
+			»«ENDIF»'''	
 	}
 	
 	def dispatch CharSequence qualifiedName(BuiltInType b) { 
@@ -553,25 +538,17 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence qualifiedName(CollectionType c) {
 		
-		// If nested but not datatype
 		var CharSequence referredType 
 		
-		if(c.type instanceof CollectionType) {
+		// If nested collection exists 
+		if(c.nestedAggregation) {
 		
-			// Replace by nested collector proxy	
-			if(!c.type.builtinAlias) {
-			
-				referredType = generateDelegateNestedCollector(c)+'''[]'''
-				
-			} else {
-								
-				referredType = generateWrapperNestedCollector(c.type.qualifiedName+'''[]''')
-			}			
+			referredType = generateDelegateNestedCollector(c)
+							
 		} else {
 			
-			 referredType = c.type.qualifiedName+'''[]'''
+			referredType = c.type.qualifiedName+'''[]'''
 		}
-
 		
 		return referredType
 	}
@@ -581,55 +558,43 @@ class XcoreGenerator implements IGenerator {
 	 * Generates a nested inner delegate for the delegation of multi-dimensional references.
 	 */
 	def private String generateDelegateNestedCollector(CollectionType c) {
-
-		// Builtin type or entity ?
-		val qualifiedName = c.eContainer.fullyQualifiedName
 		
 		// Generate nested class
-		if(qualifiedName.hasDelegate) {
+		if(c.hasDelegate) {
 			
-			return qualifiedName.delegateQN
+			return c.delegateQN
 		}
 		
-		val nestedClassName = qualifiedName.addNestedDelegate
-				
-		secondStageCache +=
-		'''
-				
-		
-		@XpressModel(kind="new", type="nested")
-		class «nestedClassName» {
+		val nestedTypeName = c.addNestedDelegate
+		if(c.nestedTypeAggregation) {
 			
-			«IF !c.type.builtinAlias
-				»«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«
-			ENDIF
-				»«c.type.qualifiedName» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+			secondStageCache +=
+			'''
+			
+			@XpressModel(kind="new", pattern="nested")
+			type «nestedTypeName» wraps «c.qualifiedAggregationName»
+			'''			
+			
+		} else {
+
+			secondStageCache +=
+			'''
+					
+			
+			@XpressModel(kind="new", pattern="nested")
+			class «nestedTypeName» {
+				
+				«IF !c.type.builtinAlias
+					»«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«
+				ENDIF
+					»«c.type.qualifiedName» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+			}
+			'''								
 		}
-		'''		
-		return nestedClassName
+		
+		nestedTypeName
 	}
 
-	/**
-	 * Generates a type wrapper for primitive multi-dimensional arrays
-	 */	
-	def private String generateWrapperNestedCollector(String primitiveTypeField) {
-
-		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
-			
-			return nestedAggregationQN.get(primitiveTypeRef)
-		}
-		
-		val typeWrap = primitiveTypeRef.toFirstUpper.replace('''[]''','''Array''')
-				
-		secondStageCache +=
-		'''
-		
-		@XpressModel(kind="new")
-		type «typeWrap» wraps «primitiveTypeRef»
-		'''
-		nestedAggregationQN.put(primitiveTypeRef, typeWrap)
-		return typeWrap
-	}
 	
 	
 	/**
@@ -652,11 +617,11 @@ class XcoreGenerator implements IGenerator {
 		class «delegateName» «IF hasInterface»extends «delegateInterface»«ENDIF» {
 			«IF !hasInterface»
 			// Reference to «inverseEntity.name»
-			«inverseEntity.compileInlineAnnotation
+			«inverseEntity.compileAnnotation
 			»refers «inverseEntity.refersAlias.name.toFirstUpper» «declaring.name.toFirstLower» opposite «inverse.name.toFirstLower»
 			«ENDIF»
 			// Containment on declaring side of «declaringEntity.name»
-			«declaringEntity.compileInlineAnnotation»container «declaringEntity.refersAlias.name.toFirstUpper» «inverse.name.toFirstLower» opposite «declaring.name.toFirstLower»	
+			container «declaringEntity.refersAlias.name.toFirstUpper» «inverse.name.toFirstLower» opposite «declaring.name.toFirstLower»	
 		}
 		'''
 		return delegateName
@@ -668,11 +633,11 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def private generateDelegateNonUniqueRelation(Attribute a) {
 		
-		val declaringInverse = if (a.declaringInverseAttribute) a else a.oppositeAttribute
-		val declaringInverseSet = declaringInverse.allOppositeAttributes
+		val declaringInverse = if (a.declaringInverseAttribute) a else a.oppositeAttribute		
 				
 		val inverseConcept = declaringInverse.opposite.eContainer as ExpressConcept
 		val inverseAttribute = declaringInverse.opposite
+		val declaringInverseSet = inverseAttribute.allOppositeAttributes
 						
 		// Generate proxy interface name as "ProxyEntityToSelect"
 		val targetConcept = inverseAttribute.type.refersConcept
@@ -680,21 +645,20 @@ class XcoreGenerator implements IGenerator {
 
 		// Map QN of inverse attribute
 		xcoreInfo.addDelegate(inverseAttribute, delegateInterfaceName, null)
-		//nestedProxiesQN.put(inverseAttribute, delegateInterfaceName -> inverseConcept.name.toFirstLower )
-			
+
 		// Write to second stage cache				
 		secondStageCache +=
 		
 		'''
 		
-		@XpressModel(kind="new", type="delegate")
-		@GenModel(documentation="")
+		@XpressModel(kind="new", pattern="delegate")
+		@GenModel(documentation="Delegation select of «targetConcept.name»")
 		interface «delegateInterfaceName» {
 			
-			// Blueprint of inverse relation, implemented by sub classing
+			// Reference template
 			op «IF a.supertypeOppositeDirectedRelation»«a.refersConcept.name.toFirstUpper»«ELSE»EObject«ENDIF» get«inverseAttribute.name.toFirstUpper»()
 			// Non-unique counter part, using concept QN as reference name
-			«inverseConcept.compileInlineAnnotation»refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
+			refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
 		}
 		'''
 
@@ -703,7 +667,6 @@ class XcoreGenerator implements IGenerator {
 								
 			val delegateClass = generateDelegate(ia, inverseAttribute, delegateInterfaceName)
 			xcoreInfo.addDelegate(ia, delegateClass, inverseAttribute)
-			//nestedProxiesQN.put(ia, proxyClass -> inverseAttribute.name.toFirstLower)				
 		}
 	}
 	
@@ -717,8 +680,6 @@ class XcoreGenerator implements IGenerator {
 		// Generate delegate without interface
 		val qnClassRef = generateDelegate(declaringInverse, declaringInverse.opposite, "")
 		xcoreInfo.addDelegate(declaringInverse, qnClassRef, declaringInverse.opposite)
-		//nestedProxiesQN.put(declaringInverse, qnClassRef -> declaringInverse.opposite.name.toFirstLower)
-		//nestedProxiesQN.put(declaringInverse.opposite, qnClassRef -> declaringInverse.name.toFirstLower)		
 	}
 	
 	
@@ -730,16 +691,13 @@ class XcoreGenerator implements IGenerator {
 		// Get existing QN of delegate
 		if(!a.hasDelegate) {
 			
-			if(a.inverseManyToManyRelation) {
+			if(a.nonUniqueRelation) {
+			
+				generateDelegateNonUniqueRelation(a)
 				
-				if(a.nonUniqueRelation) {
-				
-					generateDelegateNonUniqueRelation(a)
-					
-				} else if(Options.FORCE_UNIQUE_DELEGATES.option) {
-					// Create delegates for unique relations only if forced
-					generateDelegateUniqueRelation(a)
-				}
+			} else if(a.isInverseManyToManyRelation && Options.FORCE_UNIQUE_DELEGATES.option) {
+				// Create delegates for unique relations only if forced
+				generateDelegateUniqueRelation(a)
 			}
 		}
 		
@@ -781,47 +739,19 @@ class XcoreGenerator implements IGenerator {
 	}
 
 
-	/**
-	 * Compiles a single attribute.
-	 */
 	def compileAttribute(Attribute a) { // TODO
 		
-		'''«IF a.type.referable»
-			«IF a.hasDelegate»@XpressModel(type="delegate") «IF a.declaringInverseAttribute»contains«ENDIF
-			»«ELSE
-				»«a.type.refersConcept?.compileInlineAnnotation»refers «
-				IF a.derivedAttribute»derived «ENDIF»«ENDIF						
+		val compiled = a.type.compileDatatype
+		'''«a.compileAnnotation
+			»«IF a.type.referable
+				»«IF a.hasDelegate
+					»«IF a.declaringInverseAttribute»contains «ELSE»refers «ENDIF // Containment to declaring delegate
+				»«ELSE
+					»refers «ENDIF						
 			»«ENDIF
-			»«a.type.compileDatatype» «a.type.compileDatatype»«
-			IF a.inverseRelation»opposite «a.oppositeQN.toFirstLower»«ENDIF»'''
-		
-		
-		
-//		'''«IF !a.type.builtinAlias»«
-//				IF a.hasDelegate
-//					»@XpressModel(type="delegate") contains «
-//				ELSE
-//					»«a.type.refersConcept?.compileInlineAnnotation
-//					»«IF !a.type.isBuiltinAlias
-//						»«IF a.type.nestedAggregation
-//							»contains «
-//						ELSE
-//							»«IF a.type.isReferable
-//								»refers «
-//							ENDIF
-//						»«ENDIF
-//					»«ENDIF»«
-//				ENDIF
-//			»«ELSE
-//				»«a.type.refersConcept?.compileInlineAnnotation
-//			»«ENDIF
-//			»«IF a.derivedAttribute
-//				»derived «
-//			ENDIF
-//			»«a.type.compileDatatype» «a.name.toFirstLower» « // TODO Delegation of reference
-//			IF a.inverseRelation
-//				»opposite «a.oppositeQN.toFirstLower
-//			»«ENDIF»'''
+			»«IF a.derivedAttribute»derived «ENDIF
+			»«compiled» «a.name.toFirstLower
+			»«IF a.inverseRelation» opposite «a.oppositeQN.toFirstLower»«ENDIF»'''
 	}
 	
 	

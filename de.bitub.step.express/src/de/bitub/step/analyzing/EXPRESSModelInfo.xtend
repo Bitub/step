@@ -11,18 +11,17 @@
 package de.bitub.step.analyzing
 
 import de.bitub.step.express.Attribute
+import de.bitub.step.express.Entity
 import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.Schema
+import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
 import de.bitub.step.util.EXPRESSExtension
 import java.util.Set
-import javax.inject.Inject
-import de.bitub.step.express.Entity
-import de.bitub.step.express.SelectType
 
 class EXPRESSModelInfo {
 	
-	private extension EXPRESSExtension modelUtil = new EXPRESSExtension
+	val private extension EXPRESSExtension modelExtension = new EXPRESSExtension
 	
 	public val Schema schema;
 	
@@ -69,7 +68,7 @@ class EXPRESSModelInfo {
 	
 	def boolean isAliasType(Type t) {
 		
-		aliasConceptMap.containsKey(t)
+		null != aliasConceptMap.get(t)
 	}
 	
 	

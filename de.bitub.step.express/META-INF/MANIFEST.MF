@@ -37,4 +37,5 @@ Export-Package: de.bitub.step,
  de.bitub.step.services,
  de.bitub.step.util,
  de.bitub.step.validation,
- de.bitub.step.xcore
+ de.bitub.step.xcore,
+ de.bitub.step.generator

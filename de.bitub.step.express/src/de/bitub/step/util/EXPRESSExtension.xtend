@@ -28,7 +28,7 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
  */
 class EXPRESSExtension {
 	
-	
+		
 	/**
 	 * True, if sup is a supertype of sub.
 	 */
@@ -85,7 +85,7 @@ class EXPRESSExtension {
 	/**
 	 * Get the antity container for the given attribute.
 	 */
-	def static containingEntity(Attribute attribute) {
+	def getContainerEntity(Attribute attribute) {
 		
 		attribute.getContainerOfType(typeof(Entity))
 	}
@@ -93,7 +93,7 @@ class EXPRESSExtension {
 	/**
 	 * Get all derived attributes of the given entity.
 	 */
-	def static getDerivedAttribute(Entity entity) {
+	def getDerivedAttribute(Entity entity) {
 		
 		entity.attribute.filter[it.expression != null]
 	}
@@ -101,7 +101,7 @@ class EXPRESSExtension {
 	/**
 	 * Get all inverse attributes of the given entity.
 	 */
-	def static getDeclaringInverseAttribute(Entity entity) {
+	def getDeclaringInverseAttribute(Entity entity) {
 		
 		entity.attribute.filter[it.opposite != null]
 	}
@@ -129,6 +129,15 @@ class EXPRESSExtension {
 		
 		c.type instanceof CollectionType
 	}
+
+	/**
+	 * True, if collection type references a type wrapper pattern.
+	 */
+	def boolean isNestedTypeAggregation(CollectionType c) {
+		
+		c.nestedAggregation && c.type.builtinAlias
+	}
+
 
 	/**
 	 * True, if derived.
@@ -173,7 +182,7 @@ class EXPRESSExtension {
 	}
 
 	/**
-	 * Computes the transitive references datatype (i.e. a collection of collection of some data type)
+	 * Computes the final referenced datatype (i.e. a collection of collection of some data type)
 	 */
 	def dispatch DataType refersDatatype(Type t) {
 
@@ -261,9 +270,14 @@ class EXPRESSExtension {
 
 		switch (dataType) {
 			
-			ReferenceType: dataType.instance.refersConcept
-			CollectionType: dataType.type.refersConcept
-			default: null
+			ReferenceType: 
+				dataType.instance.refersConcept
+				
+			CollectionType: 
+				dataType.type.refersConcept
+			
+			default: 
+				dataType.eContainer as Type
 		}
 	}
 

@@ -26,7 +26,7 @@ import de.bitub.step.express.BuiltInType
 
 class EXPRESSInterpreter {
 
-	@Inject extension EXPRESSExtension modelUtil;
+	@Inject extension EXPRESSExtension modelUtil
 
 	val static Logger LOGGER = Logger.getLogger(EXPRESSInterpreter);
 	
@@ -83,7 +83,7 @@ class EXPRESSInterpreter {
 				
 				BuiltInType:
 					LOGGER.debug(
-						'''Type «t.name» refers a builtin type «t.datatype.eClass.name».'''
+						'''Type "«t.name»" maps onto "«t.datatype.eClass.name»".'''
 					)
 				
 				ReferenceType: {
@@ -91,20 +91,10 @@ class EXPRESSInterpreter {
 					var transitiveConcept = t.datatype.refersConcept
 					info.aliasConceptMap.put(t, transitiveConcept)
 					LOGGER.info(
-						'''Mapping type «t.name» on «transitiveConcept.name».'''
+						'''Mapping type "«t.name»" onto "«transitiveConcept.name»".'''
 					)					
 				}
-				CollectionType:	{		
-					// Map type by aggregation
-					info.aliasConceptMap.put(t, t)
-				}
-				default: {
-				
-					// Map as non-alias
-					info.aliasConceptMap.put(t, null)					
-					LOGGER.warn(
-						'''UNKNOWN TYPE «t.name» IS NOT MAPPED. DATATYPE PARSED AS «t.datatype.eClass.name»'''
-					)			
+				default: {				
 				}
 			}
 		}		
