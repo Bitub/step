@@ -21,12 +21,8 @@ import java.util.Set
 import java.util.function.Function
 import java.util.stream.Collectors
 import java.util.stream.Stream
-import org.apache.log4j.Logger
-import org.apache.log4j.FileAppender
 import org.apache.log4j.ConsoleAppender
-import de.bitub.step.express.ExpressConcept
-import de.bitub.step.express.ReferenceType
-import de.bitub.step.express.BuiltInType
+import org.apache.log4j.Logger
 
 class EXPRESSSchemaBundler {
 
