@@ -42,6 +42,10 @@ class XcoreUtil {
 		entity.attribute.filter[it.expression != null]
 	}
 
+	def static explicit(Entity entity) {
+		entity.attribute.filter[it.expression == null].filter[it.opposite == null]
+	}
+
 	/**
 	 * Get all inverse attributes of the given entity.
 	 */
