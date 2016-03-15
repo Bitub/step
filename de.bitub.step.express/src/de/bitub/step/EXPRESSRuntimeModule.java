@@ -13,7 +13,7 @@ package de.bitub.step;
 
 import org.eclipse.xtext.generator.IGenerator;
 
-import de.bitub.step.generator.XcoreGenerator;
+import de.bitub.step.xcore.XcoreGenerator;
 
 /**
  * Use this class to register components to be used at runtime / without the

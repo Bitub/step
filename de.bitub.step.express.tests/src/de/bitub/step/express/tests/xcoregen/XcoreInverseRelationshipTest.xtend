@@ -5,16 +5,19 @@ import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
+import de.bitub.step.analyzing.EXPRESSInterpreter
+
+import static org.junit.Assert.*
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
 class XCoreInverseRelationshipTest extends AbstractXcoreGeneratorTest {
 	
-    
-    @Test
-    def void testInverseRelationship() {
-    	
-    	val model = 
+	
+	@Inject EXPRESSInterpreter test 
+
+   	val schema = 
     		'''
     		SCHEMA XCoreInverseRelationshipTest;
     		
@@ -30,8 +33,22 @@ class XCoreInverseRelationshipTest extends AbstractXcoreGeneratorTest {
     		    		
     		END_SCHEMA;
     		'''
+	
+	@Test
+	def void testInfoInverseRelationship() {
+		
+		val model = generateEXPRESS(schema)
+		val info = test.process(model)
+		
+		assertEquals(1, info.countInverseNMReferences)
+		assertEquals(0, info.countNonUniqueReferences)	
+	}
+    
+    
+    def void testGenerateInverseRelationship() {
+    	
 
-		val xcore = generateXCore(model)
+		val xcore = generateXCore(schema)
 		validateXCore(xcore)    		
     } 
 }

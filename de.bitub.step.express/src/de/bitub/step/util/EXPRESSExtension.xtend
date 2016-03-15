@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2015  Bernold Kraft and others (Berlin, Germany).
+ * Copyright (c) 2015,2016  Bernold Kraft and others (Berlin, Germany).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,7 @@
  * Contributors:
  *  Bernold Kraft, Sebastian Riemschüssel - initial implementation and initial documentation
  */
-package de.bitub.step.generator.util
+package de.bitub.step.util
 
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.BuiltInType
@@ -24,21 +24,77 @@ import de.bitub.step.express.Type
 import static extension org.eclipse.xtext.EcoreUtil2.*
 
 /**
- * Class with helper methods.
+ * Shorthand utility method to derive more information about model elements of EXPRESS.
  */
-class XcoreUtil {
+class EXPRESSExtension {
+	
+	
+	/**
+	 * True, if sup is a supertype of sub.
+	 */
+	def static isSupertypeOf(Entity sup, Entity sub) {
+		
+		if(sup == sub) {
+			
+			return false;
+		}
+		
+		var queue = newLinkedList(sub)
+		while(!queue.empty) {
+		
+			var e = queue.poll
+			if(e == sup) {
+				
+				return true
+			} else {
+				
+				queue += e.supertype
+			}
+		}
+		
+		false
+	}
+
+	/**
+	 * True, if sub is a subtype of sup.
+	 */
+	def static isSubtypeOf(Entity sub, Entity sup) {
+		
+		if(sup == sub) {
+			
+			return false;
+		}
+		
+		var queue = newLinkedList(sub)
+		while(!queue.empty) {
+		
+			var e = queue.poll
+			if(e == sub) {
+				
+				return true
+			} else {
+				
+				queue += e.subtype
+			}
+		}
+		
+		false
+	}
+	
 
 	/**
 	 * Get the antity container for the given attribute.
 	 */
 	def static containingEntity(Attribute attribute) {
+		
 		attribute.getContainerOfType(typeof(Entity))
 	}
 
 	/**
 	 * Get all derived attributes of the given entity.
 	 */
-	def static derived(Entity entity) {
+	def static getDerivedAttribute(Entity entity) {
+		
 		entity.attribute.filter[it.expression != null]
 	}
 
@@ -49,7 +105,8 @@ class XcoreUtil {
 	/**
 	 * Get all inverse attributes of the given entity.
 	 */
-	def static inverse(Entity entity) {
+	def static getDeclaringInverseAttribute(Entity entity) {
+		
 		entity.attribute.filter[it.opposite != null]
 	}
 
@@ -57,6 +114,7 @@ class XcoreUtil {
 	 * Whether the current data type is translated to a nested aggregation.
 	 */
 	def dispatch boolean isNestedAggregation(DataType c) {
+		
 		false
 	}
 
@@ -64,6 +122,7 @@ class XcoreUtil {
 	 * Whether the current reference type is translated to a nested aggregation.
 	 */
 	def dispatch boolean isNestedAggregation(ReferenceType c) {
+		
 		(c.instance instanceof Type) && (c.instance as Type).datatype.nestedAggregation
 	}
 
@@ -71,6 +130,7 @@ class XcoreUtil {
 	 * Whether the current collection type is translated to a nested aggregation.
 	 */
 	def dispatch boolean isNestedAggregation(CollectionType c) {
+		
 		c.type instanceof CollectionType
 	}
 
@@ -78,6 +138,7 @@ class XcoreUtil {
 	 * True, if derived.
 	 */
 	def isDerivedAttribute(Attribute a) {
+		
 		null != a.expression
 	}
 
@@ -88,9 +149,15 @@ class XcoreUtil {
 
 		null != a.opposite
 	}
+	
 
 	/**
-	 * True if attribute's type is a one to many relation
+	 * True, if attribute's type is a one to many relation in the cases of
+	 * <ul> 
+	 * <li>either given unbound upper bounds</li>
+	 * <li>bound to more than 1</li>
+	 * <li>defined lower or upper reference bound (i.e. given runtime thresholds via attribute)</li>
+	 * </ul>
 	 */
 	def isOneToManyRelation(Attribute a) {
 
@@ -98,35 +165,42 @@ class XcoreUtil {
 
 			val t = a.type as CollectionType
 
-			return t.upperBound > 1 || t.many || t.upperRef != null || t.lowerRef != null ||
-				t.refersConcept instanceof Type // implies Select type
+			return t.upperBound > 1 || t.many || t.upperRef != null || t.lowerRef != null 				
 		}
 
 		false
 	}
+	
+	def dispatch DataType refersDatatype(Attribute a) {
+		
+		a.type.refersDatatype
+	}
 
-	def dispatch DataType refersTransitiveDatatype(Type t) {
+	/**
+	 * Computes the transitive references datatype (i.e. a collection of collection of some data type)
+	 */
+	def dispatch DataType refersDatatype(Type t) {
 
-		t.datatype.refersTransitiveDatatype
+		t.datatype.refersDatatype
 	}
 
 	/**
 	 * Returns the transitive associated datatype.
 	 */
-	def dispatch DataType refersTransitiveDatatype(DataType t) {
+	def dispatch DataType refersDatatype(DataType t) {
 
 		if (t instanceof ReferenceType) {
 
 			if ((t as ReferenceType).instance instanceof Type) {
 
-				((t as ReferenceType).instance as Type).refersTransitiveDatatype
+				((t as ReferenceType).instance as Type).refersDatatype
 			} else {
 
 				t
 			}
 		} else if (t instanceof CollectionType) {
 
-			(t as CollectionType).type.refersTransitiveDatatype
+			(t as CollectionType).type.refersDatatype
 		} else {
 
 			t
@@ -138,40 +212,60 @@ class XcoreUtil {
 	 */
 	def isReferable(DataType t) {
 
-		val datatype = t.refersTransitiveDatatype
-
-		if (datatype instanceof ReferenceType) {
-
-			// Entity only
-			true
-
-		} else if (datatype instanceof SelectType) {
-
-			// The only class-wrapped type		
-			true
-
-		} else {
-
-			false
+		switch(t.refersDatatype) {
+			
+			ReferenceType:
+				// Entity only
+				true
+			SelectType:
+				// The only class-wrapped type		
+				true
+			default:
+				false			
 		}
 	}
-
-	def isInverseOppositeAttributeContainerAbstract(Attribute a) {
-
-		val cont = a.eContainer as Entity;
-		if (cont.isAbstract) {
-			System.out.println("ATTR" + a.eContainer);
-		}
-		return cont.isAbstract;
+	
+	def isSelect(Attribute a) {
+		
+		a.type.refersDatatype instanceof SelectType
+	}
+	
+	def isEnum(Attribute a) {
+		
+		a.refersDatatype instanceof EnumType
+	}	
+	
+	def isContainedInAbstractEntity(Attribute a) {
+		
+		(a.eContainer as Entity).isAbstract;
+	}
+	
+	
+	def dispatch ExpressConcept refersConcept(Attribute c) {
+		
+		c.type.refersConcept
 	}
 
 	/**
 	 * Returns the transitively referred concept, if there's any referenced
 	 */
-	def ExpressConcept refersConcept(DataType dataType) {
+	def dispatch ExpressConcept refersConcept(ExpressConcept c) {
+	
+		switch(c) {
+			
+			Type: (c as Type).datatype.refersConcept
+			default: c
+		} 		
+	}	
+
+	/**
+	 * Returns the transitively referred concept, if there's any referenced
+	 */
+	def dispatch ExpressConcept refersConcept(DataType dataType) {
 
 		switch (dataType) {
-			ReferenceType: dataType.instance
+			
+			ReferenceType: dataType.instance.refersConcept
 			CollectionType: dataType.type.refersConcept
 			default: null
 		}
@@ -180,43 +274,32 @@ class XcoreUtil {
 	/**
 	 * Returns the parent attribute of a specific data type.
 	 */
-	def parentAttribute(DataType t) {
+	def getHostingAttribute(DataType t) {
 
 		var eAttr = t.eContainer
 
 		while (null != eAttr && !(eAttr instanceof Attribute)) {
 			eAttr = eAttr.eContainer
 		}
+		
 		eAttr as Attribute
 	}
 
 	/**
-	 * If type is an alias type (simple type wrapper)
+	 * True, if given concept is an alias (reference wrapper) to another concept.
 	 */
 	def boolean isNamedAlias(ExpressConcept e) {
 
-//		switch (e) {
-//			Type:
-//				switch (e.datatype) {
-//					SelectType: true
-//					EnumType: true
-//				}
-//			default:
-//				false
-//		}
-		if (e instanceof Type) {
-
-			val t = e as Type
-			!(t.datatype instanceof SelectType || t.datatype instanceof EnumType)
-
-		} else {
-
-			false
+		switch(e) {
+			Type:
+				(e as Type).datatype instanceof ReferenceType
+			default:
+				false
 		}
 	}
 
 	/**
-	 * True, if builtin type reference (primitive or aggregation)
+	 * True, if concept is a reference to a primitive data type.
 	 */
 	def dispatch boolean isBuiltinAlias(ExpressConcept e) {
 
@@ -226,6 +309,9 @@ class XcoreUtil {
 		}
 	}
 
+	/**
+	 * True, if concept is a reference to a primitive data type.
+	 */
 	def dispatch boolean isBuiltinAlias(DataType t) {
 
 		switch t {
@@ -235,4 +321,7 @@ class XcoreUtil {
 			default: false
 		}
 	}
+	
+	
+	
 }
