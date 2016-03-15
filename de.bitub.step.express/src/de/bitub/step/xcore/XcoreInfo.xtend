@@ -6,6 +6,7 @@ import java.util.Set
 import de.bitub.step.util.EXPRESSExtension
 import javax.inject.Inject
 import de.bitub.step.express.Entity
+import org.eclipse.xtext.naming.QualifiedName
 
 class XcoreInfo {
 
@@ -14,7 +15,8 @@ class XcoreInfo {
 	 */
 	val public extension EXPRESSModelInfo modelInfo;
 	
-	@Inject extension EXPRESSExtension 
+	@Inject extension EXPRESSExtension
+	
 	
 	/**
 	 * A delegate reference.
@@ -51,7 +53,22 @@ class XcoreInfo {
 	
 	def int getCountOfDelegate() {
 		
+		countOfAggregationDelegate + countOfRelationDelegate
+	}
+	
+	def int getCountOfRelationDelegate() {
+		
 		qualifiedNameDelegateMap.values.flatten.map[qualifiedName].toSet.size
+	}
+	
+	def int getCountOfAggregationDelegate() {
+		
+		qualifiedNameAggregationMap.size
+	}
+	
+	def String getDelegateQN(QualifiedName qn) {
+		
+		qualifiedNameAggregationMap.get(qn.toString)
 	}
 	
 	def Set<Delegate> getDelegates(Attribute a) {
@@ -64,11 +81,27 @@ class XcoreInfo {
 		qualifiedNameDelegateMap.get(a)?.findFirst[targetAttribute == b].qualifiedName
 	}
 	
+	def boolean hasDelegate(QualifiedName qn) {
+		
+		qualifiedNameAggregationMap.containsKey(qn.toString)
+	}
+	
 	def boolean hasDelegate(Attribute a) {
 		
 		qualifiedNameDelegateMap.containsKey(a)
 	}
 
+	def String addNestedDelegate(QualifiedName qn) {
+	
+		var nestedQN = qualifiedNameAggregationMap.get(qn.toString)
+		if(null==nestedQN) { 
+			
+			nestedQN = qn.toString.replace('.','_').toFirstUpper
+			qualifiedNameAggregationMap.put( qn.toString, nestedQN )			
+		}	
+		
+		nestedQN
+	}
 	
 	def Delegate addDelegate(Attribute origin, String qualifiedName, Attribute target) {
 		

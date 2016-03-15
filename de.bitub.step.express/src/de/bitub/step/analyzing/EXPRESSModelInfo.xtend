@@ -22,7 +22,7 @@ import de.bitub.step.express.SelectType
 
 class EXPRESSModelInfo {
 	
-	@Inject extension EXPRESSExtension modelUtil;
+	private extension EXPRESSExtension modelUtil = new EXPRESSExtension
 	
 	public val Schema schema;
 	
@@ -58,7 +58,7 @@ class EXPRESSModelInfo {
 	
 	def int getCountInverseNMReferences(){
 		
-		inverseReferenceMap.keySet.filter[ isInverseManyToManyRelation ].size
+		inverseReferenceMap.keySet.filter[ null!=it && isInverseManyToManyRelation ].size
 	}
 	
 	def int getCountAliasedConcepts() {
@@ -185,7 +185,7 @@ class EXPRESSModelInfo {
 		a.inverseRelation && 
 			(a.allOppositeAttributes.size > 1 // More than 1 opposite
 				|| a.select 	// A select
-				|| EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, a.oppositeAttribute.eContainer as Entity) // refers supertype of opposite container
+				|| EXPRESSExtension.isSupertypeOf(a.type.refersConcept as Entity, a.oppositeAttribute.eContainer as Entity) // refers supertype of opposite container
 			)		
 	}
 	

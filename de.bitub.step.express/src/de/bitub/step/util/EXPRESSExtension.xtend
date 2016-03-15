@@ -166,6 +166,11 @@ class EXPRESSExtension {
 
 		false
 	}
+	
+	def dispatch DataType refersDatatype(Attribute a) {
+		
+		a.type.refersDatatype
+	}
 
 	/**
 	 * Computes the transitive references datatype (i.e. a collection of collection of some data type)
@@ -218,7 +223,7 @@ class EXPRESSExtension {
 	
 	def isSelect(Attribute a) {
 		
-		a.refersDatatype instanceof SelectType
+		a.type.refersDatatype instanceof SelectType
 	}
 	
 	def isEnum(Attribute a) {
@@ -229,6 +234,12 @@ class EXPRESSExtension {
 	def isContainedInAbstractEntity(Attribute a) {
 		
 		(a.eContainer as Entity).isAbstract;
+	}
+	
+	
+	def dispatch ExpressConcept refersConcept(Attribute c) {
+		
+		c.type.refersConcept
 	}
 
 	/**
