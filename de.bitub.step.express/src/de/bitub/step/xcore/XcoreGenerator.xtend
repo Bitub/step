@@ -304,45 +304,43 @@ class XcoreGenerator implements IGenerator {
 	def dispatch CharSequence compileInlineAnnotation(Type t) {
 	
 		val alias = t.refersDatatype
-		 
-		if(alias instanceof BuiltInType) {
+		
+		switch(alias) {
 			
-			// End point is a builtin datatype
-			'''@XpressModel(name="«t.name»",kind="mapped",qualifiedName="«t.datatype.qualifiedName»")
-			'''
-		} else if (alias instanceof ReferenceType) {
-			
-			val qn = t.fullyQualifiedName
-			if(nestedAggregationQN.containsKey(qn.toString)) {
-								
-				'''@XpressModel(name="«t.name»",kind="nested",classRef="«nestedAggregationQN.get(qn.toString)»[]")
-				'''
-			} else {
-
-				// End point is a reference to an entity
-				'''@XpressModel(name="«t.name»",kind="mapped",classRef="«t.datatype.qualifiedName»")
-				'''			
+			BuiltInType: {
+				// End point is a builtin datatype
+				'''@XpressModel(name="«t.name»", kind="mapped", qualifiedName="«t.datatype.qualifiedName»")'''
 			}
-		} else if (alias instanceof GenericType) {
+			ReferenceType: {
 			
-			// End point is a generic datatype wrapper
-			'''@XpressModel(name="«t.name»",kind="generic",qualifiedName="«alias.qualifiedName»")
-			'''
-		} else if (alias instanceof SelectType && t.aliasType) {
+				val qn = t.fullyQualifiedName
+				if(qn.hasDelegate) {
+					'''@XpressModel(name="«t.name»", kind="mapped", type="nested", classRef="«qn.delegateQN»[]")'''
+				} else {
+					'''@XpressModel(name="«t.name»", kind="mapped", classRef="«t.datatype.qualifiedName»")'''				
+				}
+			}
+			GenericType: {
+				
+				'''@XpressModel(name="«t.name»", kind="mapped", qualifiedName="«alias.qualifiedName»")'''
+			}
+			SelectType: {
+				
+				if(t.aliasType) {
+					
+					'''@XpressModel(name="«t.name»", kind="mapped", classRef="«alias.qualifiedName»")'''
+				}
+			}
 			
-			// End point is a SelectType
-			'''@XpressModel(name="«t.name»",kind="mapped",classRef="«alias.qualifiedName»")
-			'''
-		} else if (t.aliasType) {
-			
-			// End point has been omitted (model validation error?)
-			'''@XpressModel(name="«t.name»",kind="omitted")
-			'''
-		} else {
-			
-			// Nothing to annotate
-			''''''
-		}
+			default:
+				
+				if(t.aliasType) {
+					
+					'''@XpressModel(name="«t.name»", kind="omitted")'''
+				} else {
+					''''''					
+				}
+		}		 
 	} 
 
 
@@ -354,6 +352,7 @@ class XcoreGenerator implements IGenerator {
 		// process schema for structural information
 		//		
 		modelInfo = interpreter.process(s);
+		xcoreInfo = new XcoreInfo(modelInfo)
 			 
 		'''	
 		«s.assembleXcoreHeader»
@@ -502,27 +501,42 @@ class XcoreGenerator implements IGenerator {
 		'''«(t.eContainer as Type).name.toFirstUpper»'''
 	}
 	
-	
-	def dispatch CharSequence qualifiedName(ReferenceType r) { 
+	/**
+	 * Returns the qualified name of a reference. In general
+	 * <ul>
+	 * <li>simple references (unique)</li>
+	 * <li>unique inverse relations</li>
+	 * </ul> 
+	 */
+	def dispatch CharSequence qualifiedName(ReferenceType r) { // TODO
 		//TODO
-		val parentAttribute = r.hostingAttribute
-		
-		val alias = r.refersDatatype
+		val attribute = r.hostingAttribute	
+		val dataType = r.refersDatatype
 	
-		'''«IF alias.builtinAlias
-				»«alias.compileDatatype»«
-			ELSE
-				»«
-				IF parentAttribute != null && (parentAttribute.inverseManyToManyRelation || parentAttribute.nonUniqueRelation)
-					»«parentAttribute.delegateRef»«
-				ELSE
-					»«IF alias instanceof ReferenceType
-							»«alias.instance.name.toFirstUpper
-					»«ELSE
-						»«alias.qualifiedName
-					»«ENDIF»«
-				ENDIF»«
-			ENDIF»'''	
+		'''«IF r.referable
+			»«IF attribute.nonUniqueRelation || Options.FORCE_UNIQUE_DELEGATES.option
+				»«attribute.createDelegateQN
+			»«ELSE			
+			»«ENDIF»
+		«ELSE
+			»«dataType.compileDatatype»			
+		«ENDIF»
+		'''
+	
+//		'''«IF alias.builtinAlias
+//				»«alias.compileDatatype»«
+//			ELSE
+//				»«
+//				IF parentAttribute != null && (parentAttribute.inverseManyToManyRelation || parentAttribute.nonUniqueRelation)
+//					»«parentAttribute.delegateRef»«
+//				ELSE
+//					»«IF alias instanceof ReferenceType
+//							»«alias.instance.name.toFirstUpper
+//					»«ELSE
+//						»«alias.qualifiedName
+//					»«ENDIF»«
+//				ENDIF»«
+//			ENDIF»'''	
 	}
 	
 	def dispatch CharSequence qualifiedName(BuiltInType b) { 
@@ -547,11 +561,11 @@ class XcoreGenerator implements IGenerator {
 			// Replace by nested collector proxy	
 			if(!c.type.builtinAlias) {
 			
-				referredType = generateCollector_NestedDelegate(c)+'''[]'''
+				referredType = generateDelegateNestedCollector(c)+'''[]'''
 				
 			} else {
 								
-				referredType = generateCollector_NestedWrapper(c.type.qualifiedName+'''[]''')
+				referredType = generateWrapperNestedCollector(c.type.qualifiedName+'''[]''')
 			}			
 		} else {
 			
@@ -566,32 +580,30 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Generates a nested inner delegate for the delegation of multi-dimensional references.
 	 */
-	protected def String generateCollector_NestedDelegate(CollectionType c) {
+	def private String generateDelegateNestedCollector(CollectionType c) {
 
 		// Builtin type or entity ?
 		val qualifiedName = c.eContainer.fullyQualifiedName
 		
 		// Generate nested class
-		if(nestedAggregationQN.containsKey(qualifiedName.toString)) {
+		if(qualifiedName.hasDelegate) {
 			
-			return nestedAggregationQN.get(qualifiedName.toString)
+			return qualifiedName.delegateQN
 		}
 		
-		val nestedClassName = qualifiedName.toString.replace('.','_').toFirstUpper
-		nestedAggregationQN.put(qualifiedName.toString, nestedClassName)
+		val nestedClassName = qualifiedName.addNestedDelegate
 				
-		val qualifiedName = c.type.qualifiedName
 		secondStageCache +=
 		'''
 				
 		
-		@XpressModel(kind="new")
+		@XpressModel(kind="new", type="nested")
 		class «nestedClassName» {
 			
 			«IF !c.type.builtinAlias
-				»«IF c.type.isNestedAggregation»contains «ELSE»refers «ENDIF»«
+				»«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«
 			ENDIF
-				»«qualifiedName» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+				»«c.type.qualifiedName» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
 		}
 		'''		
 		return nestedClassName
@@ -600,7 +612,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Generates a type wrapper for primitive multi-dimensional arrays
 	 */	
-	protected def String generateCollector_NestedWrapper(String primitiveTypeRef) {
+	def private String generateWrapperNestedCollector(String primitiveTypeField) {
 
 		if(nestedAggregationQN.containsKey(primitiveTypeRef)) {
 			
@@ -774,31 +786,42 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def compileAttribute(Attribute a) { // TODO
 		
-		'''«IF !a.type.builtinAlias»«
-				IF a.nonUniqueRelation && a.declaringInverseAttribute
-					»@XpressModel(type="delegate") contains «
-				ELSE
-					»«a.type.refersConcept?.compileInlineAnnotation
-					»«IF !a.type.isBuiltinAlias
-						»«IF a.type.nestedAggregation
-							»contains «
-						ELSE
-							»«IF a.type.isReferable
-								»refers «
-							ENDIF
-						»«ENDIF
-					»«ENDIF»«
-				ENDIF
+		'''«IF a.type.referable»
+			«IF a.hasDelegate»@XpressModel(type="delegate") «IF a.declaringInverseAttribute»contains«ENDIF
 			»«ELSE
-				»«a.type.refersConcept?.compileInlineAnnotation
+				»«a.type.refersConcept?.compileInlineAnnotation»refers «
+				IF a.derivedAttribute»derived «ENDIF»«ENDIF						
 			»«ENDIF
-			»«IF a.derivedAttribute
-				»derived «
-			ENDIF
-			»«a.type.compileDatatype» «a.name.toFirstLower» «
-			IF a.inverseRelation
-				»opposite «a.oppositeQN.toFirstLower
-			»«ENDIF»'''
+			»«a.type.compileDatatype» «a.type.compileDatatype»«
+			IF a.inverseRelation»opposite «a.oppositeQN.toFirstLower»«ENDIF»'''
+		
+		
+		
+//		'''«IF !a.type.builtinAlias»«
+//				IF a.hasDelegate
+//					»@XpressModel(type="delegate") contains «
+//				ELSE
+//					»«a.type.refersConcept?.compileInlineAnnotation
+//					»«IF !a.type.isBuiltinAlias
+//						»«IF a.type.nestedAggregation
+//							»contains «
+//						ELSE
+//							»«IF a.type.isReferable
+//								»refers «
+//							ENDIF
+//						»«ENDIF
+//					»«ENDIF»«
+//				ENDIF
+//			»«ELSE
+//				»«a.type.refersConcept?.compileInlineAnnotation
+//			»«ENDIF
+//			»«IF a.derivedAttribute
+//				»derived «
+//			ENDIF
+//			»«a.type.compileDatatype» «a.name.toFirstLower» « // TODO Delegation of reference
+//			IF a.inverseRelation
+//				»opposite «a.oppositeQN.toFirstLower
+//			»«ENDIF»'''
 	}
 	
 	

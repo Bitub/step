@@ -52,12 +52,17 @@ abstract class AbstractXcoreGeneratorTest {
      	return buffer
 	}
 	
+	def generateEXPRESS(CharSequence schema) {
+		
+		parseHelper.parse(schema, resourceSet)
+	}
+	
 	/**
 	 * Generates an Xcore model.
 	 */	
 	def generateXCore(CharSequence schema) {
 		
-		val model = parseHelper.parse(schema, resourceSet) 
+		val model = generateEXPRESS(schema) 
 		val xcoreModel = underTest.compileSchema(model)
 		
 		dumpGeneratedToWorkspace(model.name+".xcore", xcoreModel)
