@@ -1,3 +1,14 @@
+/* 
+ * Copyright (c) 2015,2016  Bernold Kraft and others (Berlin, Germany).
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *  Bernold Kraft - initial implementation and initial documentation
+ */
+
 package de.bitub.step.express.tests.xcoregen
 
 import de.bitub.step.EXPRESSInjectorProvider
@@ -16,6 +27,10 @@ class XcoreInverseLeftNonUniqueRelationshipTest extends AbstractXcoreGeneratorTe
 
 	@Inject EXPRESSInterpreter test
 
+	/**
+	 * Inverse non-unique left hand relations. The branch on right hand is modeled by
+	 * a SELECT construction of two left hand entities.
+	 */
     val schema = 
     		'''
 			SCHEMA XCoreInverseLeftNonUniqueRelationshipTest;
