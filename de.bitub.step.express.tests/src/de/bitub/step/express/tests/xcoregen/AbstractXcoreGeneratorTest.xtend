@@ -31,8 +31,8 @@ abstract class AbstractXcoreGeneratorTest {
 	
 	static Logger myLog = Logger.getLogger(AbstractXcoreGeneratorTest)
 	
-	@Inject XcoreGenerator underTest	
-	@Inject ParseHelper<Schema> parseHelper	
+	@Inject protected XcoreGenerator generator	
+	@Inject protected ParseHelper<Schema> parseHelper	
 	
 	val protected ResourceSet resourceSet = new ResourceSetImpl	
 	
@@ -63,9 +63,9 @@ abstract class AbstractXcoreGeneratorTest {
 	def generateXCore(CharSequence schema) {
 		
 		val model = generateEXPRESS(schema) 
-		val xcoreModel = underTest.compileSchema(model)
+		val xcoreModel = generator.compileSchema(model)
 		
-		dumpGeneratedToWorkspace(model.name+".xcore", xcoreModel)
+		writeToWorkspace(model.name+".xcore", xcoreModel)
 		
 		return xcoreModel		
 	}
@@ -116,7 +116,7 @@ abstract class AbstractXcoreGeneratorTest {
 	}
 	
 	
-	protected def dumpGeneratedToWorkspace(String name, CharSequence model) {
+	protected def writeToWorkspace(String name, CharSequence model) {
 				
 		val root = ResourcesPlugin.getWorkspace().getRoot()
 		val project = root.getProject(class.simpleName)
@@ -129,6 +129,9 @@ abstract class AbstractXcoreGeneratorTest {
 		}
 				
 		val localFile = project.getFile( new Path(name) )
+		if(localFile.exists) {
+			localFile.delete(true, new NullProgressMonitor)
+		}
 		localFile.create( new ByteArrayInputStream( model.toString.bytes ), true, new NullProgressMonitor)
 	}
 	
