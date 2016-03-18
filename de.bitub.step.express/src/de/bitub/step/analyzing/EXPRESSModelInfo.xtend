@@ -11,17 +11,25 @@
 package de.bitub.step.analyzing
 
 import de.bitub.step.express.Attribute
+import de.bitub.step.express.BuiltInType
+import de.bitub.step.express.CollectionType
 import de.bitub.step.express.Entity
 import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
 import de.bitub.step.util.EXPRESSExtension
+import de.bitub.step.xcore.XcoreConstants
+import java.util.List
 import java.util.Set
+import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.eclipse.xtext.naming.QualifiedName
 
 class EXPRESSModelInfo {
 	
-	val private extension EXPRESSExtension modelExtension = new EXPRESSExtension
+	val private extension EXPRESSExtension modelExtension
+	
+	val private extension IQualifiedNameProvider nameProvider
 	
 	public val Schema schema;
 	
@@ -34,15 +42,57 @@ class EXPRESSModelInfo {
 	 * Mapping of declared inverse (opposite) attribute versus declaring inverse attribute (having an opposite reference)
 	 */
 	public val inverseReferenceMap = <Attribute, Set<Attribute>>newHashMap
+	
+	/***
+	 * The reduced selects mapping.
+	 */
+	public val reducedSelectsMap = <Type, List<ReducedSelect>>newHashMap 
 
+	/**
+	 * A reduced partial select.
+	 */
+	static class ReducedSelect {
+		
+		val ExpressConcept concept
+		
+		val List<ExpressConcept> mappedConcepts = newArrayList
+		
+		new (ExpressConcept c) {
+			
+			this.concept = c
+		}
+		
+		def isEntity() {
+			
+			concept instanceof Entity
+		}
+		
+		
+		def isBuiltinType() {
+			
+			(concept instanceof Type) && ((concept as Type).datatype instanceof BuiltInType)
+		}
+		
+		def getBuiltinDataType() {
+			
+			if(isBuiltinType) (concept as Type).datatype 
+		}
+		
+		def getEntity() {
+			
+			if(isEntity) concept as Entity 
+		}
+	}
 	 
 	/**
 	 * Maps the type aliases which act as pure aliases.
 	 */
 	public val aliasConceptMap = <Type, ExpressConcept>newHashMap
 	
-	new(Schema s) {
-		schema = s
+	new(Schema s, IQualifiedNameProvider nameProvider) {
+		this.schema = s
+		this.modelExtension = new EXPRESSExtension
+		this.nameProvider = nameProvider
 	}	
 	
 	def int getCountSelects() {
@@ -66,12 +116,17 @@ class EXPRESSModelInfo {
 	}
 	
 	
+	def int getCountOfReferenceSelects() {
+		
+		reducedSelectsMap.size
+	}
+	
 	def boolean isAliasType(Type t) {
 		
 		null != aliasConceptMap.get(t)
 	}
 	
-	
+		
 	/**
 	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
 	 * relation.
@@ -117,7 +172,30 @@ class EXPRESSModelInfo {
 	
 	def getFlattenedConceptSet(SelectType s) {
 		
-		if(resolvedSelectsMap.containsKey(s.eContainer)) resolvedSelectsMap.get(s) else newHashSet
+		if(resolvedSelectsMap.containsKey(s.eContainer)) resolvedSelectsMap.get(s.eContainer) else newHashSet
+	}
+
+
+	def QualifiedName getQualifiedAggregationName(CollectionType c) {
+		
+		var QualifiedName qn		
+								
+		if(c.nestedAggregation) {
+			
+			// Depth first if nested
+			qn =  (c.type as CollectionType).qualifiedAggregationName					
+			
+		} else {
+		
+			// Terminates with either builtin or concept reference
+			if(c.builtinAlias) {				
+				qn = QualifiedName.create(XcoreConstants.qualifiedName(c.refersDatatype as BuiltInType))					
+			} else {
+				qn = QualifiedName.create(c.refersConcept.name)
+			}	
+		}	
+		
+		qn.append("[]")
 	}
 
 	/**
@@ -193,7 +271,8 @@ class EXPRESSModelInfo {
 	 */
 	def isSupertypeOppositeDirectedRelation(Attribute a) {
 		
-		a.inverseRelation && EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, a.oppositeAttribute.eContainer as Entity) // refers supertype of opposite container
+		a.inverseRelation && a.refersConcept instanceof Entity && 
+			EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, a.oppositeAttribute.eContainer as Entity) // refers supertype of opposite container
 	}
 
 	/**

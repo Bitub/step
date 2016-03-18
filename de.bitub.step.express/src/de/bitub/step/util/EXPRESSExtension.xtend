@@ -85,7 +85,7 @@ class EXPRESSExtension {
 	/**
 	 * Get the antity container for the given attribute.
 	 */
-	def getContainerEntity(Attribute attribute) {
+	def getHostEntity(Attribute attribute) {
 		
 		attribute.getContainerOfType(typeof(Entity))
 	}
@@ -133,9 +133,9 @@ class EXPRESSExtension {
 	/**
 	 * True, if collection type references a type wrapper pattern.
 	 */
-	def boolean isNestedTypeAggregation(CollectionType c) {
+	def boolean isTypeAggregation(CollectionType c) {
 		
-		c.nestedAggregation && c.type.builtinAlias
+		c.type.builtinAlias
 	}
 
 
@@ -240,9 +240,9 @@ class EXPRESSExtension {
 		a.refersDatatype instanceof EnumType
 	}	
 	
-	def isContainedInAbstractEntity(Attribute a) {
+	def isHostedByEntity(Attribute a) {
 		
-		(a.eContainer as Entity).isAbstract;
+		null != a.getContainerOfType(typeof(Entity))
 	}
 	
 	
@@ -284,15 +284,38 @@ class EXPRESSExtension {
 	/**
 	 * Returns the parent attribute of a specific data type.
 	 */
-	def getHostingAttribute(DataType t) {
+	def getHostAttribute(DataType t) {
 
-		var eAttr = t.eContainer
-
-		while (null != eAttr && !(eAttr instanceof Attribute)) {
-			eAttr = eAttr.eContainer
-		}
+		t.getContainerOfType(typeof(Attribute))
+	}
+	
+	def isHostedByAttribute(DataType t) {
 		
-		eAttr as Attribute
+		null != t.getContainerOfType(typeof(Attribute)) 
+	}
+	
+	def boolean isAggregation(ExpressConcept c) {
+		
+		switch(c) {
+			
+			Type:
+				(c as Type).datatype.isAggregation
+			default:
+				false
+		}
+	}
+	
+	def boolean isAggregation(DataType t){
+		
+		switch(t){
+			
+			ReferenceType:
+				(t as ReferenceType).instance.isAggregation
+			CollectionType:
+				true
+			default:
+				false
+		}
 	}
 
 	/**

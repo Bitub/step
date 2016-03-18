@@ -11,27 +11,21 @@
 
 package de.bitub.step.xcore
 
-import de.bitub.step.express.Attribute
 import de.bitub.step.analyzing.EXPRESSModelInfo
-import java.util.Set
-import de.bitub.step.util.EXPRESSExtension
-import javax.inject.Inject
-import de.bitub.step.express.Entity
-import org.eclipse.xtext.naming.QualifiedName
-import org.eclipse.xtext.naming.IQualifiedNameProvider
+import de.bitub.step.express.Attribute
 import de.bitub.step.express.CollectionType
+import de.bitub.step.express.Entity
+import de.bitub.step.express.Type
+import de.bitub.step.util.EXPRESSExtension
+import java.util.Set
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.naming.QualifiedName
 
 class XcoreInfo {
 
-	/**
-	 * The associated EXPRESS model info.
-	 */
-	val public extension EXPRESSModelInfo modelInfo;
+	val private extension EXPRESSModelInfo modelInfo
 	
-	val private extension EXPRESSExtension modelExtension =  new EXPRESSExtension
-	
-	@Inject extension IQualifiedNameProvider	
+	val private extension EXPRESSExtension modelExtension
 	
 	/**
 	 * A delegate reference.
@@ -63,7 +57,8 @@ class XcoreInfo {
 	
 	
 	new (EXPRESSModelInfo info) {
-		modelInfo = info
+		this.modelInfo = info
+		this.modelExtension =  new EXPRESSExtension
 	}
 	
 	def int getCountOfDelegate() {
@@ -81,20 +76,18 @@ class XcoreInfo {
 		qualifiedNameAggregationMap.size
 	}
 	
-	def getQualifiedAggregationName(CollectionType c) {
 		
-		if(c.nestedTypeAggregation) {
-						
-			c.type.fullyQualifiedName.append("[]")
-		} else {
-			
-			c.eContainer.fullyQualifiedName
-		}		
-	}
-	
 	def String getDelegateQN(CollectionType c) {
 				
-		qualifiedNameAggregationMap.get(c.qualifiedAggregationName)
+		if(c.eContainer instanceof Type) {
+			
+			// Named type
+			qualifiedNameAggregationMap.get(QualifiedName.create((c.eContainer as Type).name.toFirstUpper))
+		} else {
+			
+			// Inline aggregation
+			qualifiedNameAggregationMap.get(c.qualifiedAggregationName)
+		}
 	}
 	
 	def Set<Delegate> getDelegates(Attribute a) {
@@ -114,7 +107,15 @@ class XcoreInfo {
 	
 	def dispatch boolean hasDelegate(CollectionType c) {
 		
-		qualifiedNameAggregationMap.containsKey(c.qualifiedAggregationName)
+		if(c.eContainer instanceof Type) {
+			
+			// Named type
+			qualifiedNameAggregationMap.containsKey(QualifiedName.create((c.eContainer as Type).name.toFirstUpper))
+		} else {
+			
+			// Inline aggregation
+			qualifiedNameAggregationMap.containsKey(c.qualifiedAggregationName)
+		}
 	}
 	
 	def dispatch boolean hasDelegate(Attribute a) {
@@ -122,29 +123,38 @@ class XcoreInfo {
 		qualifiedNameDelegateMap.containsKey(a)
 	}
 	
-
-	def String addNestedDelegate(CollectionType c) {
+	def String createNestedDelegate(CollectionType c) {
 	
-		val qn = c.qualifiedAggregationName
-		var nestedQN = qualifiedNameAggregationMap.get(qn)
-		if(null==nestedQN) { 
-		
-			if(c.nestedTypeAggregation) {
-								
-				nestedQN = qn.toString.toFirstUpper.replace('''[]''','''Array''')
-			} else {
-				
-				nestedQN = qn.toString.replace('.','_').toFirstUpper			
-			}
+		var QualifiedName qn 		
+		if(c.eContainer instanceof Type) {
+
+			qn = QualifiedName.create((c.eContainer as Type).name.toFirstUpper)			
+		} else {
 			
-			qualifiedNameAggregationMap.put( qn, nestedQN )			
-		}	
+			qn = c.qualifiedAggregationName
+		}
 		
-		nestedQN
+		if(qualifiedNameAggregationMap.containsKey(qn)) {
+			
+			return qualifiedNameAggregationMap.get(qn)
+		}
+		
+		var String nestedQN
+		if(c.typeAggregation) {
+					
+			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
+		} else {
+			
+			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''InList''')			
+		}
+		
+		qualifiedNameAggregationMap.put( qn, nestedQN )
+		
+		nestedQN			
 	}
 	
 	
-	def Delegate addDelegate(Attribute origin, String qualifiedName, Attribute target) {
+	def Delegate createDelegate(Attribute origin, String qualifiedName, Attribute target) {
 		
 		var set = qualifiedNameDelegateMap.get(origin)
  		if(null==set) {

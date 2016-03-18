@@ -42,23 +42,29 @@ class XcoreGenerator implements IGenerator {
 	
 	enum Options {
 		
-		SEPARATE_TYPEPACKAGE, COPYRIGHT_NOTICE, NS_URI, NS_PREFIX, 
-		ENABLE_CDO, PACKAGE, SOURCE_FOLDER, FORCE_UNIQUE_DELEGATES	
+		SEPARATE_TYPEPACKAGE, 
+		COPYRIGHT_NOTICE, 
+		NS_URI, 
+		NS_PREFIX, 
+		ENABLE_CDO, 
+		PACKAGE, 
+		SOURCE_FOLDER, 
+		FORCE_UNIQUE_DELEGATES	
 	}
 		
 	@Inject static Logger LOGGER
 		
-	@Inject extension IQualifiedNameProvider	
+	@Inject extension IQualifiedNameProvider nameProvider	
 	@Inject extension EXPRESSExtension	
 	
-	extension EXPRESSModelInfo modelInfo;
-	extension XcoreInfo xcoreInfo;
+	extension EXPRESSModelInfo modelInfo
+	extension XcoreInfo xcoreInfo
 	
-	@Inject EXPRESSInterpreter interpreter;
-	@Inject FunctionGenerator functionGenerator;
+	@Inject EXPRESSInterpreter interpreter
+	@Inject FunctionGenerator functionGenerator
 
 
-	static val PREFIX_DELEGATE = "Delegate";		
+	static val PREFIX_DELEGATE = "Delegate"		
 
 	// Second stage cache (any additional concept needed beside first stage)
 	//
@@ -80,6 +86,11 @@ class XcoreGenerator implements IGenerator {
 		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
 	}
 	
+	
+	def getInfo() {
+		
+		xcoreInfo
+	}
 	
 	
 	/**
@@ -291,7 +302,7 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence compileAnnotation(Entity e) {
 		
-		'''@XpressModel(name="«e.name»",kind="generated")'''
+		'''@XpressModel(name="«e.name»",kind="generated") '''
 	}
 	
 	def dispatch CharSequence compileAnnotation(Attribute a) {
@@ -418,8 +429,9 @@ class XcoreGenerator implements IGenerator {
 		  «FOR a : e.attribute
 		  	»«IF !a.derivedAttribute»
 		  	@GenModel(documentation="Attribute definition of «a.name»")
-		  	«a.compileAttribute
-		  	»«ENDIF
+		  	«a.compileAttribute»
+		  	
+		  	«ENDIF
 		  »«ENDFOR»
 		}
 		'''
@@ -430,7 +442,7 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def dispatch compileConcept(Type t) {
 		
-		switch(t) {
+		switch(t.datatype) {
 			
 			GenericType: {
 				// Wraps String						
@@ -465,8 +477,16 @@ class XcoreGenerator implements IGenerator {
 				'''							
 			}
 			
+			CollectionType: {
+				
+				'''// «t.name» is mapped to «(t.datatype as CollectionType).qualifiedName»
+				'''
+			}			
+			
 			default: {
 				
+				'''// FIXME «t.name»
+				'''				
 			}	
 		}		
 	}
@@ -510,18 +530,26 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def dispatch CharSequence qualifiedName(ReferenceType r) { 
 
-		val attribute = r.hostingAttribute	
-		val dataType = r.refersDatatype
-	
-		'''«IF r.referable»
-				«IF attribute.nonUniqueRelation || Options.FORCE_UNIQUE_DELEGATES.option
-					»«attribute.createDelegateQN
+		val attribute = r.hostAttribute	
+		
+		if(null!=attribute){
+			
+			// Hosted in relationship definition
+			'''«IF !r.builtinAlias»
+					«IF attribute.nonUniqueRelation || Options.FORCE_UNIQUE_DELEGATES.option
+						»«attribute.createDelegateQN
+					»«ELSE
+						»«r.instance.name.toFirstUpper
+					»«ENDIF
 				»«ELSE
-					»«r.instance.name.toFirstUpper
-				»«ENDIF
-			»«ELSE
-				»«dataType.qualifiedName
-			»«ENDIF»'''	
+					»«(r.instance as Type).datatype.qualifiedName 
+				»«ENDIF»'''				
+		} else {
+			
+			// Hosted reference in type definition
+			'''«IF r.isAggregation»
+				«(r.instance as Type).datatype.qualifiedName»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
+		}
 	}
 	
 	def dispatch CharSequence qualifiedName(BuiltInType b) { 
@@ -536,63 +564,64 @@ class XcoreGenerator implements IGenerator {
 	
 	}
 	
+	
 	def dispatch CharSequence qualifiedName(CollectionType c) {
 		
-		var CharSequence referredType 
+		// Generate nested class
+		if(c.hasDelegate) {
+			
+			return c.delegateQN+'''[]'''
+		}
 		
-		// If nested collection exists 
-		if(c.nestedAggregation) {
+		var CharSequence referredType
+		 			 
+		if(c.typeAggregation) {
 		
-			referredType = generateDelegateNestedCollector(c)
+			referredType = generateTypeAggregationWrapper(c)
 							
+		} else if(c.nestedAggregation){
+			
+			referredType = generateDelegateNestedCollector(c)+'''[]'''
+			
 		} else {
 			
 			referredType = c.type.qualifiedName+'''[]'''
 		}
 		
-		return referredType
+		referredType
 	}
 	
+	
+	def private String generateTypeAggregationWrapper(CollectionType c) {
 		
-	/**
-	 * Generates a nested inner delegate for the delegation of multi-dimensional references.
-	 */
-	def private String generateDelegateNestedCollector(CollectionType c) {
+		var typeWrapperName = c.createNestedDelegate
 		
-		// Generate nested class
-		if(c.hasDelegate) {
-			
-			return c.delegateQN
-		}
-		
-		val nestedTypeName = c.addNestedDelegate
-		if(c.nestedTypeAggregation) {
-			
-			secondStageCache +=
+		secondStageCache +=
 			'''
 			
-			@XpressModel(kind="new", pattern="nested")
-			type «nestedTypeName» wraps «c.qualifiedAggregationName»
+			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
+			type «typeWrapperName» wraps «c.qualifiedAggregationName.segments.join»
 			'''			
-			
-		} else {
+		
+		typeWrapperName
+	}
 
-			secondStageCache +=
+		
+	def private String generateDelegateNestedCollector(CollectionType c) {
+		
+		val nestedCollectorName = c.createNestedDelegate
+		secondStageCache +=
 			'''
 					
 			
-			@XpressModel(kind="new", pattern="nested")
-			class «nestedTypeName» {
+			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
+			class «nestedCollectorName» {
 				
-				«IF !c.type.builtinAlias
-					»«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«
-				ENDIF
-					»«c.type.qualifiedName» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+				«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«c.type.qualifiedName» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
 			}
-			'''								
-		}
-		
-		nestedTypeName
+			'''			
+								
+		nestedCollectorName
 	}
 
 	
@@ -613,7 +642,7 @@ class XcoreGenerator implements IGenerator {
 		'''
 		
 		@GenModel(documentation="Inverse delegation helper between «declaringEntity.name» and «inverseEntity.name»")
-		@XpressModel(kind="new"«IF hasInterface && inverse.select»,select="«declaringEntity.name»"«ENDIF»)
+		@XpressModel(kind="new", pattern="delegate"«IF hasInterface && inverse.select»,select="«declaringEntity.name»"«ENDIF»)
 		class «delegateName» «IF hasInterface»extends «delegateInterface»«ENDIF» {
 			«IF !hasInterface»
 			// Reference to «inverseEntity.name»
@@ -644,7 +673,7 @@ class XcoreGenerator implements IGenerator {
 		val delegateInterfaceName = PREFIX_DELEGATE + inverseConcept.name.toFirstUpper + targetConcept.name.toFirstUpper
 
 		// Map QN of inverse attribute
-		xcoreInfo.addDelegate(inverseAttribute, delegateInterfaceName, null)
+		xcoreInfo.createDelegate(inverseAttribute, delegateInterfaceName, null)
 
 		// Write to second stage cache				
 		secondStageCache +=
@@ -653,10 +682,14 @@ class XcoreGenerator implements IGenerator {
 		
 		@XpressModel(kind="new", pattern="delegate")
 		@GenModel(documentation="Delegation select of «targetConcept.name»")
-		interface «delegateInterfaceName» {
-			
-			// Reference template
-			op «IF a.supertypeOppositeDirectedRelation»«a.refersConcept.name.toFirstUpper»«ELSE»EObject«ENDIF» get«inverseAttribute.name.toFirstUpper»()
+		interface «delegateInterfaceName» {						
+			«IF inverseAttribute.supertypeOppositeDirectedRelation»
+				// Inverse super type
+				op «targetConcept.name.toFirstUpper» get«inverseAttribute.name.toFirstUpper»()«
+			ELSE»
+				// Inverse select branch
+				op EObject get «inverseAttribute.name.toFirstUpper»()«
+			ENDIF»
 			// Non-unique counter part, using concept QN as reference name
 			refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
 		}
@@ -666,7 +699,7 @@ class XcoreGenerator implements IGenerator {
 		for(Attribute ia : declaringInverseSet) {
 								
 			val delegateClass = generateDelegate(ia, inverseAttribute, delegateInterfaceName)
-			xcoreInfo.addDelegate(ia, delegateClass, inverseAttribute)
+			xcoreInfo.createDelegate(ia, delegateClass, inverseAttribute)
 		}
 	}
 	
@@ -679,7 +712,7 @@ class XcoreGenerator implements IGenerator {
 		
 		// Generate delegate without interface
 		val qnClassRef = generateDelegate(declaringInverse, declaringInverse.opposite, "")
-		xcoreInfo.addDelegate(declaringInverse, qnClassRef, declaringInverse.opposite)
+		xcoreInfo.createDelegate(declaringInverse, qnClassRef, declaringInverse.opposite)
 	}
 	
 	

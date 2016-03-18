@@ -11,31 +11,69 @@
 package de.bitub.step.analyzing
 
 import de.bitub.step.express.Attribute
-import de.bitub.step.express.CollectionType
+import de.bitub.step.express.BuiltInType
 import de.bitub.step.express.Entity
+import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
 import de.bitub.step.util.EXPRESSExtension
+import java.util.Set
 import javax.inject.Inject
 import org.apache.log4j.Logger
-import java.util.Set
-import de.bitub.step.express.ExpressConcept
-import de.bitub.step.express.BuiltInType
+import de.bitub.step.analyzing.EXPRESSModelInfo.ReducedSelect
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 class EXPRESSInterpreter {
 
-	@Inject extension EXPRESSExtension modelUtil
+	@Inject extension EXPRESSExtension modelExtension
+	
+	@Inject extension IQualifiedNameProvider nameProvider
 
 	val static Logger LOGGER = Logger.getLogger(EXPRESSInterpreter);
+	
+	/**
+	 * Computes the non-relational selects
+	 */
+	def processSelectReferences(EXPRESSModelInfo info, Schema schema) {
+		
+		LOGGER.info('''«schema.name»: Processing select reference check.''')
+		
+		for(Entity e : schema.entity) {
+			
+			e.attribute
+				.filter[type.refersDatatype instanceof SelectType && !info.isInverseRelation(it)]
+				.forEach[info.reducedSelectsMap.put(type.refersDatatype.eContainer as Type, newArrayList)]
+		}
+		
+		LOGGER.info('''«schema.name»: Processing select map-reduction.''')
+		
+		for(Type t : info.reducedSelectsMap.keySet) {
+			
+			for(ExpressConcept c : (t.datatype as SelectType).flattenSelect) {
+				
+				switch(c) {
+					
+					Entity: {
+					
+						info.reducedSelectsMap.get(t) += new ReducedSelect(c)	
+					}					
+					Type: {
+						
+						(c as Type).builtinAlias
+					}						
+				}	
+			}
+		}
+	} 
 	
 	/**
 	 * Computes flattened select type references as finite closure of referenced concepts. 
 	 */
 	def processSelectResolution(EXPRESSModelInfo info, Schema schema) {
 
-		LOGGER.info('''Processing select resolution of «schema.name».''')
+		LOGGER.info('''«schema.name»: Processing select resolution.''')
 
 		// Filter for simplified type selects
 		//
@@ -51,7 +89,7 @@ class EXPRESSInterpreter {
 	 */
 	def processRelations(EXPRESSModelInfo info, Schema schema) {
 		
-		LOGGER.info('''Processing inverse relationship mapping of «schema.name».''')
+		LOGGER.info('''«schema.name»: Processing inverse relationship mapping.''')
 		
 		for (Entity entity : schema.entity.filter[attribute.exists[opposite != null]]) {
 			
@@ -107,7 +145,7 @@ class EXPRESSInterpreter {
 	 */
 	def EXPRESSModelInfo process(Schema schema) {
 
-		var info = new EXPRESSModelInfo(schema)
+		var info = new EXPRESSModelInfo(schema,nameProvider)
 		
 		// Flatten selects
 		processSelectResolution(info, schema)
