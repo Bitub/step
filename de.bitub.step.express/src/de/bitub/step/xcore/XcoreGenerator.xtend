@@ -17,6 +17,7 @@ import de.bitub.step.analyzing.EXPRESSModelInfo
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.BuiltInType
 import de.bitub.step.express.CollectionType
+import de.bitub.step.express.DataType
 import de.bitub.step.express.Entity
 import de.bitub.step.express.EnumType
 import de.bitub.step.express.ExpressConcept
@@ -28,7 +29,6 @@ import de.bitub.step.express.Type
 import de.bitub.step.util.EXPRESSExtension
 import java.util.Date
 import java.util.Map
-import java.util.Set
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
@@ -115,7 +115,7 @@ class XcoreGenerator implements IGenerator {
 	
 	def private getOptionText(Options o) {
 		
-		if(options.containsKey(o)) options.get(o) as String else ""
+		if(options.containsKey(o)) options.get(o).toString as String else ""
 	}
 		
 	def private assembleXcoreHeader(Schema s) {
@@ -177,106 +177,6 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	
-
-	
-	/**
-	 * Check whether the collection types are identically.
-	 */
-	def static boolean isUniqueCollectionSelect(Iterable<CollectionType> aggregationTypes) {
-		
-		// Check unique aggregation type
-		//
-		if(aggregationTypes.map[name].toSet.size > 1) {			
-			return false
-		}
-		
-		val nonNullLowerBound = aggregationTypes.findFirst[lowerBound > 0];
-		
-		// If there any non-null lower bound
-		//
-		if(null!=nonNullLowerBound && aggregationTypes.filter[lowerBound != nonNullLowerBound.lowerBound ].size > 1) {
-			
-			// False, if there are multiple lower bounds
-			//
-			return false;
-		}
-
-		val nonNullUpperBound = aggregationTypes.findFirst[upperBound > 0]
-		
-		// If there any non-null upper bound
-		//
-		if(null!=nonNullLowerBound && aggregationTypes.filter[upperBound != nonNullUpperBound.upperBound ].size > 1) {
-			
-			// False if there are multiple upper bounds
-			//
-			return false;
-		}
-		
-		val nestedCollections = aggregationTypes.filter[it.type instanceof CollectionType];
-		
-		if(!nestedCollections.empty) {
-			
-			// If there are nested aggregations
-			//
-			if(nestedCollections.size < aggregationTypes.size) {
-		
-				return false			
-			} else {
-				
-				// Check nested aggregation
-				//
-				return isUniqueCollectionSelect(nestedCollections.map[type as CollectionType])
-			}
-		}
-				
-		val typeSet = aggregationTypes.map[it.type.eClass].toSet;
-		
-		if(typeSet.size>1) {			
-			return false
-		}
-		
-		// Check if concept
-		//
-		if(aggregationTypes.filter[it.type instanceof ExpressConcept].map[(it.type as ExpressConcept).name].toSet.size > 1) {
-			return false
-		}
-		
-		return true
-	}
-	
-	/**
-	 * Checks whether select is a unique alias select (only semantics changes)
-	 */
-	def static isUniqueAliasSelect(Set<ExpressConcept> selects) {
-		
-		// Filter for aggregations
-		//
-		val aggregationTypes = selects
-			.filter[it instanceof Type && (it as Type).datatype instanceof CollectionType]
-			.map[(it as Type).datatype as CollectionType];
-		
-		var isAggregationSelect = !aggregationTypes.empty
-		if(isAggregationSelect) {
-			if(!isUniqueCollectionSelect(aggregationTypes)) {
-				return false;
-			}			
-		}
-		
-		// Test for builtin selects
-		val builtinSelects = selects.filter[
-			it instanceof Type && (it as Type).datatype instanceof BuiltInType 
-		].map[(it as Type).datatype as BuiltInType]
-		
-		var isBuiltinSelect = !builtinSelects.empty;
-		if(isAggregationSelect && isBuiltinSelect) {
-			
-			return false;
-		
-		}		
-						
-	}
-	
-	
 	/**
 	 * Refers to itself. No substitution.
 	 */
@@ -300,6 +200,31 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	
+	def dispatch CharSequence compileAnnotation(DataType t) {
+		
+		if(t instanceof ReferenceType) {	
+			
+			val concept = (t as ReferenceType).instance
+			if(concept instanceof Type) {
+				
+				if((concept as Type).datatype.hasDelegate) {
+					
+					return '''@XpressModel(pattern="nested") '''
+				
+				}
+			}	
+		}
+			
+		if(t instanceof CollectionType) {
+			
+			if((t as CollectionType).hasDelegate) {
+				
+				return '''@XpressModel(pattern="nested") '''				
+			}
+		}
+	}
+	
+	
 	def dispatch CharSequence compileAnnotation(Entity e) {
 		
 		'''@XpressModel(name="«e.name»",kind="generated") '''
@@ -308,7 +233,7 @@ class XcoreGenerator implements IGenerator {
 	def dispatch CharSequence compileAnnotation(Attribute a) {
 		
 		var annotations = newArrayList
-		if(a.hasDelegate) {
+		if(a.hasDelegate || (a.type.hasDelegate)) {
 			annotations += '''pattern="delegate"''' 
 		}
 		if(a.select) {
@@ -479,8 +404,23 @@ class XcoreGenerator implements IGenerator {
 			
 			CollectionType: {
 				
-				'''// «t.name» is mapped to «(t.datatype as CollectionType).qualifiedName»
-				'''
+				if(t.datatype.referable) {
+					// If entity reference
+					val compiled = t.datatype.compileDatatype // Has to be done first
+					'''
+					
+					@GenModel(documentation="Type wrapper for «t.name»")
+					@XpressModel(name="«t.name»", kind="generated")
+					class «t.name» {
+					
+						«t.datatype.compileAnnotation»contains «compiled» «(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase»	
+					}
+					'''					
+				} else {
+					// If type wrapping reference
+					'''// «t.name» mapped to «t.datatype.qualifiedName»
+					'''
+				}
 			}			
 			
 			default: {
@@ -610,6 +550,7 @@ class XcoreGenerator implements IGenerator {
 	def private String generateDelegateNestedCollector(CollectionType c) {
 		
 		val nestedCollectorName = c.createNestedDelegate
+		val compiled = c.type.compileDatatype // Has to be done first
 		secondStageCache +=
 			'''
 					
@@ -617,7 +558,7 @@ class XcoreGenerator implements IGenerator {
 			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
 			class «nestedCollectorName» {
 				
-				«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«c.type.qualifiedName» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+				«c.type.compileAnnotation»«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«compiled» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
 			}
 			'''			
 								

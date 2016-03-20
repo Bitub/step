@@ -62,12 +62,18 @@ abstract class AbstractXcoreGeneratorTest {
 	 */	
 	def generateXCore(CharSequence schema) {
 		
-		val model = generateEXPRESS(schema) 
+		val model = generateEXPRESS(schema)
+		generator.options.put(XcoreGenerator.Options.PACKAGE, '''tests.xcore.«model.name.toFirstLower»''') 
 		val xcoreModel = generator.compileSchema(model)
 		
-		writeToWorkspace(model.name+".xcore", xcoreModel)
+		saveXcore(model.name, xcoreModel)
 		
 		return xcoreModel		
+	}
+	
+	def saveXcore(String name, CharSequence xcoreModel) {
+		
+		writeToWorkspace(name+".xcore", xcoreModel)
 	}
 	
 	/**

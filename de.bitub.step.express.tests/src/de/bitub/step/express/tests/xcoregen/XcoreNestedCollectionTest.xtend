@@ -63,20 +63,27 @@ class XcoreNestedCollectionTest extends AbstractXcoreGeneratorTest {
     def void testInfoNestedCollection() {
     	
     	val model = generateEXPRESS(schema)
+    	val xcore = generator.compileSchema(model)
     	val info = testInterpreter.process(model)
     	
     	val list1D = model.type.findFirst[name == "EntityList1D"]
+    	val list1Dcol = list1D.datatype as CollectionType
     	val list2D = model.type.findFirst[name == "EntityList2D"]
+    	val list2Dcol = list2D.datatype as CollectionType
     	val list3D = model.type.findFirst[name == "EntityList3D"]
+    	val list3Dcol = list3D.datatype as CollectionType
     	    	
     	assertTrue(!(list1D.datatype as CollectionType).nestedAggregation)
-    	assertEquals("EntityB[]",  info.getQualifiedAggregationName(list1D.datatype as CollectionType).segments.join);
+    	assertEquals("EntityB[]",  info.getQualifiedAggregationName(list1Dcol).segments.join);
     	
     	assertTrue((list2D.datatype as CollectionType).nestedAggregation)
-    	assertEquals("EntityB[][]",  info.getQualifiedAggregationName(list2D.datatype as CollectionType).segments.join);
+    	assertEquals("EntityB[][]",  info.getQualifiedAggregationName(list2Dcol).segments.join);
+    	
+    	val qn = generator.qualifiedName(list2Dcol)
+    	//assertEquals("", qn)
     	
     	assertTrue((list3D.datatype as CollectionType).nestedAggregation)
-    	assertEquals("EntityB[][][]",  info.getQualifiedAggregationName(list3D.datatype as CollectionType).segments.join);
+    	assertEquals("EntityB[][][]",  info.getQualifiedAggregationName(list3Dcol).segments.join);
     }
     
     @Test

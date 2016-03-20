@@ -20,6 +20,7 @@ import de.bitub.step.util.EXPRESSExtension
 import java.util.Set
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.naming.QualifiedName
+import de.bitub.step.express.ReferenceType
 
 class XcoreInfo {
 
@@ -79,15 +80,8 @@ class XcoreInfo {
 		
 	def String getDelegateQN(CollectionType c) {
 				
-		if(c.eContainer instanceof Type) {
-			
-			// Named type
-			qualifiedNameAggregationMap.get(QualifiedName.create((c.eContainer as Type).name.toFirstUpper))
-		} else {
-			
-			// Inline aggregation
-			qualifiedNameAggregationMap.get(c.qualifiedAggregationName)
-		}
+		// Inline aggregation
+		qualifiedNameAggregationMap.get(c.qualifiedAggregationName)
 	}
 	
 	def Set<Delegate> getDelegates(Attribute a) {
@@ -105,17 +99,26 @@ class XcoreInfo {
 		false
 	}
 	
+	
+	def dispatch boolean hasDelegate(ReferenceType r) {
+				
+		switch(r.instance) {
+			
+			Type: {
+			
+				val type = r.instance as Type
+				type.aggregation &&	type.datatype.hasDelegate				
+			}
+			
+			default:
+				false
+		}
+	}
+	
 	def dispatch boolean hasDelegate(CollectionType c) {
 		
-		if(c.eContainer instanceof Type) {
-			
-			// Named type
-			qualifiedNameAggregationMap.containsKey(QualifiedName.create((c.eContainer as Type).name.toFirstUpper))
-		} else {
-			
-			// Inline aggregation
-			qualifiedNameAggregationMap.containsKey(c.qualifiedAggregationName)
-		}
+		// Inline aggregation
+		qualifiedNameAggregationMap.containsKey(c.qualifiedAggregationName)
 	}
 	
 	def dispatch boolean hasDelegate(Attribute a) {
@@ -125,14 +128,7 @@ class XcoreInfo {
 	
 	def String createNestedDelegate(CollectionType c) {
 	
-		var QualifiedName qn 		
-		if(c.eContainer instanceof Type) {
-
-			qn = QualifiedName.create((c.eContainer as Type).name.toFirstUpper)			
-		} else {
-			
-			qn = c.qualifiedAggregationName
-		}
+		var QualifiedName qn = c.qualifiedAggregationName
 		
 		if(qualifiedNameAggregationMap.containsKey(qn)) {
 			
@@ -145,7 +141,7 @@ class XcoreInfo {
 			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
 		} else {
 			
-			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''InList''')			
+			nestedQN = qn.skipLast(1).segments.join.toFirstUpper.replace('''[]''','''InList''')			
 		}
 		
 		qualifiedNameAggregationMap.put( qn, nestedQN )
