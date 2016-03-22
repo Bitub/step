@@ -80,7 +80,6 @@ class EXPRESSExtension {
 		
 		false
 	}
-	
 
 	/**
 	 * Get the antity container for the given attribute.
@@ -88,6 +87,11 @@ class EXPRESSExtension {
 	def getHostEntity(Attribute attribute) {
 		
 		attribute.getContainerOfType(typeof(Entity))
+	}
+	
+	def getExplicitAttribute(Entity entity){
+		
+		entity.attribute.filter[it.expression == null && it.opposite == null]
 	}
 
 	/**

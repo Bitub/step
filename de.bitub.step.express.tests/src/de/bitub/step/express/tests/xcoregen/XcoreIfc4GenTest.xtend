@@ -24,7 +24,7 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
     @Test
     def void testRunIfc4Conversion() {
     	
-    	val ifc4stream = class.classLoader.getResourceAsStream("de/bitub/step/express/tests/xcoregen/IFC4.exp")
+    	val ifc4stream = class.classLoader.getResourceAsStream("de/bitub/step/express/tests/xcoregen/IFC4_ADD1.exp")
     	val ifc4Schema = readModel(ifc4stream)
     	
 //    	val Resource resource = resourceSet.getResource(

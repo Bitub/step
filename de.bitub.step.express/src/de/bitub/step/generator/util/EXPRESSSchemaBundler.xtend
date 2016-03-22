@@ -98,20 +98,20 @@ class EXPRESSSchemaBundler {
 			//
 			// (Entity) -[INVERSE]-> (Entity)
 			//
-			EXPRESSExtension.getDeclaringInverseAttribute(it).forEach [
-				val to = graph.getById(EXPRESSExtension.containingEntity(it.opposite).name)
+			it.getDeclaringInverseAttribute.forEach [
+				val to = graph.getById(it.opposite.hostEntity.name)
 				from.createEdgeWithName(to, EdgeTypeEnum.INVERSE, it.name)
 			]
 			//
 			// (Entity) -[ATTR]-> (Entity/Select/Enumeration)
 			//
-			EXPRESSExtension.getExplicitAttribute(it).forEach [
+			it.getExplicitAttribute.forEach [
 				from.createTypedEdge(EdgeTypeEnum.ATTRIBUTE).apply(it)
 			]
 			//
 			// (Entity) -[DERIVED]-> (Entity/Select/Enumeration)
 			//
-			EXPRESSExtension.getDerivedAttribute(it).forEach [
+			it.getDerivedAttribute.forEach [
 				from.createTypedEdge(EdgeTypeEnum.DERIVED).apply(it)
 			]
 		]
@@ -202,7 +202,7 @@ class EXPRESSSchemaBundler {
 	}
 
 	def inverseEntities(Entity entity) {
-		Lists.newArrayList(EXPRESSExtension.getDeclaringInverseAttribute(entity).map[it.opposite.eContainer as Entity]) as List<Entity>
+		Lists.newArrayList(entity.getDeclaringInverseAttribute.map[it.opposite.eContainer as Entity]) as List<Entity>
 	}
 
 	def inverseEntitiesInInheritanceChain(Entity entity) {
