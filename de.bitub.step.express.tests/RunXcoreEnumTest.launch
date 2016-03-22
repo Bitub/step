@@ -7,7 +7,7 @@
 <stringAttribute key="bootstrap" value=""/>
 <stringAttribute key="checked" value="[NONE]"/>
 <booleanAttribute key="clearConfig" value="true"/>
-<booleanAttribute key="clearws" value="true"/>
+<booleanAttribute key="clearws" value="false"/>
 <booleanAttribute key="clearwslog" value="false"/>
 <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/pde-junit"/>
 <booleanAttribute key="default" value="false"/>
@@ -20,7 +20,7 @@
 <setAttribute key="name.schedenig.eclipse.grepconsole.StatisticsDisabledIds"/>
 <setAttribute key="name.schedenig.eclipse.grepconsole.StatisticsEnabledIds"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/de.bitub.step.express.tests/xtend-gen/de/bitub/step/express/tests/xcoregen/XCoreInverseRelationshipTest.java"/>
+<listEntry value="/de.bitub.step.express.tests/xtend-gen/de/bitub/step/express/tests/xcoregen/XcoreEnumTest.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
@@ -30,7 +30,7 @@
 <stringAttribute key="org.eclipse.jdt.junit.TESTNAME" value=""/>
 <stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit4"/>
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="de.bitub.step.express.tests.xcoregen.XCoreInverseRelationshipTest"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="de.bitub.step.express.tests.xcoregen.XcoreEnumTest"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -Dosgi.requiredJavaVersion=1.8 -consoleLog"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="de.bitub.step.express.tests"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>

@@ -24,7 +24,7 @@ import de.bitub.step.xcore.XcoreGenerator;
  */
 public class EXPRESSRuntimeModule extends de.bitub.step.AbstractEXPRESSRuntimeModule
 {
-
+  
   /**
    * Overwrite DI bindings from EXPRESSgenerator to Xcoregenerator.
    */
@@ -33,4 +33,5 @@ public class EXPRESSRuntimeModule extends de.bitub.step.AbstractEXPRESSRuntimeMo
   {
     return XcoreGenerator.class;
   }
+   
 }

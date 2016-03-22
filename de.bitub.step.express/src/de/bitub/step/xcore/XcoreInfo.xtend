@@ -1,22 +1,32 @@
+/* 
+ * Copyright (c) 2015,2016  Bernold Kraft and others (Berlin, Germany).
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *  Bernold Kraft - initial implementation and initial documentation
+ */
+
 package de.bitub.step.xcore
 
-import de.bitub.step.express.Attribute
 import de.bitub.step.analyzing.EXPRESSModelInfo
-import java.util.Set
-import de.bitub.step.util.EXPRESSExtension
-import javax.inject.Inject
+import de.bitub.step.express.Attribute
+import de.bitub.step.express.CollectionType
 import de.bitub.step.express.Entity
+import de.bitub.step.express.Type
+import de.bitub.step.util.EXPRESSExtension
+import java.util.Set
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.naming.QualifiedName
+import de.bitub.step.express.ReferenceType
 
 class XcoreInfo {
 
-	/**
-	 * The associated EXPRESS model info.
-	 */
-	val public extension EXPRESSModelInfo modelInfo;
+	val private extension EXPRESSModelInfo modelInfo
 	
-	@Inject extension EXPRESSExtension
-	
+	val private extension EXPRESSExtension modelExtension
 	
 	/**
 	 * A delegate reference.
@@ -44,11 +54,12 @@ class XcoreInfo {
 	/**
 	 * Nested aggregation as qualified name to Xcore class name.
 	 */
-	val public qualifiedNameAggregationMap = <String, String>newHashMap
+	val public qualifiedNameAggregationMap = <QualifiedName, String>newHashMap
 	
 	
 	new (EXPRESSModelInfo info) {
-		modelInfo = info
+		this.modelInfo = info
+		this.modelExtension =  new EXPRESSExtension
 	}
 	
 	def int getCountOfDelegate() {
@@ -66,9 +77,11 @@ class XcoreInfo {
 		qualifiedNameAggregationMap.size
 	}
 	
-	def String getDelegateQN(QualifiedName qn) {
 		
-		qualifiedNameAggregationMap.get(qn.toString)
+	def String getDelegateQN(CollectionType c) {
+				
+		// Inline aggregation
+		qualifiedNameAggregationMap.get(c.qualifiedAggregationName)
 	}
 	
 	def Set<Delegate> getDelegates(Attribute a) {
@@ -81,29 +94,63 @@ class XcoreInfo {
 		qualifiedNameDelegateMap.get(a)?.findFirst[targetAttribute == b].qualifiedName
 	}
 	
-	def boolean hasDelegate(QualifiedName qn) {
+	def dispatch boolean hasDelegate(EObject o) {
 		
-		qualifiedNameAggregationMap.containsKey(qn.toString)
+		false
 	}
 	
-	def boolean hasDelegate(Attribute a) {
+	
+	def dispatch boolean hasDelegate(ReferenceType r) {
+				
+		switch(r.instance) {
+			
+			Type: {
+			
+				val type = r.instance as Type
+				type.aggregation &&	type.datatype.hasDelegate				
+			}
+			
+			default:
+				false
+		}
+	}
+	
+	def dispatch boolean hasDelegate(CollectionType c) {
+		
+		// Inline aggregation
+		qualifiedNameAggregationMap.containsKey(c.qualifiedAggregationName)
+	}
+	
+	def dispatch boolean hasDelegate(Attribute a) {
 		
 		qualifiedNameDelegateMap.containsKey(a)
 	}
-
-	def String addNestedDelegate(QualifiedName qn) {
 	
-		var nestedQN = qualifiedNameAggregationMap.get(qn.toString)
-		if(null==nestedQN) { 
-			
-			nestedQN = qn.toString.replace('.','_').toFirstUpper
-			qualifiedNameAggregationMap.put( qn.toString, nestedQN )			
-		}	
+	def String createNestedDelegate(CollectionType c) {
+	
+		var QualifiedName qn = c.qualifiedAggregationName
 		
-		nestedQN
+		if(qualifiedNameAggregationMap.containsKey(qn)) {
+			
+			return qualifiedNameAggregationMap.get(qn)
+		}
+		
+		var String nestedQN
+		if(c.typeAggregation) {
+					
+			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
+		} else {
+			
+			nestedQN = qn.skipLast(1).segments.join.toFirstUpper.replace('''[]''','''InList''')			
+		}
+		
+		qualifiedNameAggregationMap.put( qn, nestedQN )
+		
+		nestedQN			
 	}
 	
-	def Delegate addDelegate(Attribute origin, String qualifiedName, Attribute target) {
+	
+	def Delegate createDelegate(Attribute origin, String qualifiedName, Attribute target) {
 		
 		var set = qualifiedNameDelegateMap.get(origin)
  		if(null==set) {
@@ -181,13 +228,9 @@ class XcoreInfo {
 		} else {
 			
 			// non-delegate
-			a.refersConcept.name
+			a.refersConcept?.name
 		}
 	}
 		
-	def String getAggregationQN() {
-		
-	}
-	
 		
 }

@@ -1,41 +1,55 @@
+/* 
+ * Copyright (c) 2015,2016  Bernold Kraft and others (Berlin, Germany).
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *  Bernold Kraft, Sebastian Riemschüssel - initial implementation and initial documentation
+ */
 package de.bitub.step.express.tests.xcoregen
 
+import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
+import de.bitub.step.express.CollectionType
+import de.bitub.step.util.EXPRESSExtension
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import static org.junit.Assert.*
+import de.bitub.step.analyzing.EXPRESSInterpreter
+
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
 class XcoreNestedCollectionTest extends AbstractXcoreGeneratorTest {
 		
-    
-    @Test
-    def void testNestedCollection() {
-    	
-    	val model =
+	@Inject extension EXPRESSExtension
+	@Inject EXPRESSInterpreter testInterpreter
+		
+   	val schema =
     		'''
     		SCHEMA XCoreNestedCollectionsTest;
     		
-    		TYPE TypeWithNestedPrimitive = LIST [0:?] OF LIST [0:?] OF INTEGER;
-    		END_TYPE;
-
-    		TYPE TypeWithEntityList = LIST [0:?] OF EntityB;
+    		TYPE EntityList1D = LIST [0:?] OF EntityB;
     		END_TYPE;
     		
-    		TYPE TypeWithNestedEntityList = LIST [0:?] OF LIST [0:?] OF EntityB;
+    		TYPE EntityList2D = LIST [0:?] OF LIST [0:?] OF EntityB;
     		END_TYPE;
     		
-    		TYPE TypeWithNestedNestedEntityList = LIST [0:?] OF LIST [0:?] OF LIST[0:?] OF EntityB;
+    		
+    		TYPE EntityList3D = LIST [0:?] OF LIST [0:?] OF LIST[0:?] OF EntityB;
     		END_TYPE;    		
     		
     		
-    		ENTITY EntityA;
-    		  NestedPrimitiveList : TypeWithNestedPrimitive;
-    		  EntityList : TypeWithEntityList;
-    		  NestedEntityList : TypeWithNestedEntityList;
-    		  NestedNestedEntityList : TypeWithNestedNestedEntityList;
+    		ENTITY EntityA;    		  
+    		  List : LIST [0:?] OF EntityB;
+    		  
+    		  ListOfList : EntityList2D;
+    		  ListOfListOfList : EntityList3D;
+    		  
     		  InlineNestedEntityList : LIST[0:?] OF LIST[0:?] OF EntityB;
     		END_ENTITY;
     		
@@ -44,8 +58,38 @@ class XcoreNestedCollectionTest extends AbstractXcoreGeneratorTest {
     		  
     		END_SCHEMA;
     		'''
-    		
-		val xcore = generateXCore(model)
-		validateXCore(xcore)    		
+    
+    @Test
+    def void testInfoNestedCollection() {
+    	
+    	val model = generateEXPRESS(schema)
+    	val xcore = generator.compileSchema(model)
+    	val info = testInterpreter.process(model)
+    	
+    	val list1D = model.type.findFirst[name == "EntityList1D"]
+    	val list1Dcol = list1D.datatype as CollectionType
+    	val list2D = model.type.findFirst[name == "EntityList2D"]
+    	val list2Dcol = list2D.datatype as CollectionType
+    	val list3D = model.type.findFirst[name == "EntityList3D"]
+    	val list3Dcol = list3D.datatype as CollectionType
+    	    	
+    	assertTrue(!(list1D.datatype as CollectionType).nestedAggregation)
+    	assertEquals("EntityB[]",  info.getQualifiedAggregationName(list1Dcol).segments.join);
+    	
+    	assertTrue((list2D.datatype as CollectionType).nestedAggregation)
+    	assertEquals("EntityB[][]",  info.getQualifiedAggregationName(list2Dcol).segments.join);
+    	
+    	val qn = generator.qualifiedName(list2Dcol)
+    	//assertEquals("", qn)
+    	
+    	assertTrue((list3D.datatype as CollectionType).nestedAggregation)
+    	assertEquals("EntityB[][][]",  info.getQualifiedAggregationName(list3Dcol).segments.join);
+    }
+    
+    @Test
+    def void testNestedCollection() {
+    	    		
+		val xcore = generateXCore(schema)
+		validateXCore(xcore)
     } 
 }
