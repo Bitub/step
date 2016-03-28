@@ -14,9 +14,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.MathContext;
 import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -102,9 +101,36 @@ public class P21LoadImpl implements P21Load
 
       long start = System.currentTimeMillis();
       System.out.println("Start ...");
+
       br.lines().filter(P21LoadImpl::startsWithEntityId).collect(Collectors.toList()).forEach(line -> parse(line, listener));
+
       System.out.println("Finished in " + (System.currentTimeMillis() - start) + " ms");
       resource.getContents().add(listener.data());
+    }
+  }
+
+  public final void processLineByLine(InputStream inputStream) throws IOException
+  {
+    try (Scanner scanner = new Scanner(inputStream)) {
+      while (scanner.hasNextLine()) {
+        processLine(scanner.nextLine());
+      }
+    }
+  }
+
+  protected void processLine(String aLine)
+  {
+    //use a second Scanner to parse the content of each line 
+    try (Scanner scanner = new Scanner(aLine)) {
+      scanner.useDelimiter("=");
+      if (scanner.hasNext()) {
+        //assumes the line has a certain structure
+        String name = scanner.next();
+        String value = scanner.next();
+        System.out.println("Name is : " + name.trim() + ", and Value is : " + value.trim());
+      } else {
+        System.out.println("Empty or invalid line. Unable to process.");
+      }
     }
   }
 
@@ -166,6 +192,5 @@ public class P21LoadImpl implements P21Load
 
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(listener, tree);
-//    }
   }
 }
