@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="mvdxml" nsURI="http://buildingsmart-tech.org/mvdXML/mvdXML1-1"
-    nsPrefix="mvdxml">
+    nsPrefix="">
   <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
     <details key="documentation" value="Change Log: &#xA;&#x9;&#x9;&#x9;&#x9;1.1 release candidate&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;schema extensions&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;EntityRule.References.Template - new element that allows to reference other templates as partial templates, it allows to reuse common, smaller ConceptTemplate definitions&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;EntityRule.References.Template.@ref - reference to the partial template by uuid&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;EntityRule.References.@IdPrefix - an optional prefix for the RuleId name, used to prevent ambiguous RuleId's, if the same partial template is referenced twice in a concept template tree&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Concept.TemplateRules - new element and tree structure to define a logical tree (with boolean operators) to combine several template rules&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;ConceptRoot.Applicability - new element to check, whether the instance of the applicableRootEntity is applicable, allows for more conditions (like certain property values)&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;@applicableSchema - defined as extensible enumeration of standard IFC schema identifiers.&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;schema changes - strict version: removed, transitional version: deprecated &#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;AbstractRule - abstract element and conceptType removed, attributes moved to AttributeRule and EntityRule&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;ConceptTemplate.Rules - restricted to AttributeRule, was an agreement in V1.0, now enforced by schema&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;AttributeRule.@Cardinality - removed/deprecated: this attribute shall not be used to improse a restriction on the cardinality, restrictions are all handled by template rules&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;EntityRule.@Cardinality - removed/deprecated: this attribute shall not be used to improse a restriction on the cardinality, restrictions are all handled by template rules&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;EntityRule.EntityRules - removed/deprecated: There is no usage for an EntityRule to directly contain other EntityRules, without an intermediate AttributeRules&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;RootConcept.Requirements - removed/deprecated: requirements are only valid for concepts, not for a root concept&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Concept.Rules  - removed/deprecated: AttributeRules and EntityRules at this level are not legal, replaces by TemplateRules that only allow TemplateRule, and boolean logic&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Concept.SubConcepts - removed/deprecated: the inclusion of SubConcepts has no functionality so far, in order to reduce complexity it should not be used, concepts should be flat&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Concept.Rules - removed/deprecated: the old Rules structure did not allow for logical combinations of individual rules, it was not defined, what boolean logic should be applied to more than one rule&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Cardinaltity - simple type removed/deprecated, not used any more in AttributeRule or EntityRule&#xA;&#x9;&#x9;&#x9;&#x9;1.1 draft:&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;schema improvements:&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- new complex type GenericReference (used by ModelView and Concept)&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- simplified definition of EntityRule and TemplateRule&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- definition of applicability attribute changed for ExchangeRequirement and Requirement  &#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- minOccurs changed from 1 to 0 for ModelView.Roots and mvdXML.Templates &#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- maxOccurs added to several definitions, mainly for clarification &#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- definition and use of applicability (was xs:attribute now xs:simpleType)&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- ConceptTemplate.applicableSchema changed to a list of String types&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;schema extensions:&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- cardinality attribute of AttributeRule and EntityRule extended to support definition of any min and max settings &#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- baseConcept and override attribute added to Concept to reference the &quot;supertype&quot; concept&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;- tags attribute added to Definitions&#xA;&#x9;&#x9;&#x9;&#x9;1.0: first published release&#xA;&#x9;&#x9;"/>
   </eAnnotations>
@@ -1545,20 +1545,6 @@
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="attribute"/>
         <details key="name" value="Parameters"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ruleID" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//NormalizedString">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="attribute"/>
-        <details key="name" value="RuleID"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="references" lowerBound="1"
-        eType="#//References">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="References"/>
-        <details key="namespace" value="##targetNamespace"/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>

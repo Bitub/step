@@ -269,8 +269,6 @@
     <genClasses ecoreClass="mvdXML.ecore#//TemplateRuleType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRuleType/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRuleType/parameters"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRuleType/ruleID"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference mvdXML.ecore#//TemplateRuleType/references"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//TemplatesType">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//TemplatesType/conceptTemplate"/>

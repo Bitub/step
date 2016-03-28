@@ -30,26 +30,11 @@ public class ExtendedDefaultTerminalConverters extends DefaultTerminalConverters
     return normalizedStringValueConverter;
   }
 
-//  @Inject
-//  private MvdNameValueConverter mvdNameValueConverter;
-//
-//  @ValueConverter(rule = "MVD_NAME")
-//  public IValueConverter<String> MvdName()
-//  {
-//    return mvdNameValueConverter;
-//  }
-
   @Inject
   private STRINGValueConverter stringValueConverter;
 
   @ValueConverter(rule = "SchemaName")
   public IValueConverter<String> SchemaName()
-  {
-    return stringValueConverter;
-  }
-
-  @ValueConverter(rule = "STRING0")
-  public IValueConverter<String> String0()
   {
     return stringValueConverter;
   }

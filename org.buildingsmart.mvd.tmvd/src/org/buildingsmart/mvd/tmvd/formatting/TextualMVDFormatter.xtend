@@ -21,6 +21,23 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 	@Inject extension TextualMVDGrammarAccess
 
 	override protected configureFormatting(FormattingConfig c) {
+
+		mvdXMLAccess.configureFormatting(c)
+
+		conceptTemplateAccess.configureFormatting(c)
+
+		for (pair : findKeywordPairs('@UUID(', ')')) {
+			c.setIndentation(pair.first, pair.second)
+			c.setNoSpace().after(pair.first)
+			c.setLinewrap(1).after(pair.second)
+		}
+
+		for (pair : findKeywordPairs('[', ']')) {
+			c.setIndentation(pair.first, pair.second)
+			c.setLinewrap(1).after(pair.first)
+			c.setLinewrap(1).before(pair.second)
+			c.setLinewrap(1).after(pair.second)
+		}
 		for (pair : findKeywordPairs('{', '}')) {
 			c.setIndentation(pair.first, pair.second)
 			c.setLinewrap(1).after(pair.first)
@@ -40,5 +57,16 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 		c.setLinewrap(0, 1, 2).before(SL_COMMENTRule)
 		c.setLinewrap(0, 1, 2).before(ML_COMMENTRule)
 		c.setLinewrap(0, 1, 1).after(ML_COMMENTRule)
+	}
+
+	def dispatch configureFormatting(TextualMVDGrammarAccess.MvdXMLElements mvd, FormattingConfig c) {
+		c.setLinewrap.before(mvd.authorKeyword_0_0)
+		c.setLinewrap.before(mvd.versionKeyword_5_0)
+		c.setLinewrap(2).before(mvd.mvdKeyword_6)
+	}
+
+	def dispatch configureFormatting(TextualMVDGrammarAccess.ConceptTemplateElements ct, FormattingConfig c) {
+		c.setLinewrap.before(ct.applicableSchemaKeyword_7)
+		c.setLinewrap(1).before(ct.conceptTemplateKeyword_3)
 	}
 }

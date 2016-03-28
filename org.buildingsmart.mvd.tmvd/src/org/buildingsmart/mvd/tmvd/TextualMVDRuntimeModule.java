@@ -4,7 +4,9 @@
 package org.buildingsmart.mvd.tmvd;
 
 import org.buildingsmart.mvd.tmvd.converter.ExtendedDefaultTerminalConverters;
+import org.buildingsmart.mvd.tmvd.generator.MvdOutputConfigurationProvider;
 import org.eclipse.xtext.conversion.IValueConverterService;
+import org.eclipse.xtext.generator.IOutputConfigurationProvider;
 
 /**
  * Use this class to register components to be used at runtime / without the
@@ -18,4 +20,10 @@ public class TextualMVDRuntimeModule extends org.buildingsmart.mvd.tmvd.Abstract
   {
     return ExtendedDefaultTerminalConverters.class;
   }
+
+  public Class<? extends IOutputConfigurationProvider> bindIOutputConfigurationProvider()
+  {
+    return MvdOutputConfigurationProvider.class;
+  }
+
 }

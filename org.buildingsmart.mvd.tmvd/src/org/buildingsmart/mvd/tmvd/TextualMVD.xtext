@@ -23,20 +23,11 @@ TemplatesType returns TemplatesType:
 ViewsType returns ViewsType:
 	'[' modelView+=ModelView ("," modelView+=ModelView)* ']';
 
-terminal NORMALIZED_STRING returns type::NormalizedString:
-	STRING;
-
-terminal MVD_NAME returns type::NormalizedString:
-	ID;
-
 AnyURI returns type::AnyURI:
 	'AnyURI' STRING /* TODO: implement this rule and an appropriate IValueConverter */;
 
-enum StatusType returns StatusType:
-	sample='sample' | proposal='proposal' | draft='draft' | candidate='candidate' | final='final' |
-	deprecated='deprecated' | noStatus='noStatus';
-
 ConceptTemplate returns ConceptTemplate:
+	'@UUID(' uuid=UUID ')'
 	'ConceptTemplate' name=ID
 	'{'
 	('applicableEntity' applicableEntity=ApplicableEntityType)?
@@ -47,7 +38,6 @@ ConceptTemplate returns ConceptTemplate:
 	('isPartial' isPartial=Boolean)?
 	('owner' owner=NORMALIZED_STRING)?
 	('status' status=StatusType)?
-	'uuid' uuid=UUID
 	('version' version=NORMALIZED_STRING)?
 	('definitions' definitions=Definitions)?
 	('rules' rules=RulesType)?
@@ -61,9 +51,8 @@ Definitions returns Definitions:
 	'}';
 
 RulesType returns RulesType:
-	'RulesType'
 	'{'
-	'attributes' '{' attributeRule+=AttributeRule ("," attributeRule+=AttributeRule)* '}'
+	'attributes' '[' attributeRule+=AttributeRule ("," attributeRule+=AttributeRule)* ']'
 	'}';
 
 SubTemplatesType returns SubTemplatesType:
@@ -72,7 +61,7 @@ SubTemplatesType returns SubTemplatesType:
 	']';
 
 ApplicableEntityType returns ApplicableEntityType:
-	'ApplicableEntityType' /* TODO: implement this rule and an appropriate IValueConverter */;
+	ID;
 
 ApplicableSchemaType returns ApplicableSchemaType:
 	'IFC4' | 'IFC2X3';
@@ -92,9 +81,9 @@ BodyType returns BodyType:
 	{BodyType}
 	'BodyType'
 	'{'
-	('value' value=String0)?
+	('value' value=STRING0)?
 	('lang' lang=LANGUAGE)?
-	('tags' tags=TagsType)?
+	('tags' tags=TAGS_TYPE)?
 	'}';
 
 LinkType returns LinkType:
@@ -106,24 +95,11 @@ LinkType returns LinkType:
 	('title' title=NORMALIZED_STRING)?
 	'}';
 
-String0 returns type::String:
-	ID;
-
-LANGUAGE returns type::Language:
-	STRING;
-
-TagsType returns TagsType:
-	STRING;
-
-enum CategoryType returns CategoryType:
-	definition='definition' | agreement='agreement' | diagram='diagram' | instantiation='instantiation' |
-	example='example';
-
 AttributeRule returns AttributeRule:
-	'AttributeRule' attributeName=String0
+	'AttributeRule' attributeName=ID
 	'{'
-	('description' description=String0)?
-	('ruleID' ruleID=NORMALIZED_STRING)?
+	('description' description=STRING0)?
+	('ruleID' ruleID=ID)?
 	('cardinality' cardinality=CardinalityType)?
 	('entities' entityRules=EntityRulesType)?
 	('constraints' constraints=ConstraintsType)?
@@ -134,20 +110,20 @@ EntityRulesType returns EntityRulesType:
 	'[' entityRule+=EntityRule ("," entityRule+=EntityRule)* ']';
 
 EntityRule returns EntityRule:
-	'EntityRule' entityName=String0
+	'EntityRule' entityName=ID
 	'{'
-	('references' references=ReferencesType)?
-	'attributes' attributeRules=AttributeRulesType
+	('reference' references=ReferencesType)?
+	('attributes' attributeRules=AttributeRulesType)?
 	('constraints' constraints=ConstraintsType)?
-	('description' description=String0)?
+	('description' description=STRING0)?
 	('ruleID' ruleID=NORMALIZED_STRING)?
 	('cardinality' cardinality=CardinalityType)?
 	'}';
 
 ReferencesType:
 	'{'
-	template=GenericReference
-	idPrefix=NORMALIZED_STRING
+	'template' template=GenericReference
+	('prefix' idPrefix=NORMALIZED_STRING)?
 	'}';
 
 AttributeRulesType returns AttributeRulesType:
@@ -159,20 +135,15 @@ ConstraintsType returns ConstraintsType:
 	{ConstraintsType}
 	'ConstraintsType';
 
-enum CardinalityType returns CardinalityType:
-	asSchema='asSchema' | Zero='Zero' | ZeroToOne='ZeroToOne' | One='One' | OneToMany='OneToMany';
-
 ModelView returns ModelView:
-	'ModelView'
+	'ModelView' name=ID 'uuid' uuid=UUID
 	'{'
 	'applicableSchema' applicableSchema=SCHEMA_NAME
 	('author' author=NORMALIZED_STRING)?
 	('code' code=NORMALIZED_STRING)?
 	('copyright' copyright=AnyURI)?
-	'name' name=NORMALIZED_STRING
 	('owner' owner=NORMALIZED_STRING)?
 	('status' status=StatusType)?
-	'uuid' uuid=UUID
 	('version' version=NORMALIZED_STRING)?
 	('definitions' definitions=Definitions)?
 	('baseView' baseView=GenericReference)?
@@ -188,21 +159,15 @@ GenericReference returns GenericReference:
 	'}';
 
 ExchangeRequirementsType returns ExchangeRequirementsType:
-	'{'
-	'exchangeRequirement' '{' exchangeRequirement+=ExchangeRequirementType (","
-	exchangeRequirement+=ExchangeRequirementType)* '}'
-	'}';
+	'[' exchangeRequirement+=ExchangeRequirementType ("," exchangeRequirement+=ExchangeRequirementType)* ']';
 
 RootsType returns RootsType:
 	'{'
 	'conceptRoot' '{' conceptRoot+=ConceptRoot ("," conceptRoot+=ConceptRoot)* '}'
 	'}';
 
-terminal SCHEMA_NAME returns SchemaName:
-	'IFC2X2FINAL' | 'IFC2X3' | 'IFC2XFINAL' | 'IFC4';
-
 ExchangeRequirementType returns ExchangeRequirementType:
-	'ExchangeRequirementType' name=NORMALIZED_STRING
+	'ExchangeRequirementType' name=NORMALIZED_STRING 'uuid' uuid=UUID
 	'{'
 	('applicability' applicability=Applicability)?
 	('author' author=NORMALIZED_STRING)?
@@ -210,18 +175,14 @@ ExchangeRequirementType returns ExchangeRequirementType:
 	('copyright' copyright=AnyURI)?
 	('owner' owner=NORMALIZED_STRING)?
 	('status' status=StatusType)?
-	'uuid' uuid=UUID
 	('version' version=NORMALIZED_STRING)?
 	('definitions' definitions=Definitions)?
 	'}';
 
-enum Applicability returns Applicability:
-	export='export' | ^import='import' | both='both';
-
 ConceptRoot returns ConceptRoot:
 	'ConceptRoot' name=NORMALIZED_STRING
 	'{'
-	('applicableRootEntity' applicableRootEntity=NORMALIZED_STRING)?
+	('applicableRootEntity' applicableRootEntity=ID)?
 	('author' author=NORMALIZED_STRING)?
 	('code' code=NORMALIZED_STRING)?
 	('copyright' copyright=AnyURI)?
@@ -243,20 +204,23 @@ ApplicabilityType returns ApplicabilityType:
 	'}';
 
 ConceptsType returns ConceptsType:
-	'{'
-	'concept' '{' concept+=Concept ("," concept+=Concept)* '}'
-	'}';
+	'[' concept+=Concept ("," concept+=Concept)* ']';
 
 TemplateRules returns TemplateRules:
 	{TemplateRules}
 	'TemplateRules'
 	'{'
-	('description' description=String0)?
-	('operator' operator=OperatorType)?
+	('description' description=STRING0)?
+	('operator' operator=OperatorType)? // recursive definition of TemplateRules
+	('templateRules' '[' templateRules+=TemplateRules (',' templateRules+=TemplateRules)* ']')?
+	('templateRule' '[' templateRule+=TemplateRuleType (',' templateRule+=TemplateRuleType)* ']')?
 	'}';
 
-enum OperatorType returns OperatorType:
-	and='and' | or='or' | not='not' | nand='nand' | nor='nor' | xor='xor' | nxor='nxor';
+TemplateRuleType returns TemplateRuleType:
+	'TemplateRule' '{'
+	('description' description=STRING)?
+	'parameters' parameters=STRING
+	'}';
 
 Concept returns Concept:
 	'Concept' name=NORMALIZED_STRING
@@ -271,29 +235,60 @@ Concept returns Concept:
 	'uuid' uuid=UUID
 	('version' version=NORMALIZED_STRING)?
 	('definitions' definitions=Definitions)?
-	'templateRef' template=GenericReference
+	'template' template=GenericReference
 	('requirements' requirements=Requirements)?
 	'templateRules' templateRules=TemplateRules
 	'}';
 
 Requirements returns Requirements:
-	'Requirements'
-	'{'
-	'requirement' '{' requirement+=Requirement ("," requirement+=Requirement)* '}'
-	'}';
+	'[' requirement+=Requirement ("," requirement+=Requirement)* ']';
 
 Requirement returns Requirement:
-	'Requirement'
+	requirement=RequirementType 'Requirement'
 	'{'
-	('value' value=String0)?
+	('value' value=STRING0)?
 	('applicability' applicability=Applicability)?
 	'exchangeRequirement' exchangeRequirement=UUID
-	'requirement' requirement=RequirementType
 	'}';
+
+enum CardinalityType returns CardinalityType:
+	asSchema='asSchema' | Zero='Zero' | ZeroToOne='ZeroToOne' | One='One' | OneToMany='OneToMany';
+
+enum Applicability returns Applicability:
+	export='export' | ^import='import' | both='both';
 
 enum RequirementType returns RequirementType:
 	mandatory='mandatory' | recommended='recommended' | notRelevant='notRelevant' | notRecommended='notRecommended' |
 	excluded='excluded' | optional='optional';
+
+enum OperatorType returns OperatorType:
+	and='and' | or='or' | not='not' | nand='nand' | nor='nor' | xor='xor' | nxor='nxor';
+
+enum CategoryType returns CategoryType:
+	definition='definition' | agreement='agreement' | diagram='diagram' | instantiation='instantiation' |
+	example='example';
+
+enum StatusType returns StatusType:
+	sample='sample' | proposal='proposal' | draft='draft' | candidate='candidate' | final='final' |
+	deprecated='deprecated' | noStatus='noStatus';
+
+NORMALIZED_STRING returns type::NormalizedString:
+	STRING;
+
+MVD_NAME returns type::NormalizedString:
+	ID;
+
+STRING0 returns type::String:
+	ID;
+
+LANGUAGE returns type::Language:
+	STRING;
+
+TAGS_TYPE returns TagsType:
+	STRING;
+
+SCHEMA_NAME returns SchemaName:
+	'IFC4' | 'IFC2X3';
 
 terminal UUID returns type::NormalizedString:
 	HEX_OCTED_4 "-" HEX_OCTED_2 "-" HEX_OCTED_2 "-" HEX_OCTED HEX_OCTED "-" HEX_OCTED_6;

@@ -4,19 +4,17 @@
 package org.buildingsmart.mvd.tmvd.generator
 
 import java.io.IOException
-import java.util.Collections
+import java.util.HashMap
 import org.buildingsmart.mvd.mvdxml.MvdXML
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
+import org.eclipse.emf.ecore.xmi.XMLResource
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
-import java.util.Collection
-import java.util.Map
-import java.util.HashMap
-import org.eclipse.emf.ecore.xmi.XMLResource
+import org.eclipse.emf.ecore.util.BasicExtendedMetaData
 
 /**
  * Generates code from your model files on save.
@@ -50,6 +48,12 @@ class TextualMVDGenerator implements IGenerator {
 		//
 		resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("mvdxml", new XMLResourceFactoryImpl());
 
+		// enable extended metadata
+		//
+		resSet.getLoadOptions().put(XMLResource.OPTION_EXTENDED_META_DATA, Boolean.TRUE);
+		resSet.getLoadOptions().put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.TRUE);
+		resSet.getLoadOptions().put(XMLResource.OPTION_USE_LEXICAL_HANDLER, Boolean.TRUE);
+
 		// Get the resource
 		//
 		val resource = resSet.createResource(URI.createPlatformResourceURI(fileName, true));
@@ -58,6 +62,9 @@ class TextualMVDGenerator implements IGenerator {
 		// Save the contents of the resource to the file system.
 		val options = new HashMap<String, Object>();
 		options.put(XMLResource.OPTION_ENCODING, "UTF8");
+		options.put(XMLResource.OPTION_EXTENDED_META_DATA, Boolean.TRUE);
+		options.put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.TRUE);
+		options.put(XMLResource.OPTION_SCHEMA_LOCATION, Boolean.TRUE);
 
 		try {
 			resource.save(options);
