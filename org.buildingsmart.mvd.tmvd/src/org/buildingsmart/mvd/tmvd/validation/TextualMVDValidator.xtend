@@ -3,7 +3,9 @@
  */
 package org.buildingsmart.mvd.tmvd.validation
 
-//import org.eclipse.xtext.validation.Check
+import org.eclipse.xtext.validation.Check
+import org.buildingsmart.mvd.mvdxml.MvdXmlPackage
+import org.buildingsmart.mvd.mvdxml.ConceptTemplate
 
 /**
  * This class contains custom validation rules. 
@@ -12,14 +14,22 @@ package org.buildingsmart.mvd.tmvd.validation
  */
 class TextualMVDValidator extends AbstractTextualMVDValidator {
 
-//  public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					MyDslPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
+	public static val INVALID_NAME = 'invalidName'
+	public static val NO_UUID = 'noUuid'
+
+	@Check
+	def checkConceptTemplateNameStartsWithCapitalLetter(ConceptTemplate conceptTemplate) {
+		if (!Character.isUpperCase(conceptTemplate.name.charAt(0))) {
+			warning('Name should start with a capital', MvdXmlPackage::eINSTANCE.conceptTemplate_Name,
+				conceptTemplate.name, INVALID_NAME)
+		}
+	}
+
+	@Check
+	def checkConceptLetterHasUUID(ConceptTemplate conceptTemplate) {
+		if (conceptTemplate.uuid == null) {
+			warning('ConceptTemplate should have UUID defined', MvdXmlPackage::eINSTANCE.conceptTemplate_Uuid,
+				conceptTemplate.uuid, NO_UUID)
+		}
+	}
 }

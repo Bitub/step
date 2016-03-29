@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mvdXML xmlns="http://buildingsmart-tech.org/mvdXML/mvdXML1-1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="" uuid="00000000-0000-0000-0000-000000000000">
+  <Templates>
+    <ConceptTemplate applicableEntity="IfcObject" applicableSchema="IFC4" name="SinglePropertyValue" uuid="3bc6f595-3304-49d3-a790-f113c9af9f3a">
+      <Rules>
+        <AttributeRule AttributeName="IsDefinedBy">
+          <EntityRules>
+            <EntityRule EntityName="IfcRelDefinesByProperties">
+              <AttributeRules>
+                <AttributeRule AttributeName="RelatingPropertyDefinition">
+                  <EntityRules>
+                    <EntityRule EntityName="IfcPropertySet">
+                      <AttributeRules>
+                        <AttributeRule AttributeName="HasProperties">
+                          <EntityRules>
+                            <EntityRule EntityName="IfcPropertySingleValue">
+                              <AttributeRules>
+                                <AttributeRule AttributeName="Name" RuleID="PropertyName"/>
+                                <AttributeRule AttributeName="NominalValue"/>
+                                <AttributeRule AttributeName="Unit"/>
+                              </AttributeRules>
+                            </EntityRule>
+                          </EntityRules>
+                        </AttributeRule>
+                      </AttributeRules>
+                    </EntityRule>
+                  </EntityRules>
+                </AttributeRule>
+              </AttributeRules>
+            </EntityRule>
+          </EntityRules>
+        </AttributeRule>
+      </Rules>
+    </ConceptTemplate>
+  </Templates>
+  <Views>
+    <ModelView applicableSchema="IFC4" name="ModelViewExample" uuid="117cf270-2a23-4965-b115-970599d52d7e">
+      <ExchangeRequirements>
+        <ExchangeRequirement applicability="both" name="ExchangeRequirementExample" uuid="f38446c1-d44a-45ab-b690-81611b509b11"/>
+      </ExchangeRequirements>
+      <Roots>
+        <ConceptRoot applicableRootEntity="IfcDoor" name="" uuid="046e4f94-a0a6-4c19-8dee-91d3a8d58727">
+          <Concepts>
+            <Concept name="SinglePropertyValue" override="false" uuid="fbb17b6e-192d-4d45-8439-0bde3918b95b">
+              <Template ref="3bc6f595-3304-49d3-a790-f113c9af9f3a"/>
+              <Requirements>
+                <Requirement applicability="import" exchangeRequirement="f38446c1-d44a-45ab-b690-81611b509b11" requirement="mandatory"></Requirement>
+              </Requirements>
+              <TemplateRules>
+                <TemplateRule Parameters="PropertyName=SelfClosing;"/>
+              </TemplateRules>
+            </Concept>
+          </Concepts>
+        </ConceptRoot>
+      </Roots>
+    </ModelView>
+  </Views>
+</mvdXML>

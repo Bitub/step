@@ -19,7 +19,7 @@ public class UUIDValueConverter implements IValueConverter<UUID>
       return UUID.fromString(string);
     }
     catch (IllegalArgumentException e) {
-      throw new ValueConverterException("Couldn't convert " + string + " to an UUID value.", node, null);
+      throw new ValueConverterException("Couldn't convert " + string + " to an UUID value.", node, e);
     }
   }
 

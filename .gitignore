@@ -50,3 +50,4 @@ org.buildingsmart.mvd.tmvd/src-gen/
 org.buildingsmart.mvd.tmvd.ui/src-gen/
 org.buildingsmart.mvd.tmvd.ui/xtend-gen/
 org.buildingsmart.mvd.tmvd.tests/src-gen/
+org.buildingsmart.mvd.tmvd.tests/xtend-gen/

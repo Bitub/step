@@ -3,6 +3,13 @@
  */
 package org.buildingsmart.mvd.tmvd.scoping
 
+import org.buildingsmart.mvd.mvdxml.ConceptTemplate
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.scoping.Scopes
+import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
+
 /**
  * This class contains custom scoping description.
  * 
@@ -10,6 +17,20 @@ package org.buildingsmart.mvd.tmvd.scoping
  * on how and when to use it.
  *
  */
-class TextualMVDScopeProvider extends org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider {
+class TextualMVDScopeProvider extends AbstractDeclarativeScopeProvider {
+
+	override getScope(EObject context, EReference reference) {
+		switch (context) {
+			case ConceptTemplate: {
+
+				// Collect a list of candidates by going through the model
+				val rootElement = EcoreUtil2.getRootContainer(context)
+				val candidates = EcoreUtil2.getAllContentsOfType(rootElement, ConceptTemplate)
+				return Scopes.scopeFor(candidates)
+
+			}
+		}
+		return super.getScope(context, reference);
+	}
 
 }

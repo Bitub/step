@@ -3,11 +3,55 @@
  */
 package org.buildingsmart.mvd.tmvd.ui.contentassist
 
-import org.buildingsmart.mvd.tmvd.ui.contentassist.AbstractTextualMVDProposalProvider
+import java.util.UUID
+import org.buildingsmart.mvd.mvdxml.ConceptTemplate
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.Assignment
+import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.RuleCall
+import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
+import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
+import org.buildingsmart.mvd.mvdxml.Concept
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
  * on how to customize the content assistant.
  */
 class TextualMVDProposalProvider extends AbstractTextualMVDProposalProvider {
+
+	override complete_UUID(EObject model, RuleCall ruleCall, ContentAssistContext context,
+		ICompletionProposalAcceptor acceptor) {
+
+		val uuid = UUID.randomUUID.toString
+		acceptor.accept(createCompletionProposal(uuid, "new UUID", null, context))
+	}
+
+	/**
+	 * Template [ref] -> ConceptTemplate [uuid]
+	 */
+	override completeGenericReference_Ref(EObject model, Assignment assignment, ContentAssistContext context,
+		ICompletionProposalAcceptor acceptor) {
+
+		val root = EcoreUtil2.getRootContainer(model)
+		EcoreUtil2.eAllOfType(root, ConceptTemplate).forEach [
+			acceptor.accept(
+				createCompletionProposal(it.uuid, String.format("[ConceptTemplate] %s : %s", it.name, it.uuid), null,
+					context))
+		];
+	}
+
+	/**
+	 * Concept [baseConcept] -> Concept [uuid]
+	 */
+	override completeConcept_BaseConcept(EObject model, Assignment assignment, ContentAssistContext context,
+		ICompletionProposalAcceptor acceptor) {
+
+		val root = EcoreUtil2.getRootContainer(model)
+		EcoreUtil2.eAllOfType(root, Concept).filter[it === model].forEach [
+			acceptor.accept(
+				createCompletionProposal(it.uuid, String.format("[Concept] %s : %s", it.name, it.uuid), null,
+					context))
+		];
+	}
+
 }

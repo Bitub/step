@@ -4,9 +4,9 @@
 package org.buildingsmart.mvd.tmvd.formatting
 
 import com.google.inject.Inject
+import org.buildingsmart.mvd.tmvd.services.TextualMVDGrammarAccess
 import org.eclipse.xtext.formatting.impl.AbstractDeclarativeFormatter
 import org.eclipse.xtext.formatting.impl.FormattingConfig
-import org.buildingsmart.mvd.tmvd.services.TextualMVDGrammarAccess
 
 /**
  * This class contains custom formatting declarations.
@@ -18,17 +18,62 @@ import org.buildingsmart.mvd.tmvd.services.TextualMVDGrammarAccess
  */
 public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 
-	@Inject extension TextualMVDGrammarAccess
+	@Inject extension TextualMVDGrammarAccess g
+
+	val attributes = newArrayList("applicableEntity", "applicableRootEntity", "applicableSchema", "exchangeRequirements",
+		"rules", "ruleID", "concepts", "entity", "attr", "override", "template", "applicability", "exchangeRequirement",
+		"description", "parameters")
 
 	override protected configureFormatting(FormattingConfig c) {
 
-		mvdXMLAccess.configureFormatting(c)
+		// set a maximum size of lines
+		c.setAutoLinewrap(160);
 
+		// set a line wrap after each AttributeRule
+		c.setLinewrap().after(g.attributeRuleRule);
+
+		// set space between every ConceptRule and ModelView
+		c.setLinewrap(2).after(g.conceptTemplateRule);
+		c.setLinewrap(2).after(g.modelViewRule);
+
+		// set an empty line between a mvd declaration a set of mvd properties
+		c.setLinewrap(2).between(g.mvdXMLAccess.nameAssignment_8, g.mvdXMLAccess.versionAssignment_5_1);
+		c.setLinewrap(2).between(g.mvdXMLAccess.templatesAssignment_10_3, g.mvdXMLAccess.viewsAssignment_11_3);
+
+		// no space between name and colon
+		c.setNoSpace.between(g.conceptTemplateAccess.nameAssignment_4, g.conceptTemplateAccess.colonKeyword_5)
+		c.setNoSpace.between(g.modelViewAccess.nameAssignment_4, g.modelViewAccess.colonKeyword_5)
+		c.setNoSpace.between(g.conceptRootAccess.nameAssignment_4, g.conceptRootAccess.colonKeyword_5)
+		c.setNoSpace.between(g.conceptAccess.nameAssignment_4, g.conceptAccess.colonKeyword_5)
+
+		mvdXMLAccess.configureFormatting(c)
 		conceptTemplateAccess.configureFormatting(c)
 
-		for (pair : findKeywordPairs('@UUID(', ')')) {
-			c.setIndentation(pair.first, pair.second)
+		for (pair : findKeywordPairs('(', ')')) {
+			c.setNoSpace().before(pair.first)
 			c.setNoSpace().after(pair.first)
+			c.setNoSpace().before(pair.second)
+			c.setLinewrap(1).after(pair.second)
+		}
+
+		for (pair : findKeywordPairs('attr', 'end')) {
+			c.setIndentation(pair.first, pair.second)
+			c.setNoLinewrap.after(pair.first)
+			c.setLinewrap(1).before(pair.second)
+			c.setLinewrap(1).after(pair.second)
+		}
+
+		for (pair : findKeywordPairs('entity', 'end')) {
+			c.setIndentation(pair.first, pair.second)
+			c.setNoLinewrap.after(pair.first)
+			c.setLinewrap(1).before(pair.second)
+			c.setLinewrap(1).after(pair.second)
+		}
+
+		for (pair : findKeywordPairs('def', 'end')) {
+			c.setIndentation(pair.first, pair.second)
+			c.setNoLinewrap.after(pair.first)
+			c.setLinewrap(1).before(pair.second)
 			c.setLinewrap(1).after(pair.second)
 		}
 
@@ -54,6 +99,13 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 			c.setNoSpace().before(comma)
 			c.setLinewrap().after(comma)
 		}
+
+		for (uuid : findKeywords('@UUID')) {
+			c.setLinewrap(2).before(uuid)
+		}
+		for (keyword : findKeywords(attributes)) {
+			c.setLinewrap(1).before(keyword)
+		}
 		c.setLinewrap(0, 1, 2).before(SL_COMMENTRule)
 		c.setLinewrap(0, 1, 2).before(ML_COMMENTRule)
 		c.setLinewrap(0, 1, 1).after(ML_COMMENTRule)
@@ -62,11 +114,10 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 	def dispatch configureFormatting(TextualMVDGrammarAccess.MvdXMLElements mvd, FormattingConfig c) {
 		c.setLinewrap.before(mvd.authorKeyword_0_0)
 		c.setLinewrap.before(mvd.versionKeyword_5_0)
-		c.setLinewrap(2).before(mvd.mvdKeyword_6)
 	}
 
 	def dispatch configureFormatting(TextualMVDGrammarAccess.ConceptTemplateElements ct, FormattingConfig c) {
-		c.setLinewrap.before(ct.applicableSchemaKeyword_7)
-		c.setLinewrap(1).before(ct.conceptTemplateKeyword_3)
+		//		c.setLinewrap.before(ct.applicableSchemaKeyword_7)
+		//		c.setLinewrap(1).before(ct.conceptTemplateKeyword_3)
 	}
 }
