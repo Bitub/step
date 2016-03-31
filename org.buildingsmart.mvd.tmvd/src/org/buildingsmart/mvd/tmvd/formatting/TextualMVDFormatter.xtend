@@ -83,17 +83,20 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 			c.setLinewrap(1).before(pair.second)
 			c.setLinewrap(1).after(pair.second)
 		}
+
 		for (pair : findKeywordPairs('{', '}')) {
 			c.setIndentation(pair.first, pair.second)
 			c.setLinewrap(1).after(pair.first)
 			c.setLinewrap(1).before(pair.second)
 			c.setLinewrap(1).after(pair.second)
 		}
+
 		for (semicolon : findKeywords(';')) {
 			c.setNoLinewrap().before(semicolon)
 			c.setNoSpace().before(semicolon)
 			c.setLinewrap(2).after(semicolon)
 		}
+
 		for (comma : findKeywords(',')) {
 			c.setNoLinewrap().before(comma)
 			c.setNoSpace().before(comma)
@@ -103,9 +106,11 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 		for (uuid : findKeywords('@UUID')) {
 			c.setLinewrap(2).before(uuid)
 		}
+
 		for (keyword : findKeywords(attributes)) {
 			c.setLinewrap(1).before(keyword)
 		}
+
 		c.setLinewrap(0, 1, 2).before(SL_COMMENTRule)
 		c.setLinewrap(0, 1, 2).before(ML_COMMENTRule)
 		c.setLinewrap(0, 1, 1).after(ML_COMMENTRule)
@@ -117,7 +122,7 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 	}
 
 	def dispatch configureFormatting(TextualMVDGrammarAccess.ConceptTemplateElements ct, FormattingConfig c) {
-		//		c.setLinewrap.before(ct.applicableSchemaKeyword_7)
-		//		c.setLinewrap(1).before(ct.conceptTemplateKeyword_3)
+		c.setLinewrap.before(ct.applicableSchemaKeyword_10)
+		c.setLinewrap(1).before(ct.conceptTemplateKeyword_6)
 	}
 }

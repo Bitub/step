@@ -93,7 +93,7 @@ LinkType returns LinkType:
 	'}';
 
 AttributeRule returns AttributeRule:
-	'attr' attributeName=ID
+	'attr' name=ID
 	('description' description=STRING0)?
 	('ruleID' ruleID=ID)?
 	('cardinality' cardinality=CardinalityType)?
@@ -106,7 +106,7 @@ EntityRulesType returns EntityRulesType:
 	entityRule+=EntityRule ("," entityRule+=EntityRule)*;
 
 EntityRule returns EntityRule:
-	'entity' entityName=ID
+	'entity' name=ID
 	('reference' references=ReferencesType)?
 	(attributeRules=AttributeRulesType)?
 	('constraints' constraints=ConstraintsType)?
@@ -148,10 +148,14 @@ ModelView returns ModelView:
 
 GenericReference returns GenericReference:
 	{GenericReference}
-	'{'
+	('href' href=AnyURI)? |
+	{GenericReference}
+	('ref' ref=[ConceptTemplate|UUID])?;
+
+ConceptToTemplateReference returns GenericReference:
+	{GenericReference}
 	('href' href=AnyURI)?
-	('ref' ref=UUID)?
-	'}';
+	('ref' ref=[ConceptTemplate|UUID])?;
 
 ExchangeRequirementsType returns ExchangeRequirementsType:
 	'[' exchangeRequirement+=ExchangeRequirementType ("," exchangeRequirement+=ExchangeRequirementType)* ']';
@@ -190,7 +194,7 @@ ConceptRoot returns ConceptRoot:
 	']';
 
 ApplicabilityType returns ApplicabilityType:
-	'ApplicabilityType'
+	'Applicability'
 	'{'
 	('definitions' definitions=Definitions)?
 	'template' template=GenericReference
@@ -284,7 +288,7 @@ TAGS_TYPE returns TagsType:
 SCHEMA_NAME returns SchemaName:
 	'IFC4' | 'IFC2X3';
 
-terminal UUID returns type::NormalizedString:
+terminal UUID:
 	HEX_OCTED_4 "-" HEX_OCTED_2 "-" HEX_OCTED_2 "-" HEX_OCTED HEX_OCTED "-" HEX_OCTED_6;
 
 terminal HEX_OCTED_6:

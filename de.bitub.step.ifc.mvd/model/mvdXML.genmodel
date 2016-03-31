@@ -82,7 +82,7 @@
     <genClasses ecoreClass="mvdXML.ecore#//AttributeRule">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//AttributeRule/entityRules"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//AttributeRule/constraints"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/attributeName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/ruleID"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/cardinality"/>
@@ -177,7 +177,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//EntityRule/attributeRules"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//EntityRule/constraints"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/description"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/entityName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/ruleID"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/cardinality"/>
     </genClasses>
@@ -202,7 +202,7 @@
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//GenericReference">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//GenericReference/href"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//GenericReference/ref"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//GenericReference/ref"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//LinkType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//LinkType/category"/>

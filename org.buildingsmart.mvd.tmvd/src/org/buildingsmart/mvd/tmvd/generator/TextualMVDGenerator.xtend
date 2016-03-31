@@ -3,9 +3,11 @@
  */
 package org.buildingsmart.mvd.tmvd.generator
 
+import com.google.inject.Inject
 import java.io.IOException
 import java.util.HashMap
 import org.buildingsmart.mvd.mvdxml.MvdXML
+import org.buildingsmart.mvd.tmvd.util.IOHelper
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
@@ -14,7 +16,6 @@ import org.eclipse.emf.ecore.xmi.XMLResource
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.emf.ecore.util.BasicExtendedMetaData
 
 /**
  * Generates code from your model files on save.
@@ -23,19 +24,15 @@ import org.eclipse.emf.ecore.util.BasicExtendedMetaData
  */
 class TextualMVDGenerator implements IGenerator {
 
+	@Inject extension IOHelper
+
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
 		val mvdXML = resource.allContents.findFirst[e|e instanceof MvdXML] as MvdXML;
 
-		//		mvdXML.storeAsXMI("/src-gen/" + mvdXML.name + ".mvdxml")
-		System::out.println("/src-gen/" + mvdXML.name.sanitizeMvdName + ".mvdxml" + " " + resource.toString)
+		System::out.println("/src-gen/" + mvdXML.name + ".mvdxml" + " " + resource.toString)
 
-		mvdXML.storeAsXMI("door.self.closing/src-gen/" + mvdXML.name + ".mvdxml")
-
-	}
-
-	def sanitizeMvdName(String name) {
-		name.substring(1, name.length - 1)
+		mvdXML.storeAsMVDXML("door.self.closing/src-gen/" + mvdXML.name + ".mvdxml")
 	}
 
 	def storeAsXMI(EObject eObject, String fileName) {
