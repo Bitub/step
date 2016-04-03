@@ -63,7 +63,7 @@ abstract class AbstractXcoreGeneratorTest {
 	def generateXCore(CharSequence schema) {
 		
 		val model = generateEXPRESS(schema)
-		generator.options.put(XcoreGenerator.Options.PACKAGE, '''tests.xcore.«model.name.toFirstLower»''') 
+		generator.options.put(XcoreGenerator.Options.PACKAGE, '''tests.xcore.«model.name.toLowerCase»''') 
 		val xcoreModel = generator.compileSchema(model)
 		
 		saveXcore(model.name, xcoreModel)
