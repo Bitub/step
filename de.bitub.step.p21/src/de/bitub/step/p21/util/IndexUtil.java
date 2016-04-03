@@ -1,55 +1,15 @@
 package de.bitub.step.p21.util;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-
-public class IndexUtil
+public interface IndexUtil
 {
-  Deque<Integer> indexStack = new ArrayDeque<Integer>();
 
-  private int curIndex = -1;
-  private int upperIndex = -1;
+  void levelDown();
 
-  public void levelUp()
-  {
-    // restore old index from parent parameter list
-    //
-    curIndex = indexStack.isEmpty() ? -1 : indexStack.pop();
-  }
+  void levelUp();
 
-  public void up()
-  {
-    curIndex++;
-  }
+  void up();
 
-  private boolean isEntityLevel()
-  {
-    return curIndex == -1;
-  }
+  int current();
 
-  public void levelDown()
-  {
-    if (!isEntityLevel()) {
-      rememberLevelIndex();
-    }
-
-    curIndex = 0;
-  }
-
-  public void rememberLevelIndex()
-  {
-    indexStack.push(curIndex);
-    upperIndex = curIndex;
-  }
-
-  public int upper()
-  {
-    return upperIndex;
-  }
-
-  public int current()
-  {
-    return curIndex;
-  }
-
+  int upper();
 }

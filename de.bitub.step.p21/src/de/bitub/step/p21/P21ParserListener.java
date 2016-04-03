@@ -40,8 +40,7 @@ import de.bitub.step.p21.StepParser.TypedContext;
 import de.bitub.step.p21.StepParser.UntypedContext;
 import de.bitub.step.p21.header.Header;
 import de.bitub.step.p21.mapper.StepToModel;
-import de.bitub.step.p21.mapper.StepToModelImpl;
-import de.bitub.step.p21.util.IndexUtil;
+import de.bitub.step.p21.util.IndexUtilImpl;
 import de.bitub.step.p21.util.LoggerHelper;
 import de.bitub.step.p21.util.StepUntypedToEcore;
 import de.bitub.step.p21.util.XPressModel;
@@ -81,7 +80,7 @@ public class P21ParserListener extends StepParserBaseListener implements StepPar
 
   // save the index for the current parameter in parameterList, stack value if goiing deeper
   //
-  private IndexUtil index = new IndexUtil();
+  private IndexUtilImpl index = new IndexUtilImpl();
 
   private Mode mode = Mode.DATA;
   public Header header = null;

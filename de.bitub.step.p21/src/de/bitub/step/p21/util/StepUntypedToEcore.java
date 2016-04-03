@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -138,6 +139,21 @@ public class StepUntypedToEcore
     }
     catch (NumberFormatException exception) {
       LOGGER.warning(exception.getMessage());
+    }
+  }
+
+  public static void eEnum(int index, EObject eObject, String literal)
+  {
+    EStructuralFeature eStructuralFeature = XPressModel.p21FeatureBy(eObject, index);
+
+    if (eStructuralFeature instanceof EAttribute) {
+
+      EDataType eDataType = ((EAttribute) eStructuralFeature).getEAttributeType();
+      Object created = EcoreUtil.createFromString(eDataType, literal);
+
+      if (created != null) {
+        eObject.eSet(eStructuralFeature, created);
+      }
     }
   }
 

@@ -14,7 +14,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -28,13 +37,26 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EFactory;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import de.bitub.step.p21.P21EntityListener;
+import de.bitub.step.p21.P21ParserListener;
 import de.bitub.step.p21.StepLexer;
 import de.bitub.step.p21.StepParser;
-import de.bitub.step.p21.mapper.StepToModel;
-import de.bitub.step.p21.mapper.StepToModelImpl;
+import de.bitub.step.p21.concurrrent.P21DataLineRunnable;
+import de.bitub.step.p21.di.P21Module;
+import de.bitub.step.p21.mapper.NameToClassifierMap;
+import de.bitub.step.p21.mapper.NameToClassifierMapImpl;
+import de.bitub.step.p21.mapper.NameToContainerListsMap;
+import de.bitub.step.p21.mapper.NameToContainerListsMapImpl;
+import de.bitub.step.p21.util.LoggerHelper;
+import de.bitub.step.p21.util.P21Index;
+import de.bitub.step.p21.util.P21IndexImpl.IdStructuralFeaturePair;
 
 /**
  * <!-- begin-user-doc -->
@@ -45,6 +67,8 @@ import de.bitub.step.p21.mapper.StepToModelImpl;
  */
 public class P21LoadImpl implements P21Load
 {
+  private static final Logger LOGGER = LoggerHelper.init(Level.SEVERE, P21LoadImpl.class);
+
   protected P21Resource resource;
   protected InputStream inputStream;
   protected P21Helper helper;
@@ -76,37 +100,106 @@ public class P21LoadImpl implements P21Load
     this.inputStream = inputStream;
     this.options = options;
 
-    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-
     EPackage ePackage = (EPackage) options.get("ePackage");
 
-    StepToModel stepToModel = new StepToModelImpl(ePackage.getEFactoryInstance(), (EClass) ePackage.getEClassifiers().get(1));
-    de.bitub.step.p21.P21ParserListener listener = new de.bitub.step.p21.P21ParserListener(stepToModel);
+//    StepToModel stepToModel = new StepToModelImpl(ePackage.getEFactoryInstance(), (EClass) ePackage.getEClassifiers().get(1));
+//    de.bitub.step.p21.P21ParserListener listener = new de.bitub.step.p21.P21ParserListener(stepToModel);
 
-    String line = "";
-    boolean isDataSection = false;
+    Injector injector = Guice.createInjector(new P21Module());
 
-    while ((line = br.readLine()) != null) {
-      //do something with line
+    ExecutorService executor = Executors.newFixedThreadPool(10);
+    List<P21DataLineRunnable> tasks = new ArrayList<>();
+    NameToClassifierMap nameToClassifierMap = new NameToClassifierMapImpl(ePackage);
 
-      if (line.equalsIgnoreCase("ENDSEC;")) {
-        isDataSection = false;
-      }
+    long start = System.currentTimeMillis();
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
 
-      if (isDataSection) {
-        parse(line, listener);
-      }
+      String line = "";
+      boolean isDataSection = false;
 
-      if (line.equalsIgnoreCase("DATA;")) {
-        isDataSection = true;
+      while ((line = br.readLine()) != null) {
+
+        if (line.equalsIgnoreCase("ENDSEC;")) {
+          isDataSection = false;
+        }
+
+        if (isDataSection) {
+          P21EntityListener listener = injector.getInstance(P21EntityListener.class);
+          listener.setPackage(ePackage);
+          listener.setNameToClassifierMap(nameToClassifierMap);
+
+          tasks.add(new P21DataLineRunnable(listener, line));
+        }
+
+        if (line.equalsIgnoreCase("DATA;")) {
+          isDataSection = true;
+        }
       }
     }
+    System.out.println((System.currentTimeMillis() - start) + " ms to read lines.");
+    EClass ifc4 = (EClass) ePackage.getEClassifiers().get(1);
+    NameToContainerListsMap container = new NameToContainerListsMapImpl(ePackage, EcoreUtil.create(ifc4));
 
-    br.close();
-    resource.getContents().add(listener.data());
+    start = System.currentTimeMillis();
+    // collect results
+    //
+    List<Future<EObject>> futures = null;
+    try {
+      futures = executor.invokeAll(tasks);
+    }
+    catch (InterruptedException e) {
+      LOGGER.severe(e.getStackTrace().toString());
+    }
+
+    System.out.println((System.currentTimeMillis() - start) + " ms to collect entities.");
+    start = System.currentTimeMillis();
+
+    // fill resource
+    //
+    futures.stream().filter(Objects::nonNull).map((future) -> {
+      try {
+        EObject object = future.get();
+        return object;
+      }
+      catch (Exception e) {
+        LOGGER.severe(e.getStackTrace().toString());
+        return null;
+      }
+    }).filter(Objects::nonNull).forEach((o) -> {
+      container.addEObject(o.eClass().getName(), o);
+    });
+
+    System.out.println((System.currentTimeMillis() - start) + " ms to save into resource.");
+    start = System.currentTimeMillis();
+
+    P21Index entites = injector.getInstance(P21Index.class);
+    Map<String, Collection<IdStructuralFeaturePair>> unresolvedPairs = entites.retrieveUnresolved();
+
+    for (String key : unresolvedPairs.keySet()) {
+      final EObject toStore = entites.retrieve(key);
+
+      executor.execute(() -> {
+
+        for (IdStructuralFeaturePair pair : unresolvedPairs.get(key)) {
+          try {
+            EObject needs = entites.retrieve(pair.id);
+            needs.eSet(pair.feature, toStore);
+          }
+          catch (ClassCastException e) {
+            LOGGER.severe(e.getStackTrace().toString());
+          }
+        }
+      });
+
+    }
+
+    executor.shutdown();
+    System.out.println((System.currentTimeMillis() - start) + " ms to resolve references.");
+
+    resource.getContents().add(container.getEntity());
   }
 
-  private void parse(String line, de.bitub.step.p21.P21ParserListener listener)
+  private void parse(String line, P21ParserListener listener)
   {
     CharStream input = new ANTLRInputStream(line);
     StepLexer lexer = new StepLexer(input);

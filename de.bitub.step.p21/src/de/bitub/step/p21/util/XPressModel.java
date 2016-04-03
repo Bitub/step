@@ -10,8 +10,9 @@
  */
 package de.bitub.step.p21.util;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EModelElement;
@@ -138,16 +139,12 @@ public class XPressModel
 
   public static EStructuralFeature p21FeatureBy(EObject eObject, int p21Index)
   {
-    List<EStructuralFeature> features = eObject.eClass().getEAllStructuralFeatures();
-    List<EStructuralFeature> annotatedFeatures = new ArrayList<EStructuralFeature>();
+    // filter only @P21 annotated features
+    //
+    List<EStructuralFeature> annotatedFeatures = eObject.eClass().getEAllStructuralFeatures().parallelStream()
+        .filter((feature) -> Objects.nonNull(feature.getEAnnotation(P21_MODEL_ANNOTATION_SRC))).collect(Collectors.toList());
 
-    for (EStructuralFeature feature : features) {
-      if (feature.getEAnnotation(P21_MODEL_ANNOTATION_SRC) != null) {
-        annotatedFeatures.add(feature);
-      }
-    }
-
-    if (annotatedFeatures.isEmpty() || annotatedFeatures.size() < p21Index) {
+    if (annotatedFeatures.isEmpty() || annotatedFeatures.size() <= p21Index) {
       return null;
     }
     return annotatedFeatures.get(p21Index);
