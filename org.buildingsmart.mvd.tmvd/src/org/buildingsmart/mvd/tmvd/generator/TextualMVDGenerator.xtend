@@ -4,16 +4,9 @@
 package org.buildingsmart.mvd.tmvd.generator
 
 import com.google.inject.Inject
-import java.io.IOException
-import java.util.HashMap
 import org.buildingsmart.mvd.mvdxml.MvdXML
 import org.buildingsmart.mvd.tmvd.util.IOHelper
-import org.eclipse.emf.common.util.URI
-import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
-import org.eclipse.emf.ecore.xmi.XMLResource
-import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 
@@ -28,49 +21,15 @@ class TextualMVDGenerator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
-		val mvdXML = resource.allContents.findFirst[e|e instanceof MvdXML] as MvdXML;
+		val mvdXML = resource.allContents.findFirst[e|e instanceof MvdXML] as MvdXML
 
-		System::out.println("/src-gen/" + mvdXML.name + ".mvdxml" + " " + resource.toString)
+		// path segments
+		val segments = resource.URI.segmentsList
+		val plugin = segments.get(1)
+		val fileName = mvdXML.name
 
-		mvdXML.storeAsMVDXML("door.self.closing/src-gen/" + mvdXML.name + ".mvdxml")
-	}
+		mvdXML.storeAsMVDXML(plugin + "/mvd-xml/" + fileName + ".mvdxml")
 
-	def storeAsXMI(EObject eObject, String fileName) {
-
-		// Obtain a new resource set
-		//
-		val resSet = new ResourceSetImpl();
-
-		// Register the P21 resource factory for the .mvdxml extension
-		//
-		resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("mvdxml", new XMLResourceFactoryImpl());
-
-		// enable extended metadata
-		//
-		resSet.getLoadOptions().put(XMLResource.OPTION_EXTENDED_META_DATA, Boolean.TRUE);
-		resSet.getLoadOptions().put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.TRUE);
-		resSet.getLoadOptions().put(XMLResource.OPTION_USE_LEXICAL_HANDLER, Boolean.TRUE);
-
-		// Get the resource
-		//
-		val resource = resSet.createResource(URI.createPlatformResourceURI(fileName, true));
-		resource.getContents().add(eObject);
-
-		// Save the contents of the resource to the file system.
-		val options = new HashMap<String, Object>();
-		options.put(XMLResource.OPTION_ENCODING, "UTF8");
-		options.put(XMLResource.OPTION_EXTENDED_META_DATA, Boolean.TRUE);
-		options.put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.TRUE);
-		options.put(XMLResource.OPTION_SCHEMA_LOCATION, Boolean.TRUE);
-
-		try {
-			resource.save(options);
-		} catch (IOException exception) {
-			exception.printStackTrace
-		}
-	}
-
-	def compile(MvdXML mvdXML) {
-		''''''
+	//		mvdXML.storeAsTMVD(segments.get(1) + "/tmvd/" + fileName)
 	}
 }

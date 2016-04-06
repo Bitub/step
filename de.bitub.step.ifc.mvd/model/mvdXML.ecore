@@ -61,7 +61,7 @@
   <eClassifiers xsi:type="ecore:EDataType" name="ApplicableSchemaType" instanceClassName="java.util.List">
     <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
       <details key="name" value="applicableSchema_._type"/>
-      <details key="itemType" value="schemaName"/>
+      <details key="itemType" value="http://www.eclipse.org/emf/2003/XMLType#normalizedString"/>
     </eAnnotations>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="AttributeRule">
@@ -121,21 +121,12 @@
       <details key="name" value="AttributeRules_._type"/>
       <details key="kind" value="elementOnly"/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="group" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFeatureMapEntry">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="group"/>
-        <details key="name" value="group:0"/>
-      </eAnnotations>
-    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="attributeRule" lowerBound="1"
-        upperBound="-1" eType="#//AttributeRule" volatile="true" transient="true"
-        derived="true" containment="true" resolveProxies="false">
+        upperBound="-1" eType="#//AttributeRule" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="element"/>
         <details key="name" value="AttributeRule"/>
         <details key="namespace" value="##targetNamespace"/>
-        <details key="group" value="#group:0"/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
@@ -444,8 +435,8 @@
       <details key="name" value="Concepts_._type"/>
       <details key="kind" value="elementOnly"/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="concept" lowerBound="1"
-        upperBound="-1" eType="#//Concept" containment="true" resolveProxies="false">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="concept" upperBound="-1"
+        eType="#//Concept" containment="true" resolveProxies="false">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Each Concept indicates use of a particular template for the applicable root entity."/>
       </eAnnotations>
@@ -491,7 +482,7 @@
         <details key="namespace" value="##targetNamespace"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="applicableEntity" eType="#//ApplicableEntityType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="applicableEntity" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//NormalizedString">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Indicates the entities, including all derived entities, for which the concept applies. It is recommended to use a single base class. This value provides the context for any attribute rules and is used within tools to filter the list of available templates for particular entities. For a sub template, the applicable entity must be the same type or a subtype of the outer template. This value may be blank to indicate an abstract template that cannot be instantiated, containing sub templates for specific entities.&#xA;&#x9;&#x9;"/>
       </eAnnotations>
@@ -501,7 +492,7 @@
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="applicableSchema" lowerBound="1"
-        eType="#//ApplicableSchemaType">
+        eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//NormalizedString">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Identifies the default schema for which the template applies, such as IFC2X_FINAL, IFC2X2_FINAL, IFC2X3, or IFC4. The template may be used for model views of other schemas, if all enclosed rules resolve to available attributes and types."/>
       </eAnnotations>
@@ -544,7 +535,7 @@
         <details key="name" value="isPartial"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//NormalizedString">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//String">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd."/>
       </eAnnotations>
@@ -597,31 +588,21 @@
       <details key="name" value="Constraints_._type"/>
       <details key="kind" value="elementOnly"/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="group" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFeatureMapEntry">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="group"/>
-        <details key="name" value="group:0"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="constraint" lowerBound="1"
-        upperBound="-1" eType="#//ConstraintType" volatile="true" transient="true"
-        derived="true" containment="true" resolveProxies="false">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="constraint" upperBound="-1"
+        eType="#//ConstraintType" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="element"/>
         <details key="name" value="Constraint"/>
         <details key="namespace" value="##targetNamespace"/>
-        <details key="group" value="#group:0"/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ConstraintType">
     <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
       <details key="name" value="Constraint_._type"/>
-      <details key="kind" value="empty"/>
+      <details key="kind" value="elementsOnly"/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="expression" lowerBound="1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//String">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="expression" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//String">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="attribute"/>
         <details key="name" value="Expression"/>
@@ -669,122 +650,6 @@
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="element"/>
         <details key="name" value="Link"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="DocumentRoot">
-    <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-      <details key="name" value=""/>
-      <details key="kind" value="mixed"/>
-    </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mixed" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFeatureMapEntry">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="elementWildcard"/>
-        <details key="name" value=":mixed"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="xMLNSPrefixMap" upperBound="-1"
-        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStringToStringMapEntry"
-        transient="true" containment="true" resolveProxies="false">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="attribute"/>
-        <details key="name" value="xmlns:prefix"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="xSISchemaLocation" upperBound="-1"
-        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStringToStringMapEntry"
-        transient="true" containment="true" resolveProxies="false">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="attribute"/>
-        <details key="name" value="xsi:schemaLocation"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="attributeRule" upperBound="-2"
-        eType="#//AttributeRule" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="AttributeRule"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="concept" upperBound="-2"
-        eType="#//Concept" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
-      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="The Concept is an MVD specific concept assigned via a root concept to a model view. It has a reference to a concept template from which it re-uses the definition, it may add a specific definition that only relates to its particular usage for the root element."/>
-      </eAnnotations>
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="Concept"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="conceptRoot" upperBound="-2"
-        eType="#//ConceptRoot" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
-      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="The root concept (called variable concept in MVD V2.0 documentation). It defines the main and independent entity that is part of a Model View Definition and also provides the root for all path information. Examples are IfcWall, IfcSpace."/>
-      </eAnnotations>
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="ConceptRoot"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="conceptTemplate" upperBound="-2"
-        eType="#//ConceptTemplate" volatile="true" transient="true" derived="true"
-        containment="true" resolveProxies="false">
-      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="The concept template holds the common definitions of a concept, that are independent of its use within a root concept. Concept nodes reference a concept template to share the common description. This element represents the reusable concepts; it may have zero-to-many sub concept template's and thereby may form a tree of related reusable concepts. Within the tree it may refer to shared partial concepts. Each concept template has an applicable schema and may have applicable root entities (i.e. concept roots to which the concept template applies)."/>
-      </eAnnotations>
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="ConceptTemplate"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="entityRule" upperBound="-2"
-        eType="#//EntityRule" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="EntityRule"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="modelView" upperBound="-2"
-        eType="#//ModelView" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
-      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="The Model View Definition (MVD) that represents a subset of the IFC schema to cover the exchange requirements. The model view is specific to an IFC schema release and contains zero-to-many c oncept roots. It also includes the reference to zero-to-many applicable exchange requirements. Multiple model views from potentially different releases may be contained in the same file."/>
-      </eAnnotations>
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="ModelView"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="mvdXML" upperBound="-2"
-        eType="#//MvdXML" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
-      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="The mvdXML element comprises the scope of the mvdXML document, it includes zero-to-many model views and one-to-many concept templates (as a minimum, all concept templates that are referenced in the included model view(s))."/>
-      </eAnnotations>
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="mvdXML"/>
-        <details key="namespace" value="##targetNamespace"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="templateRules" upperBound="-2"
-        eType="#//TemplateRules" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="element"/>
-        <details key="name" value="TemplateRules"/>
         <details key="namespace" value="##targetNamespace"/>
       </eAnnotations>
     </eStructuralFeatures>
@@ -854,21 +719,12 @@
       <details key="name" value="EntityRules_._type"/>
       <details key="kind" value="elementOnly"/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="group" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFeatureMapEntry">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="group"/>
-        <details key="name" value="group:0"/>
-      </eAnnotations>
-    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="entityRule" lowerBound="1"
-        upperBound="-1" eType="#//EntityRule" volatile="true" transient="true" derived="true"
-        containment="true" resolveProxies="false">
+        upperBound="-1" eType="#//EntityRule" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="element"/>
         <details key="name" value="EntityRule"/>
         <details key="namespace" value="##targetNamespace"/>
-        <details key="group" value="#group:0"/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
@@ -967,7 +823,8 @@
         <details key="name" value="status"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="uuid" lowerBound="1" eType="#//Uuid">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="uuid" lowerBound="1" eType="#//Uuid"
+        iD="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Universally unique identifier. This is used as a persistent identifier, and must never change. It is string type with a fixed length of 36 characters, which should follow a specific pattern.>&#xA;&#x9;&#x9;&#x9;&#x9;"/>
       </eAnnotations>
@@ -1229,7 +1086,7 @@
         <details key="name" value="copyright"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//NormalizedString">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//String">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Human readable name. This is used as the header of the section and entry within table of contents when generating documentation. The name is also reported for a validation against this mvd, if assigned to concepts checked against the mvd."/>
       </eAnnotations>
@@ -1320,8 +1177,8 @@
       <details key="name" value="Requirements"/>
       <details key="kind" value="elementOnly"/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="requirement" lowerBound="1"
-        upperBound="-1" eType="#//Requirement" containment="true" resolveProxies="false">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="requirement" upperBound="-1"
+        eType="#//Requirement" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="element"/>
         <details key="name" value="Requirement"/>
@@ -1358,18 +1215,17 @@
         <details key="name" value="applicability"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exchangeRequirement" lowerBound="1"
-        eType="#//Uuid">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="attribute"/>
-        <details key="name" value="exchangeRequirement"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="requirement" lowerBound="1"
-        eType="#//RequirementType" unsettable="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="requirement" eType="#//RequirementType"
+        unsettable="true">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="attribute"/>
         <details key="name" value="requirement"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exchangeRequirement" eType="#//ExchangeRequirementType">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="attribute"/>
+        <details key="name" value="exchangeRequirement"/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
@@ -1489,31 +1345,20 @@
       <details key="name" value="TemplateRules"/>
       <details key="kind" value="elementOnly"/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="group" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFeatureMapEntry">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="group"/>
-        <details key="name" value="group:0"/>
-      </eAnnotations>
-    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="templateRules" upperBound="-1"
-        eType="#//TemplateRules" volatile="true" transient="true" derived="true" containment="true"
-        resolveProxies="false">
+        eType="#//TemplateRules" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="element"/>
         <details key="name" value="TemplateRules"/>
         <details key="namespace" value="##targetNamespace"/>
-        <details key="group" value="#group:0"/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="templateRule" upperBound="-1"
-        eType="#//TemplateRuleType" volatile="true" transient="true" derived="true"
-        containment="true" resolveProxies="false">
+        eType="#//TemplateRuleType" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="element"/>
         <details key="name" value="TemplateRule"/>
         <details key="namespace" value="##targetNamespace"/>
-        <details key="group" value="#group:0"/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//String">
@@ -1532,8 +1377,8 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TemplateRuleType">
     <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-      <details key="name" value="TemplateRule_._type"/>
-      <details key="kind" value="empty"/>
+      <details key="name" value="TemplateRule"/>
+      <details key="kind" value="elementOnly"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//String">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">

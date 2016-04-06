@@ -88,7 +88,6 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRule/cardinality"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//AttributeRulesType">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//AttributeRulesType/group"/>
       <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//AttributeRulesType/attributeRule"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//BodyType">
@@ -146,7 +145,6 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//ConceptTemplate/version"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//ConstraintsType">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//ConstraintsType/group"/>
       <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//ConstraintsType/constraint"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//ConstraintType">
@@ -159,19 +157,6 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DefinitionType/body"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DefinitionType/link"/>
     </genClasses>
-    <genClasses ecoreClass="mvdXML.ecore#//DocumentRoot">
-      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//DocumentRoot/mixed"/>
-      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/xMLNSPrefixMap"/>
-      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/xSISchemaLocation"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/attributeRule"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/concept"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/conceptRoot"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/conceptTemplate"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/entityRule"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/modelView"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/mvdXML"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//DocumentRoot/templateRules"/>
-    </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//EntityRule">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//EntityRule/references"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//EntityRule/attributeRules"/>
@@ -182,7 +167,6 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRule/cardinality"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//EntityRulesType">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//EntityRulesType/group"/>
       <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//EntityRulesType/entityRule"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//ExchangeRequirementsType">
@@ -247,8 +231,8 @@
     <genClasses ecoreClass="mvdXML.ecore#//Requirement">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/value"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/applicability"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/exchangeRequirement"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//Requirement/requirement"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//Requirement/exchangeRequirement"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//RootsType">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//RootsType/conceptRoot"/>
@@ -260,7 +244,6 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference mvdXML.ecore#//SubTemplatesType/conceptTemplate"/>
     </genClasses>
     <genClasses ecoreClass="mvdXML.ecore#//TemplateRules">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRules/group"/>
       <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//TemplateRules/templateRules"/>
       <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference mvdXML.ecore#//TemplateRules/templateRule"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute mvdXML.ecore#//TemplateRules/description"/>

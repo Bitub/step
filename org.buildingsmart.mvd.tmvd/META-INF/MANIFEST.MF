@@ -18,7 +18,8 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.eclipse.xtext.util,
  org.eclipse.xtext.xbase.lib,
  org.antlr.runtime,
- org.eclipse.xtext.common.types
+ org.eclipse.xtext.common.types,
+ org.eclipse.core.resources;bundle-version="3.10.1"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.buildingsmart.mvd.tmvd;uses:="com.google.inject,org.eclipse.xtext.common.types,org.eclipse.xtext",
@@ -29,7 +30,6 @@ Export-Package: org.buildingsmart.mvd.tmvd;uses:="com.google.inject,org.eclipse.
    org.eclipse.xtext.generator,
    org.eclipse.emf.ecore.resource,
    org.buildingsmart.mvd.mvdxml",
- org.buildingsmart.mvd.tmvd.naming,
  org.buildingsmart.mvd.tmvd.parser.antlr;uses:="org.eclipse.xtext.parser.antlr,org.buildingsmart.mvd.tmvd.parser.antlr.internal,org.buildingsmart.mvd.tmvd.services",
  org.buildingsmart.mvd.tmvd.parser.antlr.internal;
   uses:="org.eclipse.emf.ecore,

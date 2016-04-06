@@ -4,14 +4,14 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 import "http://buildingsmart-tech.org/mvdXML/mvdXML1-1"
 //import "http://www.buildingsmart.org/mvd/expression/Mvd2Ocl" as mvd2ocl
 MvdXML returns MvdXML:
-	('author' author=NORMALIZED_STRING)?
+	('author' author=STRING)?
 	('code' code=NORMALIZED_STRING)?
-	('copyright' copyright=AnyURI)?
+	('copyright' copyright=STRING)?
 	('owner' owner=NORMALIZED_STRING)?
 	('status' status=StatusType)?
 	('version' version=NORMALIZED_STRING)?
 	('@UUID' LPAREN uuid=UUID RPAREN)?
-	'mvd' name=MVD_NAME
+	'mvd' name=ID
 	';'
 	('def' 'templates' ':' templates=TemplatesType 'end')?
 	('def' 'views' ':' views=ViewsType 'end')?;
@@ -29,8 +29,8 @@ ConceptTemplate returns ConceptTemplate:
 	'@UUID' LPAREN uuid=UUID RPAREN
 	name=ID ':' 'ConceptTemplate' '=>'
 	'['
-	('applicableEntity' applicableEntity=ApplicableEntityType)?
-	'applicableSchema' applicableSchema=ApplicableSchemaType
+	('applicableEntity' applicableEntity=APPLICABLE_ENTITY_TYPE)?
+	'applicableSchema' applicableSchema=APPLICABLE_SCHEMA_TYPE
 	('author' author=NORMALIZED_STRING)?
 	('code' code=NORMALIZED_STRING)?
 	('copyright' copyright=AnyURI)?
@@ -39,36 +39,30 @@ ConceptTemplate returns ConceptTemplate:
 	('status' status=StatusType)?
 	('version' version=NORMALIZED_STRING)?
 	('definitions' definitions=Definitions)?
-	('rules' rules=RulesType)?
-	('subTemplates' subTemplates=SubTemplatesType)?
+	('def' 'rules' ':' rules=RulesType 'end')?
+	('def' 'subTemplates' ':' subTemplates=SubTemplatesType 'end')?
 	']';
 
 Definitions returns Definitions:
-	'Definitions'
-	'{'
-	'definition' '{' definition+=DefinitionType ("," definition+=DefinitionType)* '}'
-	'}';
+	'[' definition+=DefinitionType ("," definition+=DefinitionType)* ']';
 
 RulesType returns RulesType:
-	'[' attributeRule+=AttributeRule ("," attributeRule+=AttributeRule)* ']';
+	attributeRule+=AttributeRule (attributeRule+=AttributeRule)*;
 
 SubTemplatesType returns SubTemplatesType:
-	'['
-	'conceptTemplate' '{' conceptTemplate+=ConceptTemplate ("," conceptTemplate+=ConceptTemplate)* '}'
-	']';
+	conceptTemplate+=ConceptTemplate ("," conceptTemplate+=ConceptTemplate)*;
 
-ApplicableEntityType returns ApplicableEntityType:
+APPLICABLE_ENTITY_TYPE returns type::NormalizedString:
 	ID;
 
-ApplicableSchemaType returns ApplicableSchemaType:
-	'IFC4' | 'IFC2X3';
+APPLICABLE_SCHEMA_TYPE returns type::NormalizedString:
+	SCHEMA_NAME;
 
 Boolean returns type::Boolean:
 	'true' | 'false';
 
 DefinitionType returns DefinitionType:
 	{DefinitionType}
-	'DefinitionType'
 	'{'
 	('body' body=BodyType)?
 	('link' '{' link+=LinkType ("," link+=LinkType)* '}')?
@@ -76,15 +70,13 @@ DefinitionType returns DefinitionType:
 
 BodyType returns BodyType:
 	{BodyType}
-	'BodyType'
 	'{'
-	('value' value=STRING0)?
+	('value' value=STRING)?
 	('lang' lang=LANGUAGE)?
 	('tags' tags=TAGS_TYPE)?
 	'}';
 
 LinkType returns LinkType:
-	'LinkType'
 	'{'
 	('category' category=CategoryType)?
 	'href' href=AnyURI
@@ -94,11 +86,11 @@ LinkType returns LinkType:
 
 AttributeRule returns AttributeRule:
 	'attr' name=ID
-	('description' description=STRING0)?
+	('description' description=STRING)?
 	('ruleID' ruleID=ID)?
 	('cardinality' cardinality=CardinalityType)?
 	(entityRules=EntityRulesType)?
-	('constraints' constraints=ConstraintsType)?
+	('def' 'constraints' ':' constraints=ConstraintsType 'end')?
 	'end';
 
 EntityRulesType returns EntityRulesType:
@@ -110,7 +102,7 @@ EntityRule returns EntityRule:
 	('reference' references=ReferencesType)?
 	(attributeRules=AttributeRulesType)?
 	('constraints' constraints=ConstraintsType)?
-	('description' description=STRING0)?
+	('description' description=STRING)?
 	('ruleID' ruleID=NORMALIZED_STRING)?
 	('cardinality' cardinality=CardinalityType)?
 	'end';
@@ -122,12 +114,13 @@ ReferencesType:
 	'}';
 
 AttributeRulesType returns AttributeRulesType:
-	{AttributeRulesType}
 	attributeRule+=AttributeRule ("," attributeRule+=AttributeRule)*;
 
 ConstraintsType returns ConstraintsType:
-	{ConstraintsType}
-	'ConstraintsType';
+	constraint+=ConstraintType (constraint+=ConstraintType*)?;
+
+ConstraintType:
+	expression=STRING;
 
 ModelView returns ModelView:
 	'@UUID' LPAREN uuid=UUID RPAREN
@@ -136,26 +129,20 @@ ModelView returns ModelView:
 	'applicableSchema' EQUAL applicableSchema=SCHEMA_NAME
 	('author' EQUAL author=NORMALIZED_STRING)?
 	('code' EQUAL code=NORMALIZED_STRING)?
-	('copyright' EQUAL copyright=AnyURI)?
+	('copyright' EQUAL copyright=STRING)?
 	('owner' EQUAL owner=NORMALIZED_STRING)?
 	('status' EQUAL status=StatusType)?
 	('version' EQUAL version=NORMALIZED_STRING)?
 	('definitions' EQUAL definitions=Definitions)?
 	('baseView' EQUAL baseView=GenericReference)?
 	('exchangeRequirements' EQUAL exchangeRequirements=ExchangeRequirementsType)?
-	('roots' EQUAL roots=RootsType)?
+	('roots' EQUAL => roots=RootsType)?
 	']';
 
 GenericReference returns GenericReference:
 	{GenericReference}
-	('href' href=AnyURI)? |
-	{GenericReference}
-	('ref' ref=[ConceptTemplate|UUID])?;
-
-ConceptToTemplateReference returns GenericReference:
-	{GenericReference}
 	('href' href=AnyURI)?
-	('ref' ref=[ConceptTemplate|UUID])?;
+	('ref' ref=[ConceptTemplate|ID])?;
 
 ExchangeRequirementsType returns ExchangeRequirementsType:
 	'[' exchangeRequirement+=ExchangeRequirementType ("," exchangeRequirement+=ExchangeRequirementType)* ']';
@@ -208,7 +195,7 @@ TemplateRules returns TemplateRules:
 	{TemplateRules}
 	'TemplateRules'
 	'{'
-	('description' description=STRING0)?
+	('description' description=STRING)?
 	('operator' operator=OperatorType)? // recursive definition of TemplateRules
 	('templateRules' '[' templateRules+=TemplateRules (',' templateRules+=TemplateRules)* ']')?
 	('templateRule' '[' templateRule+=TemplateRuleType (',' templateRule+=TemplateRuleType)* ']')?
@@ -244,9 +231,9 @@ Requirements returns Requirements:
 Requirement returns Requirement:
 	requirement=RequirementType 'Requirement'
 	'{'
-	('value' value=STRING0)?
+	('value' value=STRING)?
 	('applicability' applicability=Applicability)?
-	'exchangeRequirement' exchangeRequirement=UUID
+	'exchangeRequirement' => exchangeRequirement=[ExchangeRequirementType|ID]
 	'}';
 
 enum CardinalityType returns CardinalityType:
@@ -274,9 +261,6 @@ NORMALIZED_STRING returns type::NormalizedString:
 	STRING;
 
 MVD_NAME returns type::NormalizedString:
-	ID;
-
-STRING0 returns type::String:
 	ID;
 
 LANGUAGE returns type::Language:

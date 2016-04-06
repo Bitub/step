@@ -1,43 +1,33 @@
 package org.buildingsmart.mvd.tmvd.tests
 
-import java.io.InputStream
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import org.eclipse.emf.ecore.resource.ResourceSet
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
-import org.buildingsmart.mvd.mvdxml.MvdXML
-import org.eclipse.xtext.junit4.util.ParseHelper
 import com.google.inject.Inject
-import org.eclipse.xtext.junit4.XtextRunner
 import org.buildingsmart.mvd.tmvd.TextualMVDInjectorProvider
+import org.buildingsmart.mvd.tmvd.util.IOHelper
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.junit4.InjectWith
+import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.runner.RunWith
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(TextualMVDInjectorProvider))
 class AbstractTextualMVDTest {
 
-	@Inject extension ParseHelper<MvdXML>
+	@Inject extension IOHelper io
 
-	val protected ResourceSet resourceSet = new ResourceSetImpl
-
-	def readMvdXml(String path) {
-		class.classLoader.getResourceAsStream(path)
+	def loadTextualMVD(String pathToFile) {
+		io.loadTextualMVD(pathToFile)
 	}
 
-	def CharSequence readModel(InputStream in) {
-
-		val reader = new BufferedReader(new InputStreamReader(in))
-
-		var String line
-		var StringBuilder buffer = new StringBuilder
-		while ((line = reader.readLine()) != null) {
-			buffer.append(line).append('\n');
-		}
-		return buffer
+	def loadMvdXML(String pathToFile) {
+		io.loadMvdXML(pathToFile)
 	}
 
-	def generateTextualMVD(CharSequence tmvd) {
-		tmvd.parse(resourceSet)
+	def saveMvdXML(EObject root, String pathToFile) {
+		io.storeAsMVDXML(root, pathToFile)
 	}
+
+	def saveTextualMVD(EObject root, String pathToFile) {
+		io.storeAsTMVD(root, pathToFile)
+	}
+
 }

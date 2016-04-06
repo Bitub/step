@@ -19,4 +19,5 @@
             type="mvdxml"
             class="org.buildingsmart.mvd.mvdxml.util.MvdXmlResourceFactoryImpl"/>
    </extension>
+
 </plugin>

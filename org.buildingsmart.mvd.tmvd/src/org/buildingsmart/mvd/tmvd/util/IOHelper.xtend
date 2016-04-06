@@ -1,18 +1,20 @@
 package org.buildingsmart.mvd.tmvd.util
 
-import com.google.inject.Guice
 import java.io.IOException
 import java.util.HashMap
-import org.buildingsmart.mvd.tmvd.TextualMVDRuntimeModule
+import org.buildingsmart.mvd.mvdxml.MvdXML
+import org.buildingsmart.mvd.mvdxml.MvdXmlPackage
+import org.buildingsmart.mvd.tmvd.TextualMVDStandaloneSetup
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
 import org.eclipse.emf.ecore.xmi.XMLResource
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl
 import org.eclipse.xtext.resource.SaveOptions
 import org.eclipse.xtext.resource.XtextResource
+import org.eclipse.xtext.resource.XtextResourceFactory
 import org.eclipse.xtext.resource.XtextResourceSet
-import org.eclipse.xtext.serializer.ISerializer
 
 class IOHelper {
 
@@ -54,11 +56,9 @@ class IOHelper {
 		//
 		val resSet = new XtextResourceSet
 
-		System::out.println(eObject.eResource)
-
 		// Get the resource
 		//
-		val resource = resSet.createResource(URI.createPlatformResourceURI(fileName, true));
+		val resource = resSet.createResource(URI.createFileURI(fileName));
 		resource.contents += eObject;
 
 		// Save the contents of the resource to the file system.
@@ -67,25 +67,38 @@ class IOHelper {
 		options.addTo(newHashMap(XtextResource.OPTION_ENCODING -> "UTF8"))
 
 		try {
-
-			//			resource.save(options);
-			val injector = Guice.createInjector(new TextualMVDRuntimeModule())
-			val serializer = injector.getInstance(ISerializer)
-			val serialized = serializer.serialize(eObject, options)
-			System::out.println(serialized)
+			resource.save(options.toOptionsMap);
 
 		} catch (IOException exception) {
 			exception.printStackTrace
 		}
 	}
 
-	def EObject load(String fileName) {
+	def loadTextualMVD(String fileName) {
+
+		EPackage.Registry.INSTANCE.put(MvdXmlPackage.eNS_URI, MvdXmlPackage.eINSTANCE);
+
+		val injector = new TextualMVDStandaloneSetup().createInjectorAndDoEMFRegistration
+
+		val xcoreResourceSet = injector.getInstance(XtextResourceSet);
+		xcoreResourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
+
+		xcoreResourceSet.resourceFactoryRegistry.extensionToFactoryMap.put("tmvd",
+			injector.getInstance(XtextResourceFactory))
+
+		val resource = xcoreResourceSet.getResource(URI.createURI(fileName), Boolean.TRUE);
+		resource.contents.get(0) as  MvdXML
+	}
+
+	def loadMvdXML(String fileName) {
 
 		// Obtain a new resource set
 		//
 		val resSet = new ResourceSetImpl;
 
-		// Register the P21 resource factory for the .ifc extension
+		EPackage.Registry.INSTANCE.put(MvdXmlPackage.eNS_URI, MvdXmlPackage.eINSTANCE);
+
+		// Register the XML resource factory for the .ifc extension
 		//
 		resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("mvdxml", new XMLResourceFactoryImpl());
 
@@ -93,17 +106,34 @@ class IOHelper {
 		resSet.getLoadOptions().put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.TRUE);
 		resSet.getLoadOptions().put(XMLResource.OPTION_USE_LEXICAL_HANDLER, Boolean.TRUE);
 
+		val options = new HashMap<String, Object>();
+
+		options.put(XMLResource.OPTION_ENCODING, "UTF8");
+
+		// use extended meta data in ecore model for parsing
+		options.put(XMLResource.OPTION_EXTENDED_META_DATA, Boolean.TRUE);
+		options.put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.FALSE);
+
+		// do not fail on unknown elements
+		options.put(XMLResource.OPTION_RECORD_UNKNOWN_FEATURE, Boolean.TRUE);
+		
+		// register hooks for pre and post laod events
+		options.put(XMLResource.OPTION_RESOURCE_HANDLER, new MvdXmlResourceHandler);
+
 		// Get the resource
 		//
-		val resource = resSet.createResource((URI.createPlatformResourceURI(fileName, true)))
+		val resource = resSet.createResource(URI.createFileURI(fileName))
 
 		return try {
-			resource.load(emptyMap)
+			resource.load(options)
 			if (resource.contents.size > 0) {
 				return resource.contents.get(0)
 			}
 		} catch (IOException exception) {
-			null
+			System::out.println(resource.errors.toString)
+			if (resource.contents.size > 0) {
+				return resource.contents.get(0)
+			}
 		}
 	}
 }

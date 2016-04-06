@@ -7,6 +7,7 @@ import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.buildingsmart.mvd.mvdxml.MvdXML
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(TextualMVDInjectorProvider))
@@ -16,7 +17,7 @@ class TextualMVDIndexTest extends AbstractTextualMVDTest {
 
 	@Test def void testExportedEObjectDescriptions() {
 
-		val mvdXml = "org/buildingsmart/mvd/tmvd/tests/DoorHasSelfClosing.tmvd".readMvdXml.readModel.generateTextualMVD
+		val mvdXml = "org/buildingsmart/mvd/tmvd/tests/DoorHasSelfClosing.tmvd".loadMvdXML as  MvdXML
 		System::out.println(mvdXml.exportedEObjectDescriptions.map[qualifiedName].join(", "))
 	}
 

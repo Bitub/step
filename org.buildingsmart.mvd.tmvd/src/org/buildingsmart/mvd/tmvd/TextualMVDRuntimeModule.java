@@ -26,4 +26,10 @@ public class TextualMVDRuntimeModule extends org.buildingsmart.mvd.tmvd.Abstract
     return MvdOutputConfigurationProvider.class;
   }
 
+//  @Override
+//  public Class<? extends ITransientValueService> bindITransientValueService()
+//  {
+//    return TextualMVDTransientValueService.class;
+//  }
+
 }

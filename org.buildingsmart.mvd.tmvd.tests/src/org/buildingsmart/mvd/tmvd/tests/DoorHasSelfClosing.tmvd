@@ -5,72 +5,66 @@ version "1.0"
 
 def templates :
 
-	@UUID ( ef94ae78-b5f0-468d-b950-46b8a320c45a ) SinglePropertyValue: ConceptTemplate => [
+	@UUID ( ef94ae78-b5f0-468d-b950-46b8a320c45a ) SinglePropertyValue:
+	ConceptTemplate => [
 		applicableEntity IfcObject
-		applicableSchema IFC4
-		rules [
-			attr IsDefinedBy				
+		applicableSchema IFC4 def rules :
+			attr IsDefinedBy
 				entity IfcRelDefinesByProperties
 					attr RelatingPropertyDefinition
 						entity IfcPropertySet
 							attr HasProperties
 								entity IfcPropertySingleValue
 									attr Name
-										ruleID PropertyName
-									end,
-									attr NominalValue
-									end,
-									attr Unit
+										ruleID PropertyName end,
+										attr NominalValue end,
+											attr Unit end
+											end
+											end
+										end
+										end
+									end
 									end
 								end
-							end
-						end
-					end
-				end
-			end
-		]
-	]
-
-end
-def views :
-
-	@UUID ( 117cf270-2a23-4965-b115-970599d52d7e ) ModelViewExample: ModelView => [
-		applicableSchema = IFC4
-		exchangeRequirements = [
-
-			@UUID ( f38446c1-d44a-45ab-b690-81611b509b11 ) ExchangeRequirementExample : ExchangeRequirement => [
-				applicability = both
-			]
-		]
-		roots = [
-
-			@UUID ( 046e4f94-a0a6-4c19-8dee-91d3a8d58727 ) ConceptRoot1: ConceptRoot => [
-				applicableRootEntity = IfcDoor
-				concepts = [
-
-					@UUID ( fbb17b6e-192d-4d45-8439-0bde3918b95b ) SinglePropertyValue: Concept => [
-						override = false
-						template = {
-							ref 3bc6f595-3304-49d3-a790-f113c9af9f3a
-						}
-						requirements = [
-							mandatory Requirement {
-								applicability import
-								exchangeRequirement f38446c1-d44a-45ab-b690-81611b509b11
-							}
-						]
-						templateRules = TemplateRules {
-							templateRule [
-								TemplateRule {
-									description "This is a description."
-									parameters "PropertyName=SelfClosing"
-								}
 							]
-						}
-					]
-				]
-			]
-		]
-	]
 
-end
+						end
+						def views :
+
+							@UUID ( 117cf270-2a23-4965-b115-970599d52d7e ) ModelViewExample: ModelView => [
+								applicableSchema = IFC4
+								exchangeRequirements = [
+
+									@UUID ( f38446c1-d44a-45ab-b690-81611b509b11 ) ExchangeRequirementExample : ExchangeRequirement => [
+										applicability = both
+									]
+								]
+								roots = [
+
+									@UUID ( 046e4f94-a0a6-4c19-8dee-91d3a8d58727 ) ConceptRoot1: ConceptRoot => [
+										applicableRootEntity = IfcDoor
+										concepts = [
+
+											@UUID ( fbb17b6e-192d-4d45-8439-0bde3918b95b ) SinglePropertyValue: Concept => [
+												override = false
+												template = ref Name requirements = [
+													mandatory Requirement {
+														applicability import
+														exchangeRequirement ExchangeRequirementExample
+													}
+												]
+												templateRules = TemplateRules {
+													templateRule [
+														TemplateRule {
+															description "This is a description."
+															parameters "PropertyName=SelfClosing"
+														}
+													]
+												}
+											]
+										]
+									]
+								]
+							]
+
+						end
