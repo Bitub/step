@@ -119,11 +119,12 @@ class EXPRESSInterpreter {
 			
 			switch(t.datatype) {
 				
-				BuiltInType:
+				BuiltInType: {
+					
 					LOGGER.debug(
 						'''Type "«t.name»" maps onto "«t.datatype.eClass.name»".'''
 					)
-				
+				}				
 				ReferenceType: {
 					// Map type by references concept
 					var transitiveConcept = t.datatype.refersConcept

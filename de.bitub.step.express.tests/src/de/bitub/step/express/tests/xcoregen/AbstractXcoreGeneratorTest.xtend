@@ -76,6 +76,11 @@ abstract class AbstractXcoreGeneratorTest {
 		writeToWorkspace(name+".xcore", xcoreModel)
 	}
 	
+	def createXtextProject() {
+		
+		
+	}
+	
 	/**
 	 * Validates the generated files.
 	 */

@@ -52,8 +52,10 @@ class XcoreGenerator implements IGenerator {
 		FORCE_UNIQUE_DELEGATES	
 	}
 		
-	@Inject static Logger LOGGER
+	static Logger LOGGER = Logger.getLogger(XcoreGenerator)
 		
+		
+	@Inject org.eclipse.emf.ecore.xcore.generator.XcoreGenerator internal
 	@Inject extension IQualifiedNameProvider nameProvider	
 	@Inject extension EXPRESSExtension	
 	
@@ -82,8 +84,8 @@ class XcoreGenerator implements IGenerator {
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
 		
 		LOGGER.info("Generating XCore representation of "+schema.name)
-
-		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
+		
+		fsa.generateFile(schema.name+".xcore", schema.compileSchema)		
 	}
 	
 	
@@ -119,11 +121,23 @@ class XcoreGenerator implements IGenerator {
 	}
 		
 	def private assembleXcoreHeader(Schema s) {
-		
+				
+		val uri = s.eResource.URI
+		var genFolder = "src-gen"
+		switch(uri) {
+			case uri.scheme == "platform": {
+				
+				genFolder = uri.segment(1) + "/" + genFolder
+			}
+			default : {
+				
+				// Nothing here
+			}
+		}
 		assembleXcoreHeader(
 			if(Options.NS_PREFIX.option) Options.NS_PREFIX.optionText else s.name,
 			if(Options.NS_URI.option) Options.NS_URI.optionText else s.name,
-			if(Options.SOURCE_FOLDER.option) Options.SOURCE_FOLDER.optionText else "src-gen"
+			if(Options.SOURCE_FOLDER.option) Options.SOURCE_FOLDER.optionText else genFolder
 		)		
 	}
 		
@@ -167,8 +181,10 @@ class XcoreGenerator implements IGenerator {
 	def private assembleXcorePackage(String name) {
 
 		'''		
-		package «name»
-				
+		package «name.toFirstLower»
+
+		import org.eclipse.emf.ecore.EObject
+						
 		annotation "http://www.eclipse.org/OCL/Import" as Import
 		annotation "http://www.bitub.de/express/XpressModel" as XpressModel
 		annotation "http://www.bitub.de/express/P21" as P21
@@ -305,15 +321,13 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
 		«s.assembleXcorePackage» 
 		
-		import org.eclipse.emf.ecore.EObject
-						
 		// Additional datatype for binary
 		type Binary wraps java.util.BitSet
 				
 		// Base container of «s.name»
 		@GenModel(documentation="Generated container class of «s.name»")
 		@XpressModel(kind="new", pattern="container")
-		class «s.name» {
+		class «s.name.toFirstUpper» {
 					
 		«FOR e:s.entity.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
 		«ENDFOR»
@@ -629,7 +643,7 @@ class XcoreGenerator implements IGenerator {
 				op «targetConcept.name.toFirstUpper» get«inverseAttribute.name.toFirstUpper»()«
 			ELSE»
 				// Inverse select branch
-				op EObject get «inverseAttribute.name.toFirstUpper»()«
+				op EObject get«inverseAttribute.name.toFirstUpper»()«
 			ENDIF»
 			// Non-unique counter part, using concept QN as reference name
 			refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»

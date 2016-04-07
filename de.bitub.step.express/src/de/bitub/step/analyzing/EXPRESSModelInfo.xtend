@@ -105,9 +105,53 @@ class EXPRESSModelInfo {
 		inverseReferenceMap.keySet.filter[ nonUniqueRelation ].size
 	}
 	
+	def int getCountSuperTypeInverseReferences() {
+		
+		inverseReferenceMap.keySet.filter[ supertypeOppositeDirectedRelation ].size
+	}
+	
+	def getIncompleteInverseSelectReferences() {
+
+		inverseReferenceMap.entrySet.filter[
+			if(!key.supertypeOppositeDirectedRelation) {
+				
+				if(key.select) {
+				
+					// Branched left side => check if select covers all
+					val selectType = key.refersConcept as Type
+					!value.map[hostEntity].toSet.containsAll(resolvedSelectsMap.get(selectType))
+				} else {
+					
+					false
+				}				
+			} else {
+				
+				// Super type reference
+				false
+			}
+		]
+		
+	}
+	
+	def getInvalidNonuniqueInverseRelationsships() {
+		
+		inverseReferenceMap.entrySet.filter[
+			if(!key.supertypeOppositeDirectedRelation) {
+				
+				// Non branched left side
+				!key.select && value.size > 1
+								
+			} else {
+				
+				// Super type reference
+				false
+			}
+		]
+	}
+	
 	def int getCountInverseNMReferences(){
 		
-		inverseReferenceMap.keySet.filter[ null!=it && isInverseManyToManyRelation ].size
+		inverseReferenceMap.entrySet.filter[ key.isInverseManyToManyRelation ].map[value.size].reduce[sum, size| sum + size]
 	}
 	
 	def int getCountAliasedConcepts() {
@@ -271,8 +315,9 @@ class EXPRESSModelInfo {
 	 */
 	def isSupertypeOppositeDirectedRelation(Attribute a) {
 		
-		a.inverseRelation && a.refersConcept instanceof Entity && 
-			EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, a.oppositeAttribute.eContainer as Entity) // refers supertype of opposite container
+		a.inverseRelation && a.refersConcept instanceof Entity && a.allOppositeAttributes.forall[
+			EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, eContainer as Entity) 
+		] // refers supertype of opposite container
 	}
 
 	/**
