@@ -12,21 +12,21 @@ package de.bitub.step.express.tests.xcoregen
 
 import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
+import de.bitub.step.analyzing.EXPRESSInterpreter
 import de.bitub.step.express.CollectionType
-import de.bitub.step.util.EXPRESSExtension
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
-import de.bitub.step.analyzing.EXPRESSInterpreter
+
+import static extension de.bitub.step.util.EXPRESSExtension.*
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
 class XcoreNestedCollectionTest extends AbstractXcoreGeneratorTest {
-		
-	@Inject extension EXPRESSExtension
+			
 	@Inject EXPRESSInterpreter testInterpreter
 		
    	val schema =
@@ -74,16 +74,16 @@ class XcoreNestedCollectionTest extends AbstractXcoreGeneratorTest {
     	val list3Dcol = list3D.datatype as CollectionType
     	    	
     	assertTrue(!(list1D.datatype as CollectionType).nestedAggregation)
-    	assertEquals("EntityB[]",  info.getQualifiedAggregationName(list1Dcol).segments.join);
+    	assertEquals("EntityB[]",  info.getQualifiedReference(list1Dcol).segments.join);
     	
     	assertTrue((list2D.datatype as CollectionType).nestedAggregation)
-    	assertEquals("EntityB[][]",  info.getQualifiedAggregationName(list2Dcol).segments.join);
+    	assertEquals("EntityB[][]",  info.getQualifiedReference(list2Dcol).segments.join);
     	
     	val qn = generator.qualifiedName(list2Dcol)
     	//assertEquals("", qn)
     	
     	assertTrue((list3D.datatype as CollectionType).nestedAggregation)
-    	assertEquals("EntityB[][][]",  info.getQualifiedAggregationName(list3Dcol).segments.join);
+    	assertEquals("EntityB[][][]",  info.getQualifiedReference(list3Dcol).segments.join);
     }
     
     @Test

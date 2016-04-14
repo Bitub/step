@@ -11,22 +11,19 @@
  
 package de.bitub.step.express.tests.xcoregen
 
+import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
+import de.bitub.step.analyzing.EXPRESSInterpreter
+import de.bitub.step.express.BuiltInType
+import de.bitub.step.express.SelectType
+import org.apache.log4j.Level
+import org.apache.log4j.Logger
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.apache.log4j.Logger
-import de.bitub.step.express.SelectType
-import de.bitub.step.analyzing.EXPRESSInterpreter
-import com.google.inject.Inject
 
-import org.apache.log4j.Level
-import de.bitub.step.util.EXPRESSExtension
-import de.bitub.step.express.BuiltInType
-import de.bitub.step.express.Attribute
-import java.util.Set
-import java.util.Map.Entry
+import static extension de.bitub.step.util.EXPRESSExtension.*
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
@@ -35,7 +32,6 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 	val static myLog = Logger.getLogger(XcoreIfc4GenTest)
 	
 	@Inject EXPRESSInterpreter test
-	@Inject extension EXPRESSExtension
 	
 	def protected readIfc4() {
 

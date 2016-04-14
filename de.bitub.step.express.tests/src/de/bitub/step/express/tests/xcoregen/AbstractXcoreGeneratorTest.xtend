@@ -108,17 +108,17 @@ abstract class AbstractXcoreGeneratorTest {
 			)
 			
 			// Ignore Code 24 (EObject resolving fails)
-			for(Issue i : issues.filter[severity==Severity.ERROR]) { // && code != "org.eclipse.emf.ecore.model.24"]) {
+			for(Issue i : issues.filter[severity==Severity.ERROR && code != "org.eclipse.emf.ecore.model.24"]) {
 				
 				myLog.error(
-					'''(«packageInstance.name») Line «i.lineNumber». «i.message»'''
+					'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
 				)
 				succeeded = false
 			}	
 			for(Issue i : issues.filter[severity==Severity.WARNING]) {
 				
 				myLog.warn(
-					'''(«packageInstance.name») Line «i.lineNumber». «i.message»'''
+					'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
 				)
 			}	
 		}

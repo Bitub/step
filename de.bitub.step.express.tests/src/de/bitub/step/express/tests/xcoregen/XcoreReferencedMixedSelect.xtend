@@ -23,34 +23,55 @@ import static extension de.bitub.step.util.EXPRESSExtension.*
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
-class XcoreNestedTypeWrappers extends AbstractXcoreGeneratorTest {
+class XcoreReferencedMixedSelect extends AbstractXcoreGeneratorTest {
 		
    	val schema =
     		'''
-    		SCHEMA XcoreNestedTypeWrappers;
-
+    		SCHEMA XcoreReferencedMixedSelect;
     		
-    		TYPE Integer2D = LIST [0:?] OF LIST [0:?] OF INTEGER;
+    		TYPE SimpleDoubleA = REAL;
+    		END_TYPE;
+
+    		TYPE SimpleDoubleB = REAL;
+    		END_TYPE;
+
+    		TYPE SimpleIntA = INTEGER;
+    		END_TYPE;
+    		
+    		TYPE SimpleIntArray = ARRAY[0:?] OF INTEGER;
+    		END_TYPE;    		
+    		
+    		TYPE InlinePerson1D = LIST[0:?] OF Person;
+    		END_TYPE;
+
+    		TYPE InlinePerson2D = LIST[0:?] OF LIST[0:?] OF Person;
+    		END_TYPE;
+
+    		(* A really wired alternative *)
+    		TYPE SomethingSelect = SELECT (
+    			Person,
+    			SimpleDoubleA,
+    			SimpleDoubleB,
+    			SimpleIntA,
+    			SimpleIntArray,
+    			InlinePerson1D,
+    			InlinePerson2D
+    		);
     		END_TYPE;
     		
     		
-    		ENTITY EntityA;
-    		  Integer2D : Integer2D;
-    		  Integer1D : ARRAY [0:?] OF INTEGER;
+    		ENTITY Person;
     		END_ENTITY;
-    		
-    		END_SCHEMA;
+
+    		ENTITY HomeOfEverything;
+    			Something : SomethingSelect;
+    		END_ENTITY;
+    		    		    		
     		'''
     
     @Test
     def void testInfoNestedCollection() {
     	
-    	val model = generateEXPRESS(schema)
-    	val typeWithNestedEntityList = model.type.findFirst[name == "Integer2D"]
-    	
-    	val cType = typeWithNestedEntityList.datatype as CollectionType
-    	
-    	assertTrue(cType.nestedAggregation)
     }
     
     @Test

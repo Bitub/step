@@ -11,10 +11,8 @@
  
 package de.bitub.step.express.tests.xcoregen
 
-import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.EnumType
-import de.bitub.step.util.EXPRESSExtension
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Test
@@ -22,11 +20,11 @@ import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
 
+import static extension de.bitub.step.util.EXPRESSExtension.*
+
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
 class XcoreEnumTest extends AbstractXcoreGeneratorTest {
-
-	@Inject EXPRESSExtension ext
 
 	/**
 	 * A simple enumeration.
@@ -61,7 +59,7 @@ class XcoreEnumTest extends AbstractXcoreGeneratorTest {
 		val model = generateEXPRESS(scheme)		
 		val enumType = model.type.findFirst[ datatype instanceof EnumType]
 		
-		assertTrue(!ext.isReferable(enumType.datatype))
+		assertTrue(!enumType.datatype.referable)
 	}
 	    
     @Test
