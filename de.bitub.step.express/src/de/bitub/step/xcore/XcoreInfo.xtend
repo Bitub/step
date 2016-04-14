@@ -15,19 +15,18 @@ import de.bitub.step.analyzing.EXPRESSModelInfo
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.CollectionType
 import de.bitub.step.express.Entity
+import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Type
-import de.bitub.step.util.EXPRESSExtension
 import java.util.Set
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.naming.QualifiedName
-import de.bitub.step.express.ReferenceType
+
+import static extension de.bitub.step.util.EXPRESSExtension.*
 
 class XcoreInfo {
 
 	val private extension EXPRESSModelInfo modelInfo
-	
-	val private extension EXPRESSExtension modelExtension
-	
+		
 	/**
 	 * A delegate reference.
 	 */
@@ -59,7 +58,6 @@ class XcoreInfo {
 	
 	new (EXPRESSModelInfo info) {
 		this.modelInfo = info
-		this.modelExtension =  new EXPRESSExtension
 	}
 	
 	def int getCountOfDelegate() {
@@ -81,7 +79,7 @@ class XcoreInfo {
 	def String getDelegateQN(CollectionType c) {
 				
 		// Inline aggregation
-		qualifiedNameAggregationMap.get(c.qualifiedAggregationName)
+		qualifiedNameAggregationMap.get(c.qualifiedReference)
 	}
 	
 	def Set<Delegate> getDelegates(Attribute a) {
@@ -118,7 +116,7 @@ class XcoreInfo {
 	def dispatch boolean hasDelegate(CollectionType c) {
 		
 		// Inline aggregation
-		qualifiedNameAggregationMap.containsKey(c.qualifiedAggregationName)
+		qualifiedNameAggregationMap.containsKey(c.qualifiedReference)
 	}
 	
 	def dispatch boolean hasDelegate(Attribute a) {
@@ -128,7 +126,7 @@ class XcoreInfo {
 	
 	def String createNestedDelegate(CollectionType c) {
 	
-		var QualifiedName qn = c.qualifiedAggregationName
+		var QualifiedName qn = c.qualifiedReference
 		
 		if(qualifiedNameAggregationMap.containsKey(qn)) {
 			

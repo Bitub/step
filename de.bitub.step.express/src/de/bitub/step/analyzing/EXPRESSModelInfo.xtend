@@ -19,15 +19,15 @@ import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
 import de.bitub.step.util.EXPRESSExtension
-import de.bitub.step.xcore.XcoreConstants
 import java.util.List
 import java.util.Set
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.naming.QualifiedName
 
+import static extension de.bitub.step.util.EXPRESSExtension.*
+import static extension de.bitub.step.xcore.XcoreConstants.*
+
 class EXPRESSModelInfo {
-	
-	val private extension EXPRESSExtension modelExtension
 	
 	val private extension IQualifiedNameProvider nameProvider
 	
@@ -53,9 +53,9 @@ class EXPRESSModelInfo {
 	 */
 	static class ReducedSelect {
 		
-		val ExpressConcept concept
+		val public ExpressConcept concept
 		
-		val List<ExpressConcept> mappedConcepts = newArrayList
+		val public List<ExpressConcept> mappedConcepts = newArrayList
 		
 		new (ExpressConcept c) {
 			
@@ -87,11 +87,10 @@ class EXPRESSModelInfo {
 	/**
 	 * Maps the type aliases which act as pure aliases.
 	 */
-	public val aliasConceptMap = <Type, ExpressConcept>newHashMap
+	//public val aliasConceptMap = <Type, ExpressConcept>newHashMap
 	
 	new(Schema s, IQualifiedNameProvider nameProvider) {
 		this.schema = s
-		this.modelExtension = new EXPRESSExtension
 		this.nameProvider = nameProvider
 	}	
 	
@@ -154,22 +153,12 @@ class EXPRESSModelInfo {
 		inverseReferenceMap.entrySet.filter[ key.isInverseManyToManyRelation ].map[value.size].reduce[sum, size| sum + size]
 	}
 	
-	def int getCountAliasedConcepts() {
-		
-		aliasConceptMap.size
-	}
-	
 	
 	def int getCountOfReferenceSelects() {
 		
 		reducedSelectsMap.size
 	}
-	
-	def boolean isAliasType(Type t) {
 		
-		null != aliasConceptMap.get(t)
-	}
-	
 		
 	/**
 	 * Returns the opposite attribute(s) of given attribute or null, if there's no inverse
@@ -219,21 +208,31 @@ class EXPRESSModelInfo {
 		if(resolvedSelectsMap.containsKey(s.eContainer)) resolvedSelectsMap.get(s.eContainer) else newHashSet
 	}
 
+	def dispatch QualifiedName getQualifiedReference(ExpressConcept e) {
+		
+		QualifiedName.create(e.name)
+	}
 
-	def QualifiedName getQualifiedAggregationName(CollectionType c) {
+	
+	def dispatch QualifiedName getQualifiedReference(BuiltInType t) {
+		
+		QualifiedName.create(t.qualifiedBuiltInName)
+	}
+
+	def dispatch QualifiedName getQualifiedReference(CollectionType c) {
 		
 		var QualifiedName qn		
 								
 		if(c.nestedAggregation) {
 			
 			// Depth first if nested
-			qn =  (c.type as CollectionType).qualifiedAggregationName					
+			qn =  (c.type as CollectionType).qualifiedReference					
 			
 		} else {
 		
 			// Terminates with either builtin or concept reference
 			if(c.builtinAlias) {				
-				qn = QualifiedName.create(XcoreConstants.qualifiedName(c.refersDatatype as BuiltInType))					
+				qn = c.refersDatatype.qualifiedReference					
 			} else {
 				qn = QualifiedName.create(c.refersConcept.name)
 			}	
@@ -337,4 +336,13 @@ class EXPRESSModelInfo {
 		
 		a.isInverseNonUniqueDirectedRelation || a.allOppositeAttributes.exists[ isInverseNonUniqueDirectedRelation ]		
 	}
+	
+	/**
+	 * True if referenced select
+	 */
+	def isReferencedSelect(ExpressConcept c) {
+		
+		reducedSelectsMap.containsKey(c)
+	}
+	
 }
