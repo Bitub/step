@@ -24,6 +24,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
+import de.bitub.step.express.EnumType
+import de.bitub.step.express.ReferenceType
+import de.bitub.step.express.CollectionType
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
@@ -43,30 +46,37 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 	def void testRunInfo() {
 		
 		val ifc4 = generateEXPRESS(readIfc4)
+		val info = test.process(ifc4)
 		myLog.level = Level.INFO
 		
-		myLog.info('''Entities in total: «ifc4.entity.size»''')
-		myLog.info('''Abstract entities: «ifc4.entity.filter[abstract].size»''')
-		myLog.info('''Non-abstract entities: «ifc4.entity.filter[!abstract].size»''')
-		myLog.info('''Types: «ifc4.type.size»''')
-		myLog.info('''Select types: «ifc4.type.filter[datatype instanceof SelectType].size»''')
-		myLog.info('''Aliased builtins: «ifc4.type.filter[it.refersDatatype instanceof BuiltInType].size»''')
+		myLog.info('''Entities in total «ifc4.entity.size»''')
+		myLog.info('''	Abstract entities «ifc4.entity.filter[abstract].size»''')
+		myLog.info(''' 	Non-abstract entities «ifc4.entity.filter[!abstract].size»''')
+		myLog.info('''Types in total «ifc4.type.size»''')
+		myLog.info(''' 	Enum types «ifc4.type.filter[datatype instanceof EnumType].size»''')
+		myLog.info(''' 	Select types «ifc4.type.filter[datatype instanceof SelectType].size»''')
+		myLog.info('''		Contained referenced selects «info.reducedSelectsMap.keySet.size»''')		
+		myLog.info('''	Aliased builtins «ifc4.type.filter[it.refersDatatype instanceof BuiltInType].size»''')
+		myLog.info('''	Aliased concepts «ifc4.type.filter[it.refersDatatype instanceof ReferenceType].size»''')
+		myLog.info('''	Aliased aggregations «ifc4.type.filter[it.refersDatatype instanceof CollectionType].size»''')
 		
-		val info = test.process(ifc4)
-		myLog.info('''Inverse relations: «info.countInverseNMReferences»''')
-		myLog.info('''Non-unique inverse relations: «info.countNonUniqueReferences»''')
+		
+		myLog.info('''Inverse relations «info.countInverseNMReferences»''')
+		myLog.info('''	Non-unique inverse relations «info.countNonUniqueReferences»''')
 		
 		val invalidRefs = info.invalidNonuniqueInverseRelationsships
-		myLog.info('''Unknown non-unique inverse relations: «invalidRefs.size»''')
+		myLog.info('''		Unknown non-unique inverse relations: «invalidRefs.size»''')
 		
 		for( e : invalidRefs) {
 			
 			for( inv : e.value ) {
-				myLog.info(''' «inv.hostEntity.name».«inv.name» - «e.key.hostEntity.name».«e.key.name»''')			
+				myLog.info('''		«inv.hostEntity.name».«inv.name» - «e.key.hostEntity.name».«e.key.name»''')			
 			}
 		}
 		
-		myLog.info('''Incomplete inverse selects: «info.incompleteInverseSelectReferences.size»''')
+		myLog.info('''		Incomplete inverse selects «info.incompleteInverseSelectReferences.size»''')
+		
+
 	}
 	    
     
