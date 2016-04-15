@@ -134,13 +134,13 @@ class XcoreInfo {
 		}
 		
 		var String nestedQN
-		if(c.typeAggregation) {
-					
-			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
-		} else {
+//		if(c.typeAggregation) {
+//					
+//			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
+//		} else {
 			
 			nestedQN = qn.skipLast(1).segments.join.toFirstUpper.replace('''[]''','''InList''')			
-		}
+//		}
 		
 		qualifiedNameAggregationMap.put( qn, nestedQN )
 		

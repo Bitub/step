@@ -26,6 +26,7 @@ import org.eclipse.xtext.naming.QualifiedName
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
 import static extension de.bitub.step.xcore.XcoreConstants.*
+import de.bitub.step.express.ReferenceType
 
 class EXPRESSModelInfo {
 	
@@ -212,7 +213,11 @@ class EXPRESSModelInfo {
 		
 		QualifiedName.create(e.name)
 	}
-
+	
+	def dispatch QualifiedName getQualifiedReference(ReferenceType r) {
+		
+		r.instance.qualifiedReference
+	}
 	
 	def dispatch QualifiedName getQualifiedReference(BuiltInType t) {
 		

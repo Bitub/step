@@ -36,6 +36,7 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
 import static extension de.bitub.step.xcore.XcoreConstants.*
+import org.eclipse.xtext.naming.QualifiedName
 
 /**
  * Generates Xcore specifications from EXPRESS models.
@@ -333,7 +334,8 @@ class XcoreGenerator implements IGenerator {
 			
 		// --- ADDITIONALLY GENERATED ------------------------
 		
-		«functionGenerator.compileFunction(s)»
+		«//functionGenerator.compileFunction(s)
+		»
 		
 		«secondStageCache»
 			
@@ -431,10 +433,25 @@ class XcoreGenerator implements IGenerator {
 		var nameList = <String>newArrayList
 		var i = 0
 		
-		for(String name : flattenSelect.map[name.toUpperCase]) {
-			nameList += name+"="+(i++)
-		}		
-
+		val qualifiedNameMap = <ExpressConcept, String>newHashMap
+		for(ExpressConcept c : flattenSelect) {
+			
+			nameList += c.name.toUpperCase + "="+(i++)
+			
+			switch(c) {
+				
+				Type:
+					if(c.datatype.builtinAlias) {
+						qualifiedNameMap.put(c, c.datatype.qualifiedName.toString)
+					} else {
+						qualifiedNameMap.put(c, c.name.toFirstUpper)	
+					}
+					
+				Entity:
+					qualifiedNameMap.put(c, c.name.toFirstUpper)
+			} 
+		}
+		
 		'''
 		
 		@GenModel(documentation="Principal choice of select «t.name»")
@@ -453,8 +470,11 @@ class XcoreGenerator implements IGenerator {
 			// Principal select value
 			
 		«FOR c : rList.map[concept].sortBy[name]
-			»«IF c.builtinAlias»	«(c as Type).datatype.qualifiedName»«ELSE»	refers «c.name.toFirstUpper»«ENDIF
-			» «IF c.builtinAlias && !(c as Type).datatype.aggregation»«(c as Type).datatype.qualifiedName»Value«ELSE»«c.name.toFirstLower»«ENDIF»
+		»	«IF c.aggregation
+				»«IF (c as Type).datatype.hasDelegate»contains «ELSEIF !c.builtinAlias»refers «ENDIF
+			»«ELSEIF !c.builtinAlias»refers «ENDIF
+			»«qualifiedNameMap.get(c)» «c.name.toFirstLower
+			»«IF c.builtinAlias && !(c as Type).datatype.aggregation»Value«ENDIF»
 		«ENDFOR»
 			
 			// Operations
@@ -463,9 +483,7 @@ class XcoreGenerator implements IGenerator {
 				
 				switch(s) {
 		«FOR r:rList.sortBy[concept.name]
-			»«FOR m:r.mappedConcepts.sortBy[name]
-		»			«m.name.toUpperCase»:
-			«ENDFOR»
+		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(", ",[n|'''case «n»'''])»:
 						«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation
 						»«(r.concept as Type).datatype.qualifiedName»Value«
 						ELSE
@@ -483,7 +501,7 @@ class XcoreGenerator implements IGenerator {
 			}
 			
 			op Object getValue() {
-				switch(s) {
+				switch(«t.name.toFirstLower») {
 				// TODO
 				}				
 			}
@@ -559,11 +577,12 @@ class XcoreGenerator implements IGenerator {
 		
 		var CharSequence referredType
 		 			 
-		if(c.typeAggregation) {
-		
-			referredType = generateTypeAggregationWrapper(c)
-							
-		} else if(c.nestedAggregation){
+//		if(c.typeAggregation) {
+//		
+//			referredType = generateTypeAggregationWrapper(c)
+//							
+//		} else 
+		if(c.nestedAggregation){
 			
 			referredType = generateDelegateNestedCollector(c)+'''[]'''
 			
@@ -602,7 +621,9 @@ class XcoreGenerator implements IGenerator {
 			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
 			class «nestedCollectorName» {
 				
-				«c.type.compileAnnotation»«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«compiled» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+				«c.type.compileAnnotation
+					»«IF c.type.nestedAggregation»contains «ELSE»«IF !c.builtinAlias»refers «ELSE»«ENDIF»«ENDIF
+					»«compiled» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
 			}
 			'''			
 								
@@ -770,11 +791,11 @@ class XcoreGenerator implements IGenerator {
 		
 		val compiled = a.type.compileDatatype
 		'''«a.compileAnnotation
-			»«IF a.type.referable
+			»«IF a.type.referable || a.type.hasDelegate
 				»«IF a.hasDelegate
 					»«IF a.declaringInverseAttribute»contains «ELSE»refers «ENDIF // Containment to declaring delegate
 				»«ELSE
-					»«IF a.refersConcept.isReferencedSelect»contains «ELSE»refers «ENDIF»«ENDIF					
+					»«IF a.type.hasDelegate || a.refersConcept.isReferencedSelect»contains «ELSE»refers «ENDIF»«ENDIF // Nested delegate or referenced select					
 			»«ENDIF
 			»«IF a.derivedAttribute»derived «ENDIF
 			»«compiled» «a.name.toFirstLower

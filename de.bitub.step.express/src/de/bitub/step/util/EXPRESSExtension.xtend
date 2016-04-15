@@ -295,7 +295,14 @@ class EXPRESSExtension {
 				dataType.type.refersConcept
 			
 			default: 
-				dataType.eContainer as Type
+				
+				if(dataType.eContainer instanceof Type) {
+					
+					dataType.eContainer as Type
+				} else {
+					
+					null
+				}
 		}
 	}
 
