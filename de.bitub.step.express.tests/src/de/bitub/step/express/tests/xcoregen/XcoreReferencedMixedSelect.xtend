@@ -38,9 +38,12 @@ class XcoreReferencedMixedSelect extends AbstractXcoreGeneratorTest {
     		TYPE SimpleIntA = INTEGER;
     		END_TYPE;
     		
-    		TYPE SimpleIntArray = ARRAY[0:?] OF INTEGER;
+    		TYPE IntArray1 = ARRAY[0:?] OF INTEGER;
     		END_TYPE;    		
-    		
+
+    		TYPE IntArray2 = ARRAY[0:?] OF ARRAY[0:?] OF INTEGER;
+    		END_TYPE;    		
+
     		TYPE InlinePerson1D = LIST[0:?] OF Person;
     		END_TYPE;
 
@@ -53,7 +56,8 @@ class XcoreReferencedMixedSelect extends AbstractXcoreGeneratorTest {
     			SimpleDoubleA,
     			SimpleDoubleB,
     			SimpleIntA,
-    			SimpleIntArray,
+    			IntArray1,
+    			IntArray2,
     			InlinePerson1D,
     			InlinePerson2D
     		);
