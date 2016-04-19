@@ -53,6 +53,7 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 		myLog.info('''	Abstract entities «ifc4.entity.filter[abstract].size»''')
 		myLog.info(''' 	Non-abstract entities «ifc4.entity.filter[!abstract].size»''')
 		myLog.info('''Types in total «ifc4.type.size»''')
+		myLog.info(''' 	Collection types «ifc4.type.filter[aggregation].size»''')
 		myLog.info(''' 	Enum types «ifc4.type.filter[datatype instanceof EnumType].size»''')
 		myLog.info(''' 	Select types «ifc4.type.filter[datatype instanceof SelectType].size»''')
 		myLog.info('''		Contained referenced selects «info.reducedSelectsMap.keySet.size»''')		
@@ -64,19 +65,33 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 		myLog.info('''Inverse relations «info.countInverseNMReferences»''')
 		myLog.info('''	Non-unique inverse relations «info.countNonUniqueReferences»''')
 		
-		val invalidRefs = info.invalidNonuniqueInverseRelationsships
+		val superTypeRefs = info.supertypeInverseRelations.toList
+		myLog.info('''		Declaring supertype non-unique inverse relations: «superTypeRefs.size»''')
+
+		for( a : superTypeRefs ) {
+			myLog.info('''			- «a.hostEntity.name».«a.name» -> «a.opposite.hostEntity.name».«a.opposite.name» -> «a.opposite.refersConcept.name»''')			
+		}
+		
+		val invalidRefs = info.invalidNonuniqueInverseRelations.toList
 		myLog.info('''		Unknown non-unique inverse relations: «invalidRefs.size»''')
 		
 		for( e : invalidRefs) {
 			
 			for( inv : e.value ) {
-				myLog.info('''		«inv.hostEntity.name».«inv.name» - «e.key.hostEntity.name».«e.key.name»''')			
+				myLog.info('''			- «inv.hostEntity.name».«inv.name» - «e.key.hostEntity.name».«e.key.name»''')			
 			}
 		}
 		
-		myLog.info('''		Incomplete inverse selects «info.incompleteInverseSelectReferences.size»''')
+		val incompleteSelectRefs = info.incompleteInverseSelectReferences.toList
+		myLog.info('''		Incomplete inverse selects «incompleteSelectRefs.size»''')
 		
-
+		for( e : incompleteSelectRefs) {
+			
+			for( inv : e.value ) {
+				myLog.info('''			- «inv.hostEntity.name».«inv.name» - «e.key.hostEntity.name».«e.key.name»''')			
+			}
+		}
+		
 	}
 	    
     
