@@ -133,7 +133,7 @@ class EXPRESSModelInfo {
 		
 	}
 	
-	def getInvalidNonuniqueInverseRelationsships() {
+	def getInvalidNonuniqueInverseRelations() {
 		
 		inverseReferenceMap.entrySet.filter[
 			if(!key.supertypeOppositeDirectedRelation) {
@@ -322,6 +322,21 @@ class EXPRESSModelInfo {
 		a.inverseRelation && a.refersConcept instanceof Entity && a.allOppositeAttributes.forall[
 			EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, eContainer as Entity) 
 		] // refers supertype of opposite container
+	}
+	
+	def getSupertypeInverseRelations() {
+		
+		inverseReferenceMap.entrySet.filter[
+			val a = key
+			if(a.type.refersConcept instanceof Entity) {
+				value.exists[
+					EXPRESSExtension.isSupertypeOf(a.type.refersConcept as Entity, eContainer as Entity) 
+				]				
+			} else {
+				
+				false
+			}
+		].map[value].flatten.toSet
 	}
 
 	/**

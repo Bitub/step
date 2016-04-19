@@ -36,7 +36,6 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
 import static extension de.bitub.step.xcore.XcoreConstants.*
-import org.eclipse.xtext.naming.QualifiedName
 
 /**
  * Generates Xcore specifications from EXPRESS models.
@@ -394,23 +393,21 @@ class XcoreGenerator implements IGenerator {
 			
 			CollectionType: {
 				
-				if(t.datatype.referable) {
-					// If entity reference
-					val compiled = t.datatype.compileDatatype // Has to be done first
-					'''
-					
-					@GenModel(documentation="Type wrapper for «t.name»")
-					@XpressModel(name="«t.name»", kind="generated")
-					class «t.name» {
-					
-						«t.datatype.compileAnnotation»contains «compiled» «(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase»	
-					}
-					'''					
-				} else {
-					// If type wrapping reference
-					'''// «t.name» mapped to «t.datatype.qualifiedName»
-					'''
+				// If entity reference
+				val compiled = t.datatype.compileDatatype // Has to be done first
+				'''
+				
+				@GenModel(documentation="Type wrapper for «t.name»")
+				@XpressModel(name="«t.name»", kind="generated")
+				class «t.name» {
+				
+					«t.datatype.compileAnnotation
+					»«IF t.datatype.hasDelegate || t.datatype.referable
+						»contains«
+					ENDIF
+					» «compiled» «(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase»	
 				}
+				'''					
 			}			
 			
 			default: {
@@ -430,35 +427,42 @@ class XcoreGenerator implements IGenerator {
 		var rList = modelInfo.reducedSelectsMap.get(t)
 		var flattenSelect = modelInfo.resolvedSelectsMap.get(t)
 		
-		var nameList = <String>newArrayList
 		var i = 0
 		
-		val qualifiedNameMap = <ExpressConcept, String>newHashMap
+		val qualifiedNameMap = <ExpressConcept, Pair<Integer, String>>newHashMap
 		for(ExpressConcept c : flattenSelect) {
-			
-			nameList += c.name.toUpperCase + "="+(i++)
 			
 			switch(c) {
 				
 				Type:
-					if(c.datatype.builtinAlias) {
-						qualifiedNameMap.put(c, c.datatype.qualifiedName.toString)
-					} else {
-						qualifiedNameMap.put(c, c.name.toFirstUpper)	
+					if(c.builtinAlias && !c.aggregation) {						
+						qualifiedNameMap.put(c, ( i -> c.datatype.qualifiedName.toString))						
+					} else {						
+						qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
 					}
 					
 				Entity:
-					qualifiedNameMap.put(c, c.name.toFirstUpper)
-			} 
+					qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
+			}
+			
+			i++ 
 		}
 		
 		'''
 		
-		@GenModel(documentation="Principal choice of select «t.name»")
+		@GenModel(documentation="<ul>«qualifiedNameMap
+			.entrySet
+			.sortBy[key.name]
+			.join("\n",[e|'''<li>{@link «e.key.name.toUpperCase»} as {@link «
+				IF e.key.builtinAlias && !e.key.aggregation
+					»«(e.key.refersDatatype as BuiltInType).qualifiedBuiltInObjectName
+				»«ELSE
+					»«e.value.value»«ENDIF»}</li>'''])»</ul>")
 		@XpressModel(kind="new")
 		enum Enum«t.name.toFirstUpper» {
-			
-			«nameList.join(", ")»			
+			«qualifiedNameMap.entrySet
+			.sortBy[key.name]
+			.join(",\n",[e | '''«e.key.name.toUpperCase» = «e.value.key»'''])»
 		}
 		
 		@GenModel(documentation="Select class of «t.name»")
@@ -470,10 +474,8 @@ class XcoreGenerator implements IGenerator {
 			// Principal select value
 			
 		«FOR c : rList.map[concept].sortBy[name]
-		»	«IF c.aggregation
-				»«IF (c as Type).datatype.hasDelegate»contains «ELSEIF !c.builtinAlias»refers «ENDIF
-			»«ELSEIF !c.builtinAlias»refers «ENDIF
-			»«qualifiedNameMap.get(c)» «c.name.toFirstLower
+		»	«IF c.hasDelegate || c.aggregation»contains «ELSEIF !c.builtinAlias»refers «ENDIF
+			»«qualifiedNameMap.get(c).value» «qualifiedNameMap.get(c).value.toFirstLower
 			»«IF c.builtinAlias && !(c as Type).datatype.aggregation»Value«ENDIF»
 		«ENDFOR»
 			
@@ -485,9 +487,7 @@ class XcoreGenerator implements IGenerator {
 		«FOR r:rList.sortBy[concept.name]
 		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(", ",[n|'''case «n»'''])»:
 						«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation
-						»«(r.concept as Type).datatype.qualifiedName»Value«
-						ELSE
-						»«r.concept.name.toFirstLower
+						»«(r.concept as Type).datatype.qualifiedName»Value«ELSE»«r.concept.name.toFirstLower
 						»«ENDIF
 						» = v as «IF r.concept.builtinAlias
 							»«IF r.concept.aggregation»«(r.concept as Type).name
@@ -502,8 +502,15 @@ class XcoreGenerator implements IGenerator {
 			
 			op Object getValue() {
 				switch(«t.name.toFirstLower») {
-				// TODO
-				}				
+		«FOR r:rList.sortBy[concept.name]
+		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(", ",[n|'''case «n»'''])»:
+						«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation
+						»«(r.concept as Type).datatype.qualifiedName»Value«ELSE»«r.concept.name.toFirstLower
+						»«ENDIF»
+		«ENDFOR»
+					default:
+						throw new IllegalArgumentException
+				}
 			}
 		}
 		'''

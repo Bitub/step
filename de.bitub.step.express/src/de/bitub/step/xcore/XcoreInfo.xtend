@@ -14,11 +14,11 @@ package de.bitub.step.xcore
 import de.bitub.step.analyzing.EXPRESSModelInfo
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.CollectionType
+import de.bitub.step.express.DataType
 import de.bitub.step.express.Entity
 import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Type
 import java.util.Set
-import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.naming.QualifiedName
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
@@ -92,7 +92,12 @@ class XcoreInfo {
 		qualifiedNameDelegateMap.get(a)?.findFirst[targetAttribute == b].qualifiedName
 	}
 	
-	def dispatch boolean hasDelegate(EObject o) {
+	def dispatch boolean hasDelegate(Entity o) {
+		
+		false
+	}
+
+	def dispatch boolean hasDelegate(DataType o) {
 		
 		false
 	}
@@ -122,6 +127,11 @@ class XcoreInfo {
 	def dispatch boolean hasDelegate(Attribute a) {
 		
 		qualifiedNameDelegateMap.containsKey(a)
+	}
+	
+	def dispatch boolean hasDelegate(Type a) {
+		
+		a.datatype.hasDelegate
 	}
 	
 	def String createNestedDelegate(CollectionType c) {
