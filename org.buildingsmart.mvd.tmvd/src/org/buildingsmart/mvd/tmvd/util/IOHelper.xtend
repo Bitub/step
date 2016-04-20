@@ -78,7 +78,7 @@ class IOHelper {
 
 		EPackage.Registry.INSTANCE.put(MvdXmlPackage.eNS_URI, MvdXmlPackage.eINSTANCE);
 
-		val injector = new TextualMVDStandaloneSetup().createInjectorAndDoEMFRegistration
+		val injector = new TextualMVDStandaloneSetup().createInjectorAndDoEMFRegistration()
 
 		val xcoreResourceSet = injector.getInstance(XtextResourceSet);
 		xcoreResourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
