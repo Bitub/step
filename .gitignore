@@ -38,4 +38,9 @@ target/
 
 de.bitub.step.express/schemas/
 de.bitub.step.p21/docs/
-de.bitub.step.p21.antlr/src-gen/
+
+src-gen/**/*
+src-gen/
+xtend-gen/**/*
+xtend-gen/
+de.bitub.step.express/src/de/bitub/step/generator/EXPRESSGenerator.xtend
