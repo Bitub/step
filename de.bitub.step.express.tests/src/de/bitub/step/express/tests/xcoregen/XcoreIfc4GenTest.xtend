@@ -109,10 +109,12 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 		info.printInfoFor(ifc4)
 	}
 
+	@Test
 	def void testRunIfc4Conversion() {
 		generateXCore(readExpressSchema("IFC4"))
 	}
 	
+	@Test
 	def void testRunIfc4Add1Conversion() {
 		generateXCore(readExpressSchema("IFC4_ADD1"))
 	}
