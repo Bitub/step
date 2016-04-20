@@ -1,8 +1,9 @@
-grammar org.buildingsmart.mvd.tmvd.TextualMVD with org.eclipse.xtext.common.Terminals hidden(WS) //with org.buildingsmart.mvd.expression.Mvd2Ocl
+grammar org.buildingsmart.mvd.tmvd.TextualMVD with org.eclipse.xtext.common.Terminals hidden(WS)
+
 import "http://www.eclipse.org/emf/2003/XMLType" as type
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 import "http://buildingsmart-tech.org/mvdXML/mvdXML1-1"
-//import "http://www.buildingsmart.org/mvd/expression/Mvd2Ocl" as mvd2ocl
+
 MvdXML returns MvdXML:
 	('author' author=STRING)?
 	('code' code=NORMALIZED_STRING)?
@@ -85,26 +86,23 @@ LinkType returns LinkType:
 	'}';
 
 AttributeRule returns AttributeRule:
+	(description=ML_COMMENT)?
 	'attr' name=ID
-	('description' description=STRING)?
 	('ruleID' ruleID=ID)?
-	('cardinality' cardinality=CardinalityType)?
 	(entityRules=EntityRulesType)?
 	('def' 'constraints' ':' constraints=ConstraintsType 'end')?
 	'end';
 
 EntityRulesType returns EntityRulesType:
-	{EntityRulesType}
 	entityRule+=EntityRule ("," entityRule+=EntityRule)*;
 
 EntityRule returns EntityRule:
+	(description=ML_COMMENT)?
 	'entity' name=ID
 	('reference' references=ReferencesType)?
 	(attributeRules=AttributeRulesType)?
-	('constraints' constraints=ConstraintsType)?
-	('description' description=STRING)?
-	('ruleID' ruleID=NORMALIZED_STRING)?
-	('cardinality' cardinality=CardinalityType)?
+	('def' 'constraints' ':' constraints=ConstraintsType 'end')?
+	('ruleID' ruleID=ID)?
 	'end';
 
 ReferencesType:
@@ -236,9 +234,6 @@ Requirement returns Requirement:
 	'exchangeRequirement' => exchangeRequirement=[ExchangeRequirementType|ID]
 	'}';
 
-enum CardinalityType returns CardinalityType:
-	asSchema='asSchema' | Zero='Zero' | ZeroToOne='ZeroToOne' | One='One' | OneToMany='OneToMany';
-
 enum Applicability returns Applicability:
 	export='export' | ^import='import' | both='both';
 
@@ -259,9 +254,6 @@ enum StatusType returns StatusType:
 
 NORMALIZED_STRING returns type::NormalizedString:
 	STRING;
-
-MVD_NAME returns type::NormalizedString:
-	ID;
 
 LANGUAGE returns type::Language:
 	STRING;

@@ -23,13 +23,9 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.buildingsmart.mvd.tmvd;uses:="com.google.inject,org.eclipse.xtext.common.types,org.eclipse.xtext",
- org.buildingsmart.mvd.tmvd.converter,
+ org.buildingsmart.mvd.tmvd.converter;uses:="org.eclipse.xtext.nodemodel,org.eclipse.xtext.conversion",
  org.buildingsmart.mvd.tmvd.formatting;uses:="org.buildingsmart.mvd.tmvd.services,org.eclipse.xtext.service,org.eclipse.xtext.formatting.impl",
- org.buildingsmart.mvd.tmvd.generator;
-  uses:="org.eclipse.emf.ecore,
-   org.eclipse.xtext.generator,
-   org.eclipse.emf.ecore.resource,
-   org.buildingsmart.mvd.mvdxml",
+ org.buildingsmart.mvd.tmvd.generator;uses:="org.eclipse.xtext.generator,org.eclipse.emf.ecore.resource",
  org.buildingsmart.mvd.tmvd.parser.antlr;uses:="org.eclipse.xtext.parser.antlr,org.buildingsmart.mvd.tmvd.parser.antlr.internal,org.buildingsmart.mvd.tmvd.services",
  org.buildingsmart.mvd.tmvd.parser.antlr.internal;
   uses:="org.eclipse.emf.ecore,
@@ -45,5 +41,9 @@ Export-Package: org.buildingsmart.mvd.tmvd;uses:="com.google.inject,org.eclipse.
    org.buildingsmart.mvd.mvdxml",
  org.buildingsmart.mvd.tmvd.serializer,
  org.buildingsmart.mvd.tmvd.services;uses:="org.eclipse.xtext.common.services,org.eclipse.xtext.service,org.eclipse.xtext",
- org.buildingsmart.mvd.tmvd.util,
+ org.buildingsmart.mvd.tmvd.util;
+  uses:="org.eclipse.emf.ecore,
+   org.eclipse.emf.ecore.xmi.impl,
+   org.buildingsmart.mvd.mvdxml,
+   org.eclipse.emf.ecore.xmi",
  org.buildingsmart.mvd.tmvd.validation;uses:="org.buildingsmart.mvd.mvdxml"

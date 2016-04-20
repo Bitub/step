@@ -109,12 +109,6 @@
         <details key="name" value="RuleID"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="cardinality" eType="#//CardinalityType">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="attribute"/>
-        <details key="name" value="Cardinality"/>
-      </eAnnotations>
-    </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="AttributeRulesType">
     <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
@@ -160,16 +154,6 @@
         <details key="name" value="tags"/>
       </eAnnotations>
     </eStructuralFeatures>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EEnum" name="CardinalityType">
-    <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-      <details key="name" value="Cardinality_._type"/>
-    </eAnnotations>
-    <eLiterals name="asSchema" literal="_asSchema"/>
-    <eLiterals name="Zero" value="1"/>
-    <eLiterals name="ZeroToOne" value="2"/>
-    <eLiterals name="One" value="3"/>
-    <eLiterals name="OneToMany" value="4"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="CategoryType">
     <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
@@ -705,12 +689,6 @@
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="attribute"/>
         <details key="name" value="RuleID"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="cardinality" eType="#//CardinalityType">
-      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
-        <details key="kind" value="attribute"/>
-        <details key="name" value="Cardinality"/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
