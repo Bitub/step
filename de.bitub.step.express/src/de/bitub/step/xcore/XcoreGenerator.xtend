@@ -21,6 +21,7 @@ import de.bitub.step.express.DataType
 import de.bitub.step.express.Entity
 import de.bitub.step.express.EnumType
 import de.bitub.step.express.ExpressConcept
+import de.bitub.step.express.ExpressPackage
 import de.bitub.step.express.GenericType
 import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
@@ -181,7 +182,7 @@ class XcoreGenerator implements IGenerator {
 	def private assembleXcorePackage(String name) {
 
 		'''		
-		package «name.toFirstLower»
+		package «name.toLowerCase»
 
 		import org.eclipse.emf.ecore.EObject
 						
@@ -306,8 +307,9 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
 		«s.assembleXcorePackage» 
 		
-		// Additional datatype for binary
-		type Binary wraps java.util.BitSet
+		«ExpressPackage.Literals.BINARY_TYPE.compileBuiltin»
+		
+		«ExpressPackage.Literals.LOGICAL_TYPE.compileBuiltin»
 				
 		// Base container of «s.name»
 		@GenModel(documentation="Generated container class of «s.name»")
@@ -318,6 +320,10 @@ class XcoreGenerator implements IGenerator {
 		«ENDFOR»
 				
 		}
+		
+		// --- ENUMERATIONS ----------------------------------
+		
+		«FOR t:s.type.filter[datatype instanceof EnumType]»«t.compileConcept»«ENDFOR»
 		
 		// --- TYPED NESTED COLLECTIONS ----------------------
 		
@@ -405,7 +411,7 @@ class XcoreGenerator implements IGenerator {
 					»«IF t.datatype.hasDelegate || t.datatype.referable
 						»contains«
 					ENDIF
-					» «compiled» «(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase»	
+					» «compiled» a«(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»	
 				}
 				'''					
 			}			
@@ -436,7 +442,7 @@ class XcoreGenerator implements IGenerator {
 				
 				Type:
 					if(c.builtinAlias && !c.aggregation) {						
-						qualifiedNameMap.put(c, ( i -> c.datatype.qualifiedName.toString))						
+						qualifiedNameMap.put(c, ( i -> c.refersDatatype.qualifiedName.toString))						
 					} else {						
 						qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
 					}
@@ -453,7 +459,7 @@ class XcoreGenerator implements IGenerator {
 		@GenModel(documentation="<ul>«qualifiedNameMap
 			.entrySet
 			.sortBy[key.name]
-			.join("\n",[e|'''<li>{@link «e.key.name.toUpperCase»} as {@link «
+			.join("\n		",[e|'''<li>{@link «e.key.name.toUpperCase»} as {@link «
 				IF e.key.builtinAlias && !e.key.aggregation
 					»«(e.key.refersDatatype as BuiltInType).qualifiedBuiltInObjectName
 				»«ELSE
@@ -474,7 +480,7 @@ class XcoreGenerator implements IGenerator {
 			// Principal select value
 			
 		«FOR c : rList.map[concept].sortBy[name]
-		»	«IF c.hasDelegate || c.aggregation»contains «ELSEIF !c.builtinAlias»refers «ENDIF
+		»	«IF c.hasDelegate || c.aggregation»contains «ELSEIF c.referable»refers «ENDIF
 			»«qualifiedNameMap.get(c).value» «qualifiedNameMap.get(c).value.toFirstLower
 			»«IF c.builtinAlias && !(c as Type).datatype.aggregation»Value«ENDIF»
 		«ENDFOR»
@@ -485,11 +491,9 @@ class XcoreGenerator implements IGenerator {
 				
 				switch(s) {
 		«FOR r:rList.sortBy[concept.name]
-		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(", ",[n|'''case «n»'''])»:
-						«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation
-						»«(r.concept as Type).datatype.qualifiedName»Value«ELSE»«r.concept.name.toFirstLower
-						»«ENDIF
-						» = v as «IF r.concept.builtinAlias
+		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(",\n			",[n|'''case «n»'''])»:
+						«qualifiedNameMap.get(r.concept).value.toFirstLower
+						»«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation»Value«ENDIF» = v as «IF r.concept.builtinAlias
 							»«IF r.concept.aggregation»«(r.concept as Type).name
 							»«ELSE
 							»«(r.concept.refersDatatype as BuiltInType).qualifiedBuiltInObjectName»«ENDIF
@@ -503,10 +507,9 @@ class XcoreGenerator implements IGenerator {
 			op Object getValue() {
 				switch(«t.name.toFirstLower») {
 		«FOR r:rList.sortBy[concept.name]
-		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(", ",[n|'''case «n»'''])»:
-						«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation
-						»«(r.concept as Type).datatype.qualifiedName»Value«ELSE»«r.concept.name.toFirstLower
-						»«ENDIF»
+		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(",\n			",[n|'''case «n»'''])»:
+						«qualifiedNameMap.get(r.concept).value.toFirstLower
+						»«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation»Value«ENDIF»
 		«ENDFOR»
 					default:
 						throw new IllegalArgumentException
@@ -514,8 +517,6 @@ class XcoreGenerator implements IGenerator {
 			}
 		}
 		'''
-		
-		// TODO
 	}
 
 	
@@ -551,7 +552,11 @@ class XcoreGenerator implements IGenerator {
 						»«r.instance.name.toFirstUpper
 					»«ENDIF
 				»«ELSE
-					»«(r.instance as Type).datatype.qualifiedName 
+					»«IF r.instance.aggregation
+						»«(r.instance as Type).datatype.qualifiedName 
+					»«ELSE
+						»«(r.instance as Type).refersDatatype.qualifiedName
+					»«ENDIF
 				»«ENDIF»'''				
 		} else {
 			
@@ -602,19 +607,19 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	
-	def private String generateTypeAggregationWrapper(CollectionType c) {
-		
-		var typeWrapperName = c.createNestedDelegate
-		
-		secondStageCache +=
-			'''
-			
-			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
-			type «typeWrapperName» wraps «c.qualifiedReference.segments.join»
-			'''			
-		
-		typeWrapperName
-	}
+//	def private String generateTypeAggregationWrapper(CollectionType c) {
+//		
+//		var typeWrapperName = c.createNestedDelegate
+//		
+//		secondStageCache +=
+//			'''
+//			
+//			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
+//			type «typeWrapperName» wraps «c.qualifiedReference.segments.join»
+//			'''			
+//		
+//		typeWrapperName
+//	}
 
 		
 	def private String generateDelegateNestedCollector(CollectionType c) {
@@ -630,7 +635,7 @@ class XcoreGenerator implements IGenerator {
 				
 				«c.type.compileAnnotation
 					»«IF c.type.nestedAggregation»contains «ELSE»«IF !c.builtinAlias»refers «ELSE»«ENDIF»«ENDIF
-					»«compiled» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+					»«compiled» a«c.type.fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»
 			}
 			'''			
 								

@@ -231,6 +231,39 @@ class EXPRESSExtension {
 	/**
 	 * Whether a datatype is referable (non-datatype in Java terms).
 	 */
+	def static isReferable(ExpressConcept t) {
+
+		switch(t) {
+			
+			Type:
+				t.referable
+			default:
+				true			
+		}
+	}
+
+	/**
+	 * Whether a datatype is referable (non-datatype in Java terms).
+	 */
+	def static isReferable(Type t) {
+
+		switch(t.refersDatatype) {
+			
+			ReferenceType:
+				// Entity only
+				true
+			SelectType:
+				// The only class-wrapped type		
+				true
+			default:
+				false			
+		}
+	}
+	
+
+	/**
+	 * Whether a datatype is referable (non-datatype in Java terms).
+	 */
 	def static isReferable(DataType t) {
 
 		switch(t.refersDatatype) {

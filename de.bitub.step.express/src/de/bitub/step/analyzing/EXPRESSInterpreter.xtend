@@ -70,7 +70,7 @@ class EXPRESSInterpreter {
 						
 						// If no aggregated builtin use type otherwise builtin
 						
-						var qn = info.getQualifiedReference(if(c.builtinAlias && !c.aggregation) c.datatype else c)						
+						var qn = info.getQualifiedReference(if(c.builtinAlias && !c.aggregation) c.refersDatatype else c)						
 						var reducedConcept = reducedMap.get(qn)
 						if(null==reducedConcept) {
 								

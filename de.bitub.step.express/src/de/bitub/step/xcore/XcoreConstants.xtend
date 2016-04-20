@@ -10,10 +10,8 @@
  */
 package de.bitub.step.xcore
 
-import de.bitub.step.express.BinaryType
 import de.bitub.step.express.BuiltInType
 import de.bitub.step.express.ExpressPackage
-import de.bitub.step.express.LogicalType
 import org.eclipse.emf.ecore.EClass
 
 class XcoreConstants {
@@ -50,12 +48,12 @@ class XcoreConstants {
 		builtinObjectMappings.get(c.eClass)
 	}
 	
-	def static CharSequence compileBuiltin(BuiltInType c) {
+	def static CharSequence compileBuiltin(EClass c) {
 		
 		
 		switch(c) {
 			
-			LogicalType : 
+			case ExpressPackage.Literals.LOGICAL_TYPE : 
 				'''
 				
 				enum Logical {
@@ -63,7 +61,7 @@ class XcoreConstants {
 					TRUE = 0, FALSE = 1, UNKNOWN = 2 
 				}
 				'''
-			BinaryType:
+			case ExpressPackage.Literals.BINARY_TYPE :
 				'''
 				
 				type Binary wraps java.util.BitSet
