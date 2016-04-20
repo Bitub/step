@@ -10,33 +10,27 @@
  */
 package de.bitub.step.analyzing
 
+import de.bitub.step.analyzing.EXPRESSModelInfo.ReducedSelect
 import de.bitub.step.express.Attribute
-import de.bitub.step.express.BuiltInType
 import de.bitub.step.express.Entity
 import de.bitub.step.express.ExpressConcept
-import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
-import de.bitub.step.util.EXPRESSExtension
-import java.util.Set
 import javax.inject.Inject
 import org.apache.log4j.Logger
-import de.bitub.step.analyzing.EXPRESSModelInfo.ReducedSelect
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.eclipse.xtext.naming.QualifiedName
+
+import static extension de.bitub.step.util.EXPRESSExtension.*
 
 class EXPRESSInterpreter {
 
-	@Inject extension EXPRESSExtension modelExtension
-	
 	@Inject extension IQualifiedNameProvider nameProvider
 
 	val static Logger LOGGER = Logger.getLogger(EXPRESSInterpreter);
 	
-	/**
-	 * Computes the non-relational selects
-	 */
-	def processSelectReferences(EXPRESSModelInfo info, Schema schema) {
+	def protected processSelectReduction(EXPRESSModelInfo info, Schema schema) {
 		
 		LOGGER.info('''«schema.name»: Processing select reference check.''')
 		
@@ -50,18 +44,42 @@ class EXPRESSInterpreter {
 		LOGGER.info('''«schema.name»: Processing select map-reduction.''')
 		
 		for(Type t : info.reducedSelectsMap.keySet) {
-			
+
+			var reducedMap = <QualifiedName, ReducedSelect>newHashMap			
 			for(ExpressConcept c : (t.datatype as SelectType).flattenSelect) {
-				
+								
 				switch(c) {
-					
+				
 					Entity: {
 					
-						info.reducedSelectsMap.get(t) += new ReducedSelect(c)	
+						var qn = info.getQualifiedReference(c)
+						var ReducedSelect reducedConcept = reducedMap.get(qn)						
+						if(null==reducedConcept) {
+							// Create a new 
+							reducedConcept = new ReducedSelect(c)
+							reducedMap.put(qn, reducedConcept)
+							info.reducedSelectsMap.get(t) += reducedConcept
+						} else {
+							// Add to existing (should not happen)
+							LOGGER.debug(''' Detected duplicate concept «c.name» with QN «qn» in select «t.name».''')
+						}	
+						
+						reducedConcept.mappedConcepts += c
 					}					
 					Type: {
 						
-						(c as Type).builtinAlias
+						// If no aggregated builtin use type otherwise builtin
+						
+						var qn = info.getQualifiedReference(if(c.builtinAlias && !c.aggregation) c.datatype else c)						
+						var reducedConcept = reducedMap.get(qn)
+						if(null==reducedConcept) {
+								
+							reducedConcept = new ReducedSelect(c)		
+							reducedMap.put(qn, reducedConcept)
+							info.reducedSelectsMap.get(t) += reducedConcept						
+						} 
+						
+						reducedConcept.mappedConcepts += c					
 					}						
 				}	
 			}
@@ -71,7 +89,7 @@ class EXPRESSInterpreter {
 	/**
 	 * Computes flattened select type references as finite closure of referenced concepts. 
 	 */
-	def processSelectResolution(EXPRESSModelInfo info, Schema schema) {
+	def protected processSelectResolution(EXPRESSModelInfo info, Schema schema) {
 
 		LOGGER.info('''«schema.name»: Processing select resolution.''')
 
@@ -87,7 +105,7 @@ class EXPRESSInterpreter {
 	/**
 	 * Computes all inverse relations into schema info.
 	 */
-	def processRelations(EXPRESSModelInfo info, Schema schema) {
+	def protected processRelations(EXPRESSModelInfo info, Schema schema) {
 		
 		LOGGER.info('''«schema.name»: Processing inverse relationship mapping.''')
 		
@@ -108,35 +126,6 @@ class EXPRESSInterpreter {
 		}
 	}
 	
-	/**
-	 * Computes all alias mappings.
-	 */
-	def processAliasTypes(EXPRESSModelInfo info, Schema schema) {
-		
-		LOGGER.info('''Processing alias mapping of «schema.name».''')
-		
-		for(Type t : schema.type) {
-			
-			switch(t.datatype) {
-				
-				BuiltInType:
-					LOGGER.debug(
-						'''Type "«t.name»" maps onto "«t.datatype.eClass.name»".'''
-					)
-				
-				ReferenceType: {
-					// Map type by references concept
-					var transitiveConcept = t.datatype.refersConcept
-					info.aliasConceptMap.put(t, transitiveConcept)
-					LOGGER.info(
-						'''Mapping type "«t.name»" onto "«transitiveConcept.name»".'''
-					)					
-				}
-				default: {				
-				}
-			}
-		}		
-	}
 		
 
 	/**
@@ -146,41 +135,21 @@ class EXPRESSInterpreter {
 	def EXPRESSModelInfo process(Schema schema) {
 
 		var info = new EXPRESSModelInfo(schema,nameProvider)
+
+		// Register invers relations
+		processRelations(info, schema)
 		
 		// Flatten selects
 		processSelectResolution(info, schema)
 		
-		// Register invers relations
-		processRelations(info, schema)
+		// Will map reduce selects of non-inverse relationsships
+		processSelectReduction(info, schema)
 		
-		// Register alias types
-		processAliasTypes(info, schema)
-		
+				
 		info
 	}
 
 
 
-	/**
-	 * Determines the flat set of EXPRESS concepts represented by given Select statement.
-	 */
-	def static Set<ExpressConcept> flattenSelect(SelectType selectType) {
 
-		val uniqueTypeSet = <ExpressConcept>newHashSet
-
-
-		// Self evaluation
-		var set = selectType.select.filter [
-			!(it instanceof Type && (it as Type).datatype instanceof SelectType)
-		].toSet;
-
-		// Recursion (filter all SELECTs)
-		selectType.select.filter [
-			it instanceof Type && (it as Type).datatype instanceof SelectType
-		].forEach[uniqueTypeSet += flattenSelect((it as Type).datatype as SelectType)]
-
-		uniqueTypeSet += set
-		
-		return uniqueTypeSet
-	}
 }

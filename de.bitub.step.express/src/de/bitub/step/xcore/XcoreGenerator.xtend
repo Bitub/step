@@ -26,7 +26,6 @@ import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
-import de.bitub.step.util.EXPRESSExtension
 import java.util.Date
 import java.util.Map
 import org.apache.log4j.Logger
@@ -34,6 +33,9 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+
+import static extension de.bitub.step.util.EXPRESSExtension.*
+import static extension de.bitub.step.xcore.XcoreConstants.*
 
 /**
  * Generates Xcore specifications from EXPRESS models.
@@ -52,10 +54,10 @@ class XcoreGenerator implements IGenerator {
 		FORCE_UNIQUE_DELEGATES	
 	}
 		
-	@Inject static Logger LOGGER
+	static Logger LOGGER = Logger.getLogger(XcoreGenerator)
+		
 		
 	@Inject extension IQualifiedNameProvider nameProvider	
-	@Inject extension EXPRESSExtension	
 	
 	extension EXPRESSModelInfo modelInfo
 	extension XcoreInfo xcoreInfo
@@ -82,8 +84,8 @@ class XcoreGenerator implements IGenerator {
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
 		
 		LOGGER.info("Generating XCore representation of "+schema.name)
-
-		fsa.generateFile(schema.name+".xcore", schema.compileSchema)
+		
+		fsa.generateFile(schema.name+".xcore", schema.compileSchema)		
 	}
 	
 	
@@ -119,11 +121,23 @@ class XcoreGenerator implements IGenerator {
 	}
 		
 	def private assembleXcoreHeader(Schema s) {
-		
+				
+		val uri = s.eResource.URI
+		var genFolder = "src-gen"
+		switch(uri) {
+			case uri.scheme == "platform": {
+				
+				genFolder = uri.segment(1) + "/" + genFolder
+			}
+			default : {
+				
+				// Nothing here
+			}
+		}
 		assembleXcoreHeader(
 			if(Options.NS_PREFIX.option) Options.NS_PREFIX.optionText else s.name,
 			if(Options.NS_URI.option) Options.NS_URI.optionText else s.name,
-			if(Options.SOURCE_FOLDER.option) Options.SOURCE_FOLDER.optionText else "src-gen"
+			if(Options.SOURCE_FOLDER.option) Options.SOURCE_FOLDER.optionText else genFolder
 		)		
 	}
 		
@@ -167,8 +181,10 @@ class XcoreGenerator implements IGenerator {
 	def private assembleXcorePackage(String name) {
 
 		'''		
-		package «name»
-				
+		package «name.toFirstLower»
+
+		import org.eclipse.emf.ecore.EObject
+						
 		annotation "http://www.eclipse.org/OCL/Import" as Import
 		annotation "http://www.bitub.de/express/XpressModel" as XpressModel
 		annotation "http://www.bitub.de/express/P21" as P21
@@ -265,24 +281,9 @@ class XcoreGenerator implements IGenerator {
 				'''@XpressModel(name="«t.name»", kind="mapped", qualifiedName="«alias.qualifiedName»")
 				'''
 			}
-			SelectType: {
-				
-				if(t.aliasType) {
-					
-					'''@XpressModel(name="«t.name»", kind="mapped", classRef="«alias.qualifiedName»")
-					'''
-				}
-			}
 			
 			default:
-				
-				if(t.aliasType) {
-					
-					'''@XpressModel(name="«t.name»", kind="omitted")
-					'''
-				} else {
-					''''''					
-				}
+				''''''				
 		}		 
 	} 
 
@@ -305,24 +306,26 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
 		«s.assembleXcorePackage» 
 		
-		import org.eclipse.emf.ecore.EObject
-						
 		// Additional datatype for binary
 		type Binary wraps java.util.BitSet
 				
 		// Base container of «s.name»
 		@GenModel(documentation="Generated container class of «s.name»")
 		@XpressModel(kind="new", pattern="container")
-		class «s.name» {
+		class «s.name.toFirstUpper» {
 					
 		«FOR e:s.entity.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
 		«ENDFOR»
 				
 		}
 		
-		// --- TYPE DEFINITIONS ------------------------------
+		// --- TYPED NESTED COLLECTIONS ----------------------
 		
-		«FOR t:s.type»«t.compileConcept»«ENDFOR»
+		«FOR t:s.type.filter[aggregation]»«t.compileConcept»«ENDFOR»
+		
+		// --- REFERENCED SELECTS ----------------------------
+		
+		«FOR t:modelInfo.reducedSelectsMap.keySet»«t.compileConcept»«ENDFOR»
 		
 		// --- ENTITY DEFINITIONS ----------------------------
 		
@@ -330,7 +333,8 @@ class XcoreGenerator implements IGenerator {
 			
 		// --- ADDITIONALLY GENERATED ------------------------
 		
-		«functionGenerator.compileFunction(s)»
+		«//functionGenerator.compileFunction(s)
+		»
 		
 		«secondStageCache»
 			
@@ -379,48 +383,31 @@ class XcoreGenerator implements IGenerator {
 			}
 			EnumType: {
 				// Compile enum
-				'''
-				
-				@GenModel(documentation="Enumeration of «t.name»")
-				@XpressModel(name="«t.name»",kind="generated")
-				enum «t.name.toFirstUpper» {
-								
-					«t.datatype.compileDatatype»
-				}
-				'''
+				t.datatype.compileDatatype
 			}
 			SelectType: {
+				
 				// Compile select
-				'''
-				
-				@GenModel(documentation="Select of «t.name»")
-				@XpressModel(name="«t.name»",kind="generated")
-				class «t.name.toFirstUpper» {
-				
-					«t.datatype.compileDatatype»	
-				}
-				'''							
+				t.datatype.compileDatatype	
 			}
 			
 			CollectionType: {
 				
-				if(t.datatype.referable) {
-					// If entity reference
-					val compiled = t.datatype.compileDatatype // Has to be done first
-					'''
-					
-					@GenModel(documentation="Type wrapper for «t.name»")
-					@XpressModel(name="«t.name»", kind="generated")
-					class «t.name» {
-					
-						«t.datatype.compileAnnotation»contains «compiled» «(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase»	
-					}
-					'''					
-				} else {
-					// If type wrapping reference
-					'''// «t.name» mapped to «t.datatype.qualifiedName»
-					'''
+				// If entity reference
+				val compiled = t.datatype.compileDatatype // Has to be done first
+				'''
+				
+				@GenModel(documentation="Type wrapper for «t.name»")
+				@XpressModel(name="«t.name»", kind="generated")
+				class «t.name» {
+				
+					«t.datatype.compileAnnotation
+					»«IF t.datatype.hasDelegate || t.datatype.referable
+						»contains«
+					ENDIF
+					» «compiled» «(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase»	
 				}
+				'''					
 			}			
 			
 			default: {
@@ -436,16 +423,99 @@ class XcoreGenerator implements IGenerator {
 	 */
 	def dispatch compileDatatype(SelectType s) {
 		
-		val conceptSet = s.flattenedConceptSet
+		var t = s.eContainer as Type
+		var rList = modelInfo.reducedSelectsMap.get(t)
+		var flattenSelect = modelInfo.resolvedSelectsMap.get(t)
 		
-		''' 
-		   «FOR c : conceptSet.filter[it instanceof Entity]»
-			«c.compileAnnotation»refers «c.name.toFirstUpper» «c.name.toFirstLower»
-		   «ENDFOR»
-		   «FOR t : conceptSet.filter[it instanceof Type].map[it as Type]»
-			«t.compileAnnotation»«IF t.namedAlias && !t.builtinAlias»refers «ENDIF»«t.datatype.qualifiedName» «t.name.toFirstLower»
-		   «ENDFOR»
+		var i = 0
+		
+		val qualifiedNameMap = <ExpressConcept, Pair<Integer, String>>newHashMap
+		for(ExpressConcept c : flattenSelect) {
+			
+			switch(c) {
+				
+				Type:
+					if(c.builtinAlias && !c.aggregation) {						
+						qualifiedNameMap.put(c, ( i -> c.datatype.qualifiedName.toString))						
+					} else {						
+						qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
+					}
+					
+				Entity:
+					qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
+			}
+			
+			i++ 
+		}
+		
 		'''
+		
+		@GenModel(documentation="<ul>«qualifiedNameMap
+			.entrySet
+			.sortBy[key.name]
+			.join("\n",[e|'''<li>{@link «e.key.name.toUpperCase»} as {@link «
+				IF e.key.builtinAlias && !e.key.aggregation
+					»«(e.key.refersDatatype as BuiltInType).qualifiedBuiltInObjectName
+				»«ELSE
+					»«e.value.value»«ENDIF»}</li>'''])»</ul>")
+		@XpressModel(kind="new")
+		enum Enum«t.name.toFirstUpper» {
+			«qualifiedNameMap.entrySet
+			.sortBy[key.name]
+			.join(",\n",[e | '''«e.key.name.toUpperCase» = «e.value.key»'''])»
+		}
+		
+		@GenModel(documentation="Select class of «t.name»")
+		@XpressModel(name="«t.name»",kind="generated")
+		class «t.name.toFirstUpper» {
+			
+			Enum«t.name.toFirstUpper» «t.name.toFirstLower»
+			
+			// Principal select value
+			
+		«FOR c : rList.map[concept].sortBy[name]
+		»	«IF c.hasDelegate || c.aggregation»contains «ELSEIF !c.builtinAlias»refers «ENDIF
+			»«qualifiedNameMap.get(c).value» «qualifiedNameMap.get(c).value.toFirstLower
+			»«IF c.builtinAlias && !(c as Type).datatype.aggregation»Value«ENDIF»
+		«ENDFOR»
+			
+			// Operations
+			
+			op void setValue(Enum«t.name.toFirstUpper» s, Object v) {
+				
+				switch(s) {
+		«FOR r:rList.sortBy[concept.name]
+		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(", ",[n|'''case «n»'''])»:
+						«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation
+						»«(r.concept as Type).datatype.qualifiedName»Value«ELSE»«r.concept.name.toFirstLower
+						»«ENDIF
+						» = v as «IF r.concept.builtinAlias
+							»«IF r.concept.aggregation»«(r.concept as Type).name
+							»«ELSE
+							»«(r.concept.refersDatatype as BuiltInType).qualifiedBuiltInObjectName»«ENDIF
+						»«ELSE»«r.concept.name.toFirstUpper»«ENDIF»
+		«ENDFOR»
+					default:
+						throw new IllegalArgumentException
+				}
+			}
+			
+			op Object getValue() {
+				switch(«t.name.toFirstLower») {
+		«FOR r:rList.sortBy[concept.name]
+		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(", ",[n|'''case «n»'''])»:
+						«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation
+						»«(r.concept as Type).datatype.qualifiedName»Value«ELSE»«r.concept.name.toFirstLower
+						»«ENDIF»
+		«ENDFOR»
+					default:
+						throw new IllegalArgumentException
+				}
+			}
+		}
+		'''
+		
+		// TODO
 	}
 
 	
@@ -457,7 +527,6 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence qualifiedName(SelectType t) {
 		
-		// TODO Mark select for persistency
 		'''«(t.eContainer as Type).name.toFirstUpper»'''
 	}
 	
@@ -494,7 +563,7 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence qualifiedName(BuiltInType b) { 
 		
-		'''«XcoreConstants.qualifiedName(b)»'''
+		'''«b.qualifiedBuiltInName»'''
 	
 	}
 	
@@ -515,11 +584,12 @@ class XcoreGenerator implements IGenerator {
 		
 		var CharSequence referredType
 		 			 
-		if(c.typeAggregation) {
-		
-			referredType = generateTypeAggregationWrapper(c)
-							
-		} else if(c.nestedAggregation){
+//		if(c.typeAggregation) {
+//		
+//			referredType = generateTypeAggregationWrapper(c)
+//							
+//		} else 
+		if(c.nestedAggregation){
 			
 			referredType = generateDelegateNestedCollector(c)+'''[]'''
 			
@@ -540,7 +610,7 @@ class XcoreGenerator implements IGenerator {
 			'''
 			
 			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
-			type «typeWrapperName» wraps «c.qualifiedAggregationName.segments.join»
+			type «typeWrapperName» wraps «c.qualifiedReference.segments.join»
 			'''			
 		
 		typeWrapperName
@@ -558,7 +628,9 @@ class XcoreGenerator implements IGenerator {
 			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
 			class «nestedCollectorName» {
 				
-				«c.type.compileAnnotation»«IF c.type.nestedAggregation»contains «ELSE»refers «ENDIF»«compiled» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
+				«c.type.compileAnnotation
+					»«IF c.type.nestedAggregation»contains «ELSE»«IF !c.builtinAlias»refers «ELSE»«ENDIF»«ENDIF
+					»«compiled» «c.type.fullyQualifiedName.lastSegment.toLowerCase»
 			}
 			'''			
 								
@@ -629,7 +701,7 @@ class XcoreGenerator implements IGenerator {
 				op «targetConcept.name.toFirstUpper» get«inverseAttribute.name.toFirstUpper»()«
 			ELSE»
 				// Inverse select branch
-				op EObject get «inverseAttribute.name.toFirstUpper»()«
+				op EObject get«inverseAttribute.name.toFirstUpper»()«
 			ENDIF»
 			// Non-unique counter part, using concept QN as reference name
 			refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
@@ -660,7 +732,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Generates a relation delegate and returns class reference.
 	 */
-	def protected String getCreateDelegateQN(Attribute a) { // TODO
+	def protected String getCreateDelegateQN(Attribute a) { 
 				
 		// Get existing QN of delegate
 		if(!a.hasDelegate) {
@@ -709,19 +781,28 @@ class XcoreGenerator implements IGenerator {
 			nameList += name+"="+(i++)
 		}		
 			
-		'''«nameList.join(", ")»'''
+		val type = (t.eContainer as Type)
+		'''
+		
+		@GenModel(documentation="Enumeration of «type.name»")
+		@XpressModel(name="«type.name»",kind="generated")
+		enum «type.name.toFirstUpper» {
+
+			«nameList.join(", ")»
+		}
+		'''
 	}
 
 
-	def compileAttribute(Attribute a) { // TODO
+	def compileAttribute(Attribute a) { 
 		
 		val compiled = a.type.compileDatatype
 		'''«a.compileAnnotation
-			»«IF a.type.referable
+			»«IF a.type.referable || a.type.hasDelegate
 				»«IF a.hasDelegate
 					»«IF a.declaringInverseAttribute»contains «ELSE»refers «ENDIF // Containment to declaring delegate
 				»«ELSE
-					»refers «ENDIF						
+					»«IF a.type.hasDelegate || a.refersConcept.isReferencedSelect»contains «ELSE»refers «ENDIF»«ENDIF // Nested delegate or referenced select					
 			»«ENDIF
 			»«IF a.derivedAttribute»derived «ENDIF
 			»«compiled» «a.name.toFirstLower
@@ -729,5 +810,4 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	
-
 }		
