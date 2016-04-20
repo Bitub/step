@@ -43,3 +43,4 @@ src-gen/**/*
 src-gen/
 xtend-gen/**/*
 xtend-gen/
+de.bitub.step.express/src/de/bitub/step/generator/EXPRESSGenerator.xtend
