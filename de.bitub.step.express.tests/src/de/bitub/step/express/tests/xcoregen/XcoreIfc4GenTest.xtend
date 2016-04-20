@@ -15,6 +15,9 @@ import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.analyzing.EXPRESSInterpreter
 import de.bitub.step.express.BuiltInType
+import de.bitub.step.express.CollectionType
+import de.bitub.step.express.EnumType
+import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.SelectType
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -24,9 +27,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
-import de.bitub.step.express.EnumType
-import de.bitub.step.express.ReferenceType
-import de.bitub.step.express.CollectionType
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
@@ -94,7 +94,7 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 		
 	}
 	    
-    
+    @Test
     def void testRunIfc4Conversion() {
     	
     	
