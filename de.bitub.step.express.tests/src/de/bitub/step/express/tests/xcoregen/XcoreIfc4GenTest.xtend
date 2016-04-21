@@ -28,6 +28,8 @@ import org.junit.runner.RunWith
 import static extension de.bitub.step.util.EXPRESSExtension.*
 import de.bitub.step.analyzing.EXPRESSModelInfo
 import de.bitub.step.express.Schema
+import org.junit.Before
+import de.bitub.step.xcore.XcoreGenerator
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
@@ -39,7 +41,7 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 
 	def protected readExpressSchema(String name) {
 
-		val ifc4stream = class.classLoader.getResourceAsStream("de/bitub/step/express/tests/xcoregen/" + name + ".exp")
+		val ifc4stream = class.classLoader.getResourceAsStream("de/bitub/step/express/tests/xcoregen/ifc/" + name + ".exp")
 		readModel(ifc4stream)
 	}
 	
@@ -111,11 +113,29 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 
 	@Test
 	def void testRunIfc4Conversion() {
+		generatedXcoreFilename = "ifc4.exp.xcore"
 		generateXCore(readExpressSchema("IFC4"))
 	}
 	
 	@Test
 	def void testRunIfc4Add1Conversion() {
+		generatedXcoreFilename = "ifc4_add1.exp.xcore"
 		generateXCore(readExpressSchema("IFC4_ADD1"))
+	}
+	
+	
+	@Before
+	def void setup() {
+	
+		generator.options.put(XcoreGenerator.Options.COPYRIGHT_NOTICE, 
+			'''Copyright (c) 2015,2016 Bernold Kraft and others. (Berlin, Germany).
+			\nAll rights reserved. This program and the accompanying materials
+			\nare made available under the terms of the Eclipse Public License v1.0
+			\nwhich accompanies this distribution, and is available at
+			\n\nhttp://www.eclipse.org/legal/epl-v10.html
+			\n\nInitial contributors:\n\n - Bernold Kraft,Sebastian Riemschüssel,Torsten Krämer''')
+		generator.options.put(XcoreGenerator.Options.NS_URI, "http://www.bitub.de/IFC4")
+		generator.options.put(XcoreGenerator.Options.PACKAGE, "org.buildingsmart.ifc4")
+		generator.options.put(XcoreGenerator.Options.SOURCE_FOLDER, "/org.buildingsmart.ifc4/src-gen")
 	}
 }

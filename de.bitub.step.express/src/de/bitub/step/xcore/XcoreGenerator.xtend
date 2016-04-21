@@ -52,7 +52,8 @@ class XcoreGenerator implements IGenerator {
 		ENABLE_CDO, 
 		PACKAGE, 
 		SOURCE_FOLDER, 
-		FORCE_UNIQUE_DELEGATES	
+		FORCE_UNIQUE_DELEGATES,
+		UPDATE_CLASSPATH	
 	}
 		
 	static Logger LOGGER = Logger.getLogger(XcoreGenerator)
@@ -111,7 +112,7 @@ class XcoreGenerator implements IGenerator {
 		options.containsKey(o) && (options.get(o) as Boolean) == Boolean.TRUE
 	}
 	
-	def private isOption(Options o) {
+	def isOption(Options o) {
 		
 		options.containsKey(o)
 	}
@@ -150,11 +151,12 @@ class XcoreGenerator implements IGenerator {
 		@Ecore(nsPrefix="«nsPrefix»",nsURI="«nsURI»")
 		@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
 		@GenModel(
+			«IF Options.PACKAGE.option»basePackage="«Options.PACKAGE.optionText»",«ENDIF»
 			«IF Options.COPYRIGHT_NOTICE.option»copyrightText="«Options.COPYRIGHT_NOTICE.optionText»",«ENDIF»
 			modelDirectory="«folder»",
 			adapterFactory="false",
 			forceOverwrite="true",
-			updateClasspath="false",
+			updateClasspath="«IF Options.UPDATE_CLASSPATH.option»true«ELSE»false«ENDIF»",
 			complianceLevel="8.0",
 			optimizedHasChildren="true"«IF Options.ENABLE_CDO.optionTrue»,
 									 
@@ -408,10 +410,8 @@ class XcoreGenerator implements IGenerator {
 				class «t.name» {
 				
 					«t.datatype.compileAnnotation
-					»«IF t.datatype.hasDelegate || t.datatype.referable
-						»contains«
-					ENDIF
-					» «compiled» a«(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»	
+					»«IF t.datatype.hasDelegate || (t.datatype.referable && t.refersConcept.referencedSelect)»contains «ELSEIF t.datatype.referable»refers «ENDIF
+					»«compiled» a«(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»	
 				}
 				'''					
 			}			
@@ -561,8 +561,12 @@ class XcoreGenerator implements IGenerator {
 		} else {
 			
 			// Hosted reference in type definition
-			'''«IF r.isAggregation»
-				«(r.instance as Type).datatype.qualifiedName»«ELSE»«r.instance.name.toFirstUpper»«ENDIF»'''
+			switch(r.instance) {
+				Entity:
+					'''«r.instance.name.toFirstUpper»'''
+				Type:
+					'''«(r.instance as Type).datatype.qualifiedName»'''
+			}
 		}
 	}
 	
@@ -759,8 +763,12 @@ class XcoreGenerator implements IGenerator {
 	def dispatch CharSequence compileDatatype(CollectionType c) {
 								
 		'''«IF !c.builtinAlias
-				»«IF !#["ARRAY","LIST"].contains(c.name)»unordered «ENDIF
-				»«IF "SET"==c.name»unique «ENDIF»«
+				»«IF !#["ARRAY","LIST"].contains(c.name)
+					»unordered «
+				ENDIF
+				»«IF "SET"==c.name
+					»unique «
+				ENDIF»«
 			ENDIF»«c.qualifiedName»'''
 	}
 
@@ -793,7 +801,7 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(name="«type.name»",kind="generated")
 		enum «type.name.toFirstUpper» {
 
-			«nameList.join(", ")»
+			«nameList.join(",\n")»
 		}
 		'''
 	}

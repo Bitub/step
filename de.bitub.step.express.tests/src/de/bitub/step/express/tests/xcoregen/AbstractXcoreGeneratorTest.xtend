@@ -34,7 +34,9 @@ abstract class AbstractXcoreGeneratorTest {
 	@Inject protected XcoreGenerator generator	
 	@Inject protected ParseHelper<Schema> parseHelper	
 	
-	val protected ResourceSet resourceSet = new ResourceSetImpl	
+	val protected ResourceSet resourceSet = new ResourceSetImpl
+	
+	var protected String generatedXcoreFilename	
 	
 	/**
 	 * Reads a model.
@@ -63,7 +65,9 @@ abstract class AbstractXcoreGeneratorTest {
 	def generateXCore(CharSequence schema) {
 		
 		val model = generateEXPRESS(schema)
-		generator.options.put(XcoreGenerator.Options.PACKAGE, '''tests.xcore.«model.name.toLowerCase»''') 
+		if(!generator.options.containsKey(XcoreGenerator.Options.PACKAGE)) {
+			generator.options.put(XcoreGenerator.Options.PACKAGE, '''tests.xcore.«model.name.toLowerCase»''')		
+		} 
 		val xcoreModel = generator.compileSchema(model)
 		
 		saveXcore(model.name, xcoreModel)
@@ -72,8 +76,8 @@ abstract class AbstractXcoreGeneratorTest {
 	}
 	
 	def saveXcore(String name, CharSequence xcoreModel) {
-		
-		writeToWorkspace(name+".xcore", xcoreModel)
+				
+		writeToWorkspace(if(null==generatedXcoreFilename) name+".xcore" else generatedXcoreFilename, xcoreModel)
 	}
 	
 	def createXtextProject() {
