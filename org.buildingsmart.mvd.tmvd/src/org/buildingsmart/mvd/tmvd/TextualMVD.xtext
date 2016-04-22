@@ -108,7 +108,7 @@ EntityRule returns EntityRule:
 ReferencesType:
 	'{'
 	'template' template=GenericReference
-	('prefix' idPrefix=NORMALIZED_STRING)?
+	('prefix' idPrefix=ID)?
 	'}';
 
 AttributeRulesType returns AttributeRulesType:
