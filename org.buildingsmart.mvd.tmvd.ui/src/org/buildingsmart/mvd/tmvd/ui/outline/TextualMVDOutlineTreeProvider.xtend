@@ -3,11 +3,114 @@
  */
 package org.buildingsmart.mvd.tmvd.ui.outline
 
+import org.buildingsmart.mvd.mvdxml.Concept
+import org.buildingsmart.mvd.mvdxml.ConceptTemplate
+import org.eclipse.xtext.ui.editor.outline.IOutlineNode
+import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider
+import org.eclipse.xtext.ui.editor.outline.impl.DocumentRootNode
+import org.buildingsmart.mvd.mvdxml.MvdXML
+import org.eclipse.jdt.internal.ui.JavaPluginImages
+import org.eclipse.jdt.internal.ui.SharedImages
+import org.buildingsmart.mvd.mvdxml.MvdXmlPackage
+import org.buildingsmart.mvd.mvdxml.RootsType
+import org.buildingsmart.mvd.mvdxml.ModelView
+import org.buildingsmart.mvd.mvdxml.ConceptRoot
+import com.google.inject.Inject
+import org.eclipse.xtext.ui.label.StylerFactory
+import org.eclipse.jface.viewers.StyledString
+import org.eclipse.xtext.ui.editor.utils.TextStyle
+import org.eclipse.swt.graphics.RGB
+import org.eclipse.swt.graphics.FontData
+import org.eclipse.swt.SWT
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EClassifier
+
 /**
  * Customization of the default outline structure.
  *
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#outline
  */
-class TextualMVDOutlineTreeProvider extends org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider {
+class TextualMVDOutlineTreeProvider extends DefaultOutlineTreeProvider {
+
+	@Inject
+	private StylerFactory stylerFactory;
+
+	def _isLeaf(Concept concept) {
+		true
+	}
+
+	/**
+	 * Make ModelViews and ConceptTeplates root elements in outline view.
+	 */
+	def void _createChildren(DocumentRootNode outlineNode, MvdXML mvdXML) {
+
+		// mvd root node
+		outlineNode.createEObjectNode(mvdXML, JavaPluginImages.get(SharedImages.IMG_OBJS_PACKAGE),
+			mvdXML.name.outlineStringWithType("MVD"), true)
+
+		// expandable templates node
+		createEStructuralFeatureNode(outlineNode, mvdXML.templates,
+			MvdXmlPackage.Literals.TEMPLATES_TYPE__CONCEPT_TEMPLATE,
+			JavaPluginImages.get(SharedImages.IMG_OBJS_DEFAULT), "templates", false);
+
+		mvdXML.views.modelView.forEach [ view |
+			outlineNode.createNode(view)
+		]
+	}
+
+	def void _createChildren(IOutlineNode outlineNode, ConceptTemplate conceptTemplate) {
+		conceptTemplate.rules.attributeRule.forEach [ attr |
+			outlineNode.createNode(attr)
+		]
+	}
+
+	/**
+	 * Expandable concept roots node in model view containing all ConceptRoot's
+	 */
+	def void _createChildren(IOutlineNode outlineNode, ModelView modelView) {
+		createEStructuralFeatureNode(outlineNode, modelView.roots, MvdXmlPackage.Literals.ROOTS_TYPE__CONCEPT_ROOT,
+			JavaPluginImages.get(SharedImages.IMG_OBJS_DEFAULT), "root concepts", false);
+	}
+
+	/**
+	 * Expandable roots node containing all ConceptRoot's
+	 */
+	def void _createChildren(IOutlineNode outlineNode, ConceptRoot conceptRoot) {
+		conceptRoot.concepts.concept.forEach [ concept |
+			outlineNode.createNode(concept)
+		]
+	}
+
+	def _text(Concept concept) {
+		concept.name.outlineStringWithType("Concept")
+	}
 	
+	def _text(ConceptTemplate conceptTemplate) {
+		conceptTemplate.name.outlineStringWithType("ConceptTemplate")
+	}
+
+	def outlineStringWithType(String name, String type) {
+		val nameString = new StyledString(name)
+		val typeString = new StyledString(" : " + type,
+			stylerFactory.createXtextStyleAdapterStyler(typeTextStyleIndication(9)));
+		nameString.append(typeString)
+	}
+
+	// END NAME OF ...
+	def protected TextStyle typeTextStyleDecoration(int pointSize) {
+
+		val TextStyle style = new TextStyle();
+		style.color = new RGB(149, 125, 71);
+		style.fontData = new FontData("Arial", pointSize, SWT.NORMAL);
+		return style;
+	}
+
+	def protected TextStyle typeTextStyleIndication(int pointSize) {
+
+		val TextStyle style = new TextStyle();
+		style.color = new RGB(125, 149, 71);
+		style.style = SWT.BOLD;
+		style.fontData = new FontData("Arial", pointSize, SWT.BOLD);
+		return style;
+	}
 }

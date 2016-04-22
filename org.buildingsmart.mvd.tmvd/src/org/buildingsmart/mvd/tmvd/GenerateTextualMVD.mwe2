@@ -83,8 +83,8 @@ Workflow {
 			fragment = generator.GeneratorFragment auto-inject {}
 
 			// formatter API 
-			fragment = formatting2.Formatter2Fragment auto-inject {}
-//			fragment = ecore2xtext.FormatterFragment auto-inject {}
+			//			fragment = formatting2.Formatter2Fragment auto-inject {}
+			fragment = ecore2xtext.FormatterFragment auto-inject {}
 
 			// labeling API 
 			fragment = labeling.LabelProviderFragment auto-inject {}

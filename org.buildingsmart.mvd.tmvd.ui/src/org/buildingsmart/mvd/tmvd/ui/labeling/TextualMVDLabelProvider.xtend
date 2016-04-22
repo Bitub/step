@@ -4,6 +4,23 @@
 package org.buildingsmart.mvd.tmvd.ui.labeling
 
 import com.google.inject.Inject
+import org.buildingsmart.mvd.mvdxml.MvdXML
+import org.eclipse.jdt.internal.ui.SharedImages
+import org.buildingsmart.mvd.mvdxml.TemplatesType
+import org.buildingsmart.mvd.mvdxml.ViewsType
+import org.buildingsmart.mvd.mvdxml.ConceptRoot
+import org.buildingsmart.mvd.mvdxml.RootsType
+import org.eclipse.jdt.internal.ui.JavaPluginImages
+import org.buildingsmart.mvd.mvdxml.ConceptsType
+import org.buildingsmart.mvd.mvdxml.Concept
+import org.buildingsmart.mvd.mvdxml.AttributeRule
+import org.buildingsmart.mvd.mvdxml.RulesType
+import org.eclipse.xtext.ui.label.StylerFactory
+import org.eclipse.swt.SWT
+import org.eclipse.swt.graphics.RGB
+import org.eclipse.xtext.ui.editor.utils.TextStyle
+import org.eclipse.jface.viewers.StyledString
+import org.eclipse.swt.graphics.FontData
 
 /**
  * Provides labels for EObjects.
@@ -13,17 +30,94 @@ import com.google.inject.Inject
 class TextualMVDLabelProvider extends org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider {
 
 	@Inject
+	private StylerFactory stylerFactory;
+
+	@Inject
 	new(org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider delegate) {
 		super(delegate);
 	}
 
-	// Labels and icons can be computed like this:
-	
-//	def text(Greeting ele) {
-//		'A greeting to ' + ele.name
-//	}
-//
-//	def image(Greeting ele) {
-//		'Greeting.gif'
-//	}
+	def text(MvdXML mvd) {
+		return mvd.name + new StyledString(": MVD", stylerFactory.createXtextStyleAdapterStyler(getTypeTextStyle));
+	}
+
+	def image(MvdXML mvd) {
+		JavaPluginImages.get(SharedImages.IMG_OBJS_PACKAGE)
+	}
+
+	// TemplatesType
+	def text(TemplatesType templatesType) {
+		"templates: ConceptTemplate[]"
+	}
+
+	def image(TemplatesType templatesType) {
+		JavaPluginImages.get(SharedImages.IMG_FIELD_DEFAULT)
+	}
+
+	// ViewsType
+	def text(ViewsType viewsType) {
+		"views: ModelView[]"
+	}
+
+	def image(ViewsType viewsType) {
+		JavaPluginImages.get(SharedImages.IMG_FIELD_DEFAULT)
+	}
+
+	// RootsType
+	def text(RootsType rootsType) {
+		"roots: ConceptRoot[]"
+	}
+
+	def image(RootsType rootsType) {
+		JavaPluginImages.get(SharedImages.IMG_FIELD_DEFAULT)
+	}
+
+	// ConceptsType
+	def text(ConceptsType conceptsType) {
+		"concepts: Concept[]"
+	}
+
+	def image(ConceptsType conceptsType) {
+		JavaPluginImages.get(SharedImages.IMG_FIELD_DEFAULT)
+	}
+
+	// ConceptRoot
+	def text(ConceptRoot conceptRoot) {
+		val nameString = new StyledString("ConceptRoot")
+		val forString = new StyledString(" for root entity ",
+			stylerFactory.createXtextStyleAdapterStyler(typeTextStyleIndication(9)));
+		nameString.append(forString).append(conceptRoot?.applicableRootEntity)
+	}
+
+	def image(ConceptRoot conceptRoot) {
+		JavaPluginImages.get(SharedImages.IMG_OBJS_DEFAULT)
+	}
+
+	// Concept
+	def text(Concept concept) {
+		concept.name + ": Concept"
+	}
+
+	def image(Concept concept) {
+		JavaPluginImages.get(SharedImages.IMG_OBJS_DEFAULT)
+	}
+
+	// Attribute
+	def text(AttributeRule attribute) {
+	}
+
+	def protected getTypeTextStyle() {
+		var textStyle = new TextStyle
+		textStyle.color = new RGB(253, 204, 10)
+		textStyle;
+	}
+
+	def protected TextStyle typeTextStyleIndication(int pointSize) {
+
+		val TextStyle style = new TextStyle();
+		style.color = new RGB(125, 149, 71);
+		style.style = SWT.BOLD;
+		style.fontData = new FontData("Arial", pointSize, SWT.BOLD);
+		return style;
+	}
 }

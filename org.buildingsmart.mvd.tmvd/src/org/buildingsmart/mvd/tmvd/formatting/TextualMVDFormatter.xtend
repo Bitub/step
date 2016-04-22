@@ -7,6 +7,8 @@ import com.google.inject.Inject
 import org.buildingsmart.mvd.tmvd.services.TextualMVDGrammarAccess
 import org.eclipse.xtext.formatting.impl.AbstractDeclarativeFormatter
 import org.eclipse.xtext.formatting.impl.FormattingConfig
+import org.buildingsmart.mvd.tmvd.services.TextualMVDGrammarAccess.ConceptElements
+import org.buildingsmart.mvd.tmvd.services.TextualMVDGrammarAccess.ConceptRootElements
 
 /**
  * This class contains custom formatting declarations.
@@ -22,16 +24,14 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 
 	val attributes = newArrayList("applicableEntity", "applicableRootEntity", "applicableSchema", "exchangeRequirements",
 		"rules", "ruleID", "concepts", "entity", "attr", "override", "template", "applicability", "exchangeRequirement",
-		"description", "parameters")
+		"description", "parameters", "def", "mvd", "end")
 
 	override protected configureFormatting(FormattingConfig c) {
 
 		// set a maximum size of lines
-		c.setAutoLinewrap(160);
-
+		//		c.setAutoLinewrap(160);
 		// set a line wrap after each AttributeRule
-		c.setLinewrap().after(g.attributeRuleRule);
-
+		//		c.setLinewrap().after(g.attributeRuleRule);
 		// set space between every ConceptRule and ModelView
 		c.setLinewrap(2).after(g.conceptTemplateRule);
 		c.setLinewrap(2).after(g.modelViewRule);
@@ -46,33 +46,31 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 		c.setNoSpace.between(g.conceptRootAccess.nameAssignment_4, g.conceptRootAccess.colonKeyword_5)
 		c.setNoSpace.between(g.conceptAccess.nameAssignment_4, g.conceptAccess.colonKeyword_5)
 
+		//		c.setLinewrap(1).between(g.conceptTemplateAccess.uuidAssignment_2, g.conceptTemplateAccess.nameAssignment_4)
+		//		c.setLinewrap(1).between(g.conceptAccess.uuidAssignment_2, g.conceptAccess.nameAssignment_4)
 		mvdXMLAccess.configureFormatting(c)
 		conceptTemplateAccess.configureFormatting(c)
+		conceptAccess.configureFormatting(c)
+		conceptRootAccess.configureFormatting(c)
 
-		for (pair : findKeywordPairs('(', ')')) {
-			c.setNoSpace().before(pair.first)
-			c.setNoSpace().after(pair.first)
-			c.setNoSpace().before(pair.second)
-			c.setLinewrap(1).after(pair.second)
-		}
+		c.setLinewrap(1).after(g.RPARENRule)
 
 		for (pair : findKeywordPairs('attr', 'end')) {
 			c.setIndentation(pair.first, pair.second)
-			c.setNoLinewrap.after(pair.first)
+
 			c.setLinewrap(1).before(pair.second)
 			c.setLinewrap(1).after(pair.second)
 		}
 
 		for (pair : findKeywordPairs('entity', 'end')) {
 			c.setIndentation(pair.first, pair.second)
-			c.setNoLinewrap.after(pair.first)
+
 			c.setLinewrap(1).before(pair.second)
 			c.setLinewrap(1).after(pair.second)
 		}
-
 		for (pair : findKeywordPairs('def', 'end')) {
 			c.setIndentation(pair.first, pair.second)
-			c.setNoLinewrap.after(pair.first)
+
 			c.setLinewrap(1).before(pair.second)
 			c.setLinewrap(1).after(pair.second)
 		}
@@ -89,12 +87,6 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 			c.setLinewrap(1).after(pair.first)
 			c.setLinewrap(1).before(pair.second)
 			c.setLinewrap(1).after(pair.second)
-		}
-
-		for (semicolon : findKeywords(';')) {
-			c.setNoLinewrap().before(semicolon)
-			c.setNoSpace().before(semicolon)
-			c.setLinewrap(2).after(semicolon)
 		}
 
 		for (comma : findKeywords(',')) {
@@ -122,7 +114,17 @@ public class TextualMVDFormatter extends AbstractDeclarativeFormatter {
 	}
 
 	def dispatch configureFormatting(TextualMVDGrammarAccess.ConceptTemplateElements ct, FormattingConfig c) {
-		c.setLinewrap.before(ct.applicableSchemaKeyword_10)
-		c.setLinewrap(1).before(ct.conceptTemplateKeyword_6)
+		c.setLinewrap(1).before(ct.nameAssignment_4)
+		c.setNoLinewrap().before(ct.conceptTemplateKeyword_6)
+	}
+
+	def dispatch configureFormatting(TextualMVDGrammarAccess.ConceptElements element, FormattingConfig c) {
+		c.setLinewrap(1).before(element.nameAssignment_4)
+		c.setNoLinewrap().before(element.conceptKeyword_6)
+	}
+
+	def dispatch configureFormatting(TextualMVDGrammarAccess.ConceptRootElements element, FormattingConfig c) {
+		c.setLinewrap(1).before(element.nameAssignment_4)
+		c.setNoLinewrap().before(element.conceptRootKeyword_6)
 	}
 }
