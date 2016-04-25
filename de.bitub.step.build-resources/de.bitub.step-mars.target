@@ -39,9 +39,5 @@
 <unit id="org.openifctools.stringconverter.f.feature.group" version="0.0.0"/>
 <repository location="https://bitub.github.io/step-p2-stringconverter/p2/"/>
 </location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
-<unit id="de.bitub.step.ifc4.f.feature.group" version="0.2.0.201602111223"/>
-<repository location="http://bitub.github.io/step-ifc4"/>
-</location>
 </locations>
 </target>
