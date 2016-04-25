@@ -5,9 +5,9 @@ Bundle-Vendor: bitub.de
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: de.bitub.step.express.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: de.bitub.step.express,
+Require-Bundle: org.eclipse.ui,
+ de.bitub.step.express,
  de.bitub.step.express.ui,
- org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
  org.eclipse.xtext.junit4,

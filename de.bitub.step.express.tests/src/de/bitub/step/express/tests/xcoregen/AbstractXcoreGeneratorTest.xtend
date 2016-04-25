@@ -2,7 +2,7 @@ package de.bitub.step.express.tests.xcoregen
 
 import com.google.inject.Inject
 import de.bitub.step.express.Schema
-import de.bitub.step.generator.XcoreGenerator
+import de.bitub.step.xcore.XcoreGenerator
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -31,10 +31,12 @@ abstract class AbstractXcoreGeneratorTest {
 	
 	static Logger myLog = Logger.getLogger(AbstractXcoreGeneratorTest)
 	
-	@Inject XcoreGenerator underTest	
-	@Inject ParseHelper<Schema> parseHelper	
+	@Inject protected XcoreGenerator generator	
+	@Inject protected ParseHelper<Schema> parseHelper	
 	
-	val protected ResourceSet resourceSet = new ResourceSetImpl	
+	val protected ResourceSet resourceSet = new ResourceSetImpl
+	
+	var protected String generatedXcoreFilename	
 	
 	/**
 	 * Reads a model.
@@ -52,17 +54,35 @@ abstract class AbstractXcoreGeneratorTest {
      	return buffer
 	}
 	
+	def generateEXPRESS(CharSequence schema) {
+		
+		parseHelper.parse(schema, resourceSet)
+	}
+	
 	/**
 	 * Generates an Xcore model.
 	 */	
 	def generateXCore(CharSequence schema) {
 		
-		val model = parseHelper.parse(schema, resourceSet) 
-		val xcoreModel = underTest.compileSchema(model)
+		val model = generateEXPRESS(schema)
+		if(!generator.options.containsKey(XcoreGenerator.Options.PACKAGE)) {
+			generator.options.put(XcoreGenerator.Options.PACKAGE, '''tests.xcore.«model.name.toLowerCase»''')		
+		} 
+		val xcoreModel = generator.compileSchema(model)
 		
-		dumpGeneratedToWorkspace(model.name+".xcore", xcoreModel)
+		saveXcore(model.name, xcoreModel)
 		
 		return xcoreModel		
+	}
+	
+	def saveXcore(String name, CharSequence xcoreModel) {
+				
+		writeToWorkspace(if(null==generatedXcoreFilename) name+".xcore" else generatedXcoreFilename, xcoreModel)
+	}
+	
+	def createXtextProject() {
+		
+		
 	}
 	
 	/**
@@ -84,18 +104,26 @@ abstract class AbstractXcoreGeneratorTest {
 		
 		var succeeded = true
 		if(null!=packageInstance) {			
-			myLog.info("Validating generated Xcore model <"+packageInstance.name+"> ...")
-			val issues = xcoreResourceValidator.validate(xtextResource,CheckMode.EXPENSIVE_ONLY,CancelIndicator.NullImpl)
+			
+			myLog.info('''Validating generated Xcore model «packageInstance.name» ...''')
+			
+			val issues = xcoreResourceValidator.validate(
+				xtextResource,CheckMode.EXPENSIVE_ONLY,CancelIndicator.NullImpl
+			)
 			
 			// Ignore Code 24 (EObject resolving fails)
 			for(Issue i : issues.filter[severity==Severity.ERROR && code != "org.eclipse.emf.ecore.model.24"]) {
 				
-				myLog.error(String.format("(%s) Line %d. %s",packageInstance.name, i.lineNumber, i.message))
+				myLog.error(
+					'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
+				)
 				succeeded = false
 			}	
 			for(Issue i : issues.filter[severity==Severity.WARNING]) {
 				
-				myLog.warn(String.format("(%s) Line %d. %s",packageInstance.name, i.lineNumber, i.message))
+				myLog.warn(
+					'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
+				)
 			}	
 		}
 		
@@ -103,7 +131,7 @@ abstract class AbstractXcoreGeneratorTest {
 	}
 	
 	
-	protected def dumpGeneratedToWorkspace(String name, CharSequence model) {
+	protected def writeToWorkspace(String name, CharSequence model) {
 				
 		val root = ResourcesPlugin.getWorkspace().getRoot()
 		val project = root.getProject(class.simpleName)
@@ -116,6 +144,9 @@ abstract class AbstractXcoreGeneratorTest {
 		}
 				
 		val localFile = project.getFile( new Path(name) )
+		if(localFile.exists) {
+			localFile.delete(true, new NullProgressMonitor)
+		}
 		localFile.create( new ByteArrayInputStream( model.toString.bytes ), true, new NullProgressMonitor)
 	}
 	

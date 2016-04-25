@@ -21,11 +21,22 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional,
  org.eclipse.core.resources;bundle-version="3.9.1",
  org.apache.log4j;bundle-version="1.2.15",
- org.eclipse.equinox.common;bundle-version="3.7.0"
+ org.eclipse.equinox.common;bundle-version="3.7.0",
+ org.eclipse.emf.ecore.xcore;bundle-version="1.3.1"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: de.bitub.step,de.bitub.step.services,de.bitub.step.exp
- ress,de.bitub.step.express.impl,de.bitub.step.express.util,de.bitub.s
- tep.serializer,de.bitub.step.parser.antlr,de.bitub.step.parser.antlr.
- internal,de.bitub.step.validation,de.bitub.step.scoping,de.bitub.step
- .generator,de.bitub.step.formatting
+Export-Package: de.bitub.step,
+ de.bitub.step.analyzing,
+ de.bitub.step.express,
+ de.bitub.step.express.impl,
+ de.bitub.step.express.util,
+ de.bitub.step.formatting,
+ de.bitub.step.parser.antlr,
+ de.bitub.step.parser.antlr.internal,
+ de.bitub.step.scoping,
+ de.bitub.step.serializer,
+ de.bitub.step.services,
+ de.bitub.step.util,
+ de.bitub.step.validation,
+ de.bitub.step.xcore,
+ de.bitub.step.generator
