@@ -137,7 +137,8 @@ public class P21LoadImpl implements P21Load
       }
     }
     System.out.println((System.currentTimeMillis() - start) + " ms to read lines.");
-    EClass ifc4 = (EClass) ePackage.getEClassifiers().get(1);
+
+    EClass ifc4 = (EClass) ePackage.getEClassifier("IFC4");
     NameToContainerListsMap container = new NameToContainerListsMapImpl(ePackage, EcoreUtil.create(ifc4));
 
     start = System.currentTimeMillis();

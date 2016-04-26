@@ -35,10 +35,11 @@ public class XPressModel
   private static final String NEW = "new";
   private static final String GENERATED = "generated";
   private static final String MAPPED = "mapped";
-  private static final String PROXY = "proxy";
+  private static final String DELEGATE = "delegate";
 
   private static final String KIND = "kind";
   private static final String NAME = "name";
+  private static final String PATTERN = "pattern";
   private static final String DATATYPE_REF = "datatypeRef";
   private static final String SELECT = "select";
 
@@ -96,22 +97,22 @@ public class XPressModel
     return null != kind && kind.equalsIgnoreCase(MAPPED);
   }
 
-  public static boolean isProxy(EModelElement eModelElement)
+  public static boolean isDelegate(EModelElement eModelElement)
   {
-    // TODO Auto-generated method stub
-    return false;
+    String kind = getPatternOf(eModelElement);
+    return null != kind && kind.equalsIgnoreCase(DELEGATE);
   }
 
-  public static boolean isProxy(EStructuralFeature eStructuralFeature)
+  public static boolean isDelegate(EStructuralFeature eStructuralFeature)
   {
-    String kind = getKindOf(eStructuralFeature);
-    return null != kind && kind.equalsIgnoreCase(PROXY);
+    String kind = getPatternOf(eStructuralFeature);
+    return null != kind && kind.equalsIgnoreCase(DELEGATE);
   }
 
   public static boolean isSelectProxy(EStructuralFeature eStructuralFeature)
   {
-    String select = getSelectOf(eStructuralFeature.getEType());
-    return isProxy(eStructuralFeature) && null != select;
+    String select = getSelectOf(eStructuralFeature);
+    return isDelegate(eStructuralFeature) && null != select;
   }
 
   public static boolean isSelect(EModelElement eModelElement)
@@ -121,7 +122,7 @@ public class XPressModel
 
   public static boolean isSelect(EStructuralFeature eStructuralFeature)
   {
-    return null != getSelectOf(eStructuralFeature.getEType());
+    return null != getSelectOf(eStructuralFeature);
   }
 
   private static String getSelectOf(EModelElement eModelElement)
@@ -131,10 +132,20 @@ public class XPressModel
 
   private static String getKindOf(EModelElement eModelElement)
   {
+    return XPressModel.geKeyOf(eModelElement, KIND);
+  }
+
+  private static String getPatternOf(EModelElement eModelElement)
+  {
+    return XPressModel.geKeyOf(eModelElement, PATTERN);
+  }
+
+  private static String geKeyOf(EModelElement eModelElement, String key)
+  {
     if (null == eModelElement) {
       return null;
     }
-    return EcoreUtil.getAnnotation(eModelElement, XPRESS_MODEL_ANNOTATION_SRC, KIND);
+    return EcoreUtil.getAnnotation(eModelElement, XPRESS_MODEL_ANNOTATION_SRC, key);
   }
 
   public static EStructuralFeature p21FeatureBy(EObject eObject, int p21Index)
