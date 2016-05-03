@@ -828,7 +828,7 @@ class XcoreGenerator implements IGenerator {
 			»«IF a.referable
 				»«IF a.containementReference»contains «
 				ELSE
-					»«IF !a.type.uniqueReference»@Ecore(^unique="false") «ENDIF»refers «
+					»«IF !a.type.uniqueReference && !a.inverseRelation»@Ecore(^unique="false") «ENDIF»refers «
 				ENDIF
 			»«ENDIF
 			»«IF a.derivedAttribute»derived «ENDIF
