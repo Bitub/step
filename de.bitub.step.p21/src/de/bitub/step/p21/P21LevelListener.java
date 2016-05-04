@@ -5,7 +5,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import de.bitub.step.p21.StepParser.ListContext;
 import de.bitub.step.p21.StepParser.ParameterContext;
 import de.bitub.step.p21.StepParser.ParameterListContext;
-import de.bitub.step.p21.util.IndexUtil;
 
 public class P21LevelListener extends StepParserBaseListener implements StepParserListener
 {

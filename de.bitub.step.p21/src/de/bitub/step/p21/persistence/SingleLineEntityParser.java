@@ -39,9 +39,7 @@ public class SingleLineEntityParser
     ParseTree tree = null;
 
     try {
-//      long start = System.currentTimeMillis();
       tree = parser.entityInstance();
-//      System.out.println((System.currentTimeMillis() - start) + " ms to create parse tree");
     }
     catch (RuntimeException ex) {
 

@@ -1,4 +1,4 @@
-package de.bitub.step.p21.util;
+package de.bitub.step.p21;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

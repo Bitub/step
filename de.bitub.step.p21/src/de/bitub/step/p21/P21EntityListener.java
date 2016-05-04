@@ -20,9 +20,6 @@ import de.bitub.step.p21.StepParser.StringContext;
 import de.bitub.step.p21.StepParser.UntypedContext;
 import de.bitub.step.p21.mapper.NameToClassifierMap;
 import de.bitub.step.p21.util.Antlr4Util;
-import de.bitub.step.p21.util.IndexUtil;
-import de.bitub.step.p21.util.P21Index;
-import de.bitub.step.p21.util.StepUntypedToEcore;
 import de.bitub.step.p21.util.XPressModel;
 
 public class P21EntityListener extends P21LevelListener

@@ -39,6 +39,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import de.bitub.step.p21.P21EntityListener;
+import de.bitub.step.p21.P21Index;
+import de.bitub.step.p21.P21IndexImpl.IdStructuralFeaturePair;
+import de.bitub.step.p21.P21IndexImpl.ListTriple;
 import de.bitub.step.p21.concurrrent.P21DataLineRunnable;
 import de.bitub.step.p21.di.P21Module;
 import de.bitub.step.p21.mapper.NameToClassifierMap;
@@ -46,9 +49,6 @@ import de.bitub.step.p21.mapper.NameToClassifierMapImpl;
 import de.bitub.step.p21.mapper.NameToContainerListsMap;
 import de.bitub.step.p21.mapper.NameToContainerListsMapImpl;
 import de.bitub.step.p21.util.LoggerHelper;
-import de.bitub.step.p21.util.P21Index;
-import de.bitub.step.p21.util.P21IndexImpl.IdStructuralFeaturePair;
-import de.bitub.step.p21.util.P21IndexImpl.ListTriple;
 import de.bitub.step.p21.util.XPressModel;
 
 /**

@@ -1,4 +1,4 @@
-package de.bitub.step.p21.util;
+package de.bitub.step.p21;
 
 import java.util.Collection;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
-import de.bitub.step.p21.util.P21IndexImpl.IdStructuralFeaturePair;
-import de.bitub.step.p21.util.P21IndexImpl.ListTriple;
+import de.bitub.step.p21.P21IndexImpl.IdStructuralFeaturePair;
+import de.bitub.step.p21.P21IndexImpl.ListTriple;
 
 public interface P21Index
 {

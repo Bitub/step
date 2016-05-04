@@ -8,7 +8,7 @@
  * Contributors:
  * Initial commit by Riemi @ 16.04.2015.
  */
-package de.bitub.step.p21.util;
+package de.bitub.step.p21;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +20,9 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+
+import de.bitub.step.p21.util.LoggerHelper;
+import de.bitub.step.p21.util.XPressModel;
 
 /**
  * <!-- begin-user-doc -->

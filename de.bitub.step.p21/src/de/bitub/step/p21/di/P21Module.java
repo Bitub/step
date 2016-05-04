@@ -3,11 +3,11 @@ package de.bitub.step.p21.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
+import de.bitub.step.p21.IndexUtil;
+import de.bitub.step.p21.IndexUtilImpl;
 import de.bitub.step.p21.P21EntityListener;
-import de.bitub.step.p21.util.IndexUtil;
-import de.bitub.step.p21.util.IndexUtilImpl;
-import de.bitub.step.p21.util.P21Index;
-import de.bitub.step.p21.util.P21IndexImpl;
+import de.bitub.step.p21.P21Index;
+import de.bitub.step.p21.P21IndexImpl;
 
 public class P21Module extends AbstractModule
 {
