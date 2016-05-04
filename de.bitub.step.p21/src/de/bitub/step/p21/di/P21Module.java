@@ -5,9 +5,9 @@ import com.google.inject.Provides;
 
 import de.bitub.step.p21.IndexUtil;
 import de.bitub.step.p21.IndexUtilImpl;
-import de.bitub.step.p21.P21EntityListener;
 import de.bitub.step.p21.P21Index;
 import de.bitub.step.p21.P21IndexImpl;
+import de.bitub.step.p21.parser.P21EntityListener;
 
 public class P21Module extends AbstractModule
 {

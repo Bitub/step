@@ -22,7 +22,6 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import de.bitub.step.p21.util.LoggerHelper;
-import de.bitub.step.p21.util.XPressModel;
 
 /**
  * <!-- begin-user-doc -->

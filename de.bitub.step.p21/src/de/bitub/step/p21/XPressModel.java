@@ -8,7 +8,7 @@
  * Contributors:
  * Initial commit by Riemi @ 16.06.2015.
  */
-package de.bitub.step.p21.util;
+package de.bitub.step.p21;
 
 import java.util.List;
 import java.util.Objects;

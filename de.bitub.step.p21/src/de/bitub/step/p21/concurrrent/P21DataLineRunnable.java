@@ -6,7 +6,7 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.google.inject.Inject;
 
-import de.bitub.step.p21.P21EntityListener;
+import de.bitub.step.p21.parser.P21EntityListener;
 import de.bitub.step.p21.persistence.SingleLineEntityParser;
 
 public class P21DataLineRunnable implements Callable<EObject>

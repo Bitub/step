@@ -13,9 +13,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.eclipse.emf.ecore.EObject;
 
-import de.bitub.step.p21.P21EntityListener;
 import de.bitub.step.p21.StepLexer;
 import de.bitub.step.p21.StepParser;
+import de.bitub.step.p21.parser.P21EntityListener;
 
 public class SingleLineEntityParser
 {
