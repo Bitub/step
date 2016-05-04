@@ -24,8 +24,6 @@ public interface P21Index
 
   void store(String ref, String id, EStructuralFeature feature);
 
-  void store(String ref, int listIndex, EObject listWrapper);
-
   void store(List<String> references, EObject listWrapper, EStructuralFeature feature);
 
   List<EObject> retrieveAll(List<String> references);

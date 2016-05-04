@@ -23,7 +23,6 @@ public class P21IndexImpl implements P21Index
   // (key => values) <-> (#5 => (#2, Attribute/Refernce), (#1, Attribute/Refernce))
   //
   private final SetMultimap<String, IdStructuralFeaturePair> unresolved = HashMultimap.create();
-  private final SetMultimap<String, ListPair> unresolvedList = HashMultimap.create();
 
   public final List<ListTriple> triples = new ArrayList<P21IndexImpl.ListTriple>();
 
@@ -52,12 +51,6 @@ public class P21IndexImpl implements P21Index
   public void store(String ref, String id, EStructuralFeature feature)
   {
     unresolved.put(ref, new IdStructuralFeaturePair(id, feature));
-  }
-
-  @Override
-  public void store(String ref, int listIndex, EObject listWrapper)
-  {
-    unresolvedList.put(ref, new ListPair(listIndex, listWrapper));
   }
 
   @Override
@@ -102,26 +95,6 @@ public class P21IndexImpl implements P21Index
     {
       StringBuilder sb = new StringBuilder();
       sb.append("(" + references + " -> " + wrapper.eClass().getName() + "@" + feature.getName() + ")");
-      return sb.toString();
-    }
-  }
-
-  public class ListPair
-  {
-    public int index;
-    public EObject wrapper;
-
-    public ListPair(int index, EObject wrapper)
-    {
-      this.index = index;
-      this.wrapper = wrapper;
-    }
-
-    @Override
-    public String toString()
-    {
-      StringBuilder sb = new StringBuilder();
-      sb.append("(" + index + " -> " + wrapper + ")");
       return sb.toString();
     }
   }
