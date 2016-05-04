@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EModelElement;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -27,75 +26,8 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
  * @generated NOT
  * @author Riemi - 16.06.2015
  */
-public class XPressModel
+public class XPressModel implements IXPressModel
 {
-  private static final String XPRESS_MODEL_ANNOTATION_SRC = "http://www.bitub.de/express/XpressModel";
-  private static final String P21_MODEL_ANNOTATION_SRC = "http://www.bitub.de/express/P21";
-
-  private static final String NEW = "new";
-  private static final String GENERATED = "generated";
-  private static final String MAPPED = "mapped";
-  private static final String DELEGATE = "delegate";
-
-  private static final String KIND = "kind";
-  private static final String NAME = "name";
-  private static final String PATTERN = "pattern";
-  private static final String DATATYPE_REF = "datatypeRef";
-  private static final String SELECT = "select";
-
-  public enum Kind
-  {
-    NEW, GENERATED, MAPPED, PROXY
-  }
-
-  public interface DatatypeRefStrings
-  {
-    String DOUBLE = "double";
-    String INT = "int";
-    String STRING = "string";
-    String BOOLEAN = "boolean";
-    String LOGICAL = "Boolean";
-    String DOUBLE_ARRAY = "double[]";
-  }
-
-  public enum DatatypeRef
-  {
-    DOUBLE, INT, STRING, BOOLEAN, DOUBLE_ARRAY
-  }
-
-  /**
-   * Get type of model object. Can be GENERATED, NEW.
-   * 
-   * @param entityName
-   * @return
-   */
-  public Kind getKindOf(String entityName) // name of class
-  {
-    throw new UnsupportedOperationException();
-  }
-
-  public static String getDataTypeOf(EStructuralFeature eStructuralFeature)
-  {
-    return EcoreUtil.getAnnotation(eStructuralFeature, XPRESS_MODEL_ANNOTATION_SRC, DATATYPE_REF);
-  }
-
-  public static boolean isGenerated(EClassifier eClassifier)
-  {
-    String kind = getKindOf(eClassifier);
-    return null != kind && kind.equalsIgnoreCase(GENERATED);
-  }
-
-  public static boolean isNew(EClassifier eClassifier)
-  {
-    String kind = getKindOf(eClassifier);
-    return null != kind && kind.equalsIgnoreCase(NEW);
-  }
-
-  public static boolean isMapped(EStructuralFeature eStructuralFeature)
-  {
-    String kind = getKindOf(eStructuralFeature);
-    return null != kind && kind.equalsIgnoreCase(MAPPED);
-  }
 
   public static boolean isDelegate(EModelElement eModelElement)
   {
@@ -130,11 +62,6 @@ public class XPressModel
     return EcoreUtil.getAnnotation(eModelElement, XPRESS_MODEL_ANNOTATION_SRC, SELECT);
   }
 
-  private static String getKindOf(EModelElement eModelElement)
-  {
-    return XPressModel.geKeyOf(eModelElement, KIND);
-  }
-
   private static String getPatternOf(EModelElement eModelElement)
   {
     return XPressModel.geKeyOf(eModelElement, PATTERN);
@@ -159,17 +86,5 @@ public class XPressModel
       return null;
     }
     return annotatedFeatures.get(p21Index);
-  }
-
-  public void setAttribute(EObject ifcEntity, int index, Object parsedValue)
-  {
-    EStructuralFeature eStructuralFeature = ifcEntity.eClass().getEStructuralFeatures().get(index);
-    this.getKindOf(eStructuralFeature.getName());
-    ifcEntity.eSet(eStructuralFeature, parsedValue);
-  }
-
-  public static String getName(EStructuralFeature eStructuralFeature)
-  {
-    return EcoreUtil.getAnnotation(eStructuralFeature, XPRESS_MODEL_ANNOTATION_SRC, NAME);
   }
 }
