@@ -7,26 +7,12 @@ import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.Trees;
 
 import de.bitub.step.p21.StepParser.ListContext;
-import de.bitub.step.p21.StepParser.RealContext;
 
 public class Antlr4Util
 {
   public static boolean partOfList(ParserRuleContext ctx)
   {
     return Antlr4Util.isContextAncestorOf(ctx, ListContext.class);
-  }
-
-  public static boolean isAncestorOf(Tree t, Tree u)
-  {
-    if (t == null || u == null || t.getParent() == null)
-      return false;
-    Tree p = u.getParent();
-    while (p != null) {
-      if (t == p)
-        return true;
-      p = p.getParent();
-    }
-    return false;
   }
 
   /**
@@ -54,19 +40,9 @@ public class Antlr4Util
    * @param clazz
    * @return
    */
-  public static boolean isParentOf(ParserRuleContext ctx, Class<? extends ParserRuleContext> clazz)
+  public static boolean isDirectParentOf(ParserRuleContext ctx, Class<? extends ParserRuleContext> clazz)
   {
     return ctx.getParent().getClass().equals(clazz);
   }
 
-  public static boolean partOfList(RealContext ctx, boolean multilist)
-  {
-    if (!multilist) {
-      return partOfList(ctx);
-    }
-    long numOfListAncestors =
-        Trees.getAncestors(ctx).stream().filter((tree) -> tree.getClass().equals(ListContext.class)).count();
-
-    return numOfListAncestors > 1;
-  }
 }

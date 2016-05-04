@@ -237,7 +237,7 @@ public class P21EntityListener extends P21LevelListener
   {
     // handle non-empty list with references
     //
-    if (!ctx.parameters.isEmpty() && Antlr4Util.isParentOf(ctx, UntypedContext.class)) {
+    if (!ctx.parameters.isEmpty() && Antlr4Util.isDirectParentOf(ctx, UntypedContext.class)) {
 
       boolean isNested = index.level() > 1;
       if (isNested) {
