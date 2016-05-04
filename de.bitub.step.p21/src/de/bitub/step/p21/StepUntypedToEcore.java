@@ -34,7 +34,7 @@ public class StepUntypedToEcore
 {
   private static final Logger LOGGER = LoggerHelper.init(Level.WARNING, StepUntypedToEcore.class);
 
-  public static void setEStructuralFeature(int parameterIndex, EObject eObject, Object value)
+  private static void setEStructuralFeature(int parameterIndex, EObject eObject, Object value)
   {
     EStructuralFeature eStructuralFeature = XPressModel.p21FeatureBy(eObject, parameterIndex);
 
@@ -93,24 +93,13 @@ public class StepUntypedToEcore
 
   private static void setEAttribute(EAttribute eAttribute, EObject eObject, Object value)
   {
-    StepUntypedToEcore.set(eAttribute, eObject, value);
-  }
-
-  private static void set(EStructuralFeature eFeature, EObject eObject, Object value)
-  {
-    try {
-      LOGGER.info(String.format("SET %s as %s of %s", value, eFeature.getName(), eObject.eClass().getName()));
-      eObject.eSet(eFeature, value);
-    }
-    catch (ClassCastException exception) {
-      LOGGER.severe(value + " : " + eFeature.getName() + " " + exception.getMessage());
-    }
+    eObject.eSet(eAttribute, value);
 
   }
 
   private static void setEReference(EReference eReference, EObject eObject, Object value)
   {
-    StepUntypedToEcore.set(eReference, eObject, value);
+    eObject.eSet(eReference, value);
   }
 
   public static void eString(int index, EObject eObject, String value)
@@ -121,26 +110,22 @@ public class StepUntypedToEcore
   public static void eInteger(int index, EObject eObject, String value)
   {
     try {
-      LOGGER.info(String.format("SET %s to %s", value, eObject.eClass().getName()));
-
       int newValue = Integer.parseInt(value, 10);
       StepUntypedToEcore.setEStructuralFeature(index, eObject, newValue);
     }
     catch (NumberFormatException exception) {
-      LOGGER.warning(exception.getMessage());
+      LOGGER.severe(exception.getMessage());
     }
   }
 
   public static void eReal(int index, EObject eObject, String value)
   {
     try {
-      LOGGER.info(String.format("SET %s to %s", value, eObject.eClass().getName()));
-
       double newValue = Double.parseDouble(value);
       StepUntypedToEcore.setEStructuralFeature(index, eObject, newValue);
     }
     catch (NumberFormatException exception) {
-      LOGGER.warning(exception.getMessage());
+      LOGGER.severe(exception.getMessage());
     }
   }
 
@@ -161,23 +146,18 @@ public class StepUntypedToEcore
 
   public static void eBoolean(int index, EObject eObject, String value)
   {
-    try {
+    switch (value) {
+      case "T":
+        StepUntypedToEcore.setEStructuralFeature(index, eObject, Boolean.TRUE);
+        break;
 
-      switch (value) {
-        case "T":
-          StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(true));
-          break;
+      case "F":
+        StepUntypedToEcore.setEStructuralFeature(index, eObject, Boolean.FALSE);
+        break;
 
-        case "F":
-          StepUntypedToEcore.setEStructuralFeature(index, eObject, new Boolean(false));
-          break;
-
-        default:
-          break;
-      }
-    }
-    catch (NumberFormatException exception) {
-      LOGGER.warning(exception.getMessage());
+      default:
+        LOGGER.warning("Undefined boolean type!");
+        break;
     }
   }
 }
