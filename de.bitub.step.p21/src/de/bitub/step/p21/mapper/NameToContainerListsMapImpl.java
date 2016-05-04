@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 
 public class NameToContainerListsMapImpl implements NameToContainerListsMap
 {
@@ -14,9 +16,9 @@ public class NameToContainerListsMapImpl implements NameToContainerListsMap
 
   public EObject entity = null;
 
-  public NameToContainerListsMapImpl(EPackage ePackage, EObject container)
+  public NameToContainerListsMapImpl(EPackage ePackage, String classifierName)
   {
-    this.entity = container;
+    this.entity = EcoreUtil.create((EClass) ePackage.getEClassifier(classifierName));
     init(ePackage);
   }
 
@@ -55,7 +57,7 @@ public class NameToContainerListsMapImpl implements NameToContainerListsMap
   }
 
   @Override
-  public EObject getEntity()
+  public EObject getRootEntity()
   {
     return entity;
   }

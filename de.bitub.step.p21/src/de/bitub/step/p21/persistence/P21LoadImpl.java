@@ -15,39 +15,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ConsoleErrorListener;
-import org.antlr.v4.runtime.DefaultErrorStrategy;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.atn.PredictionMode;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.eclipse.emf.common.util.ECollections;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import de.bitub.step.p21.P21EntityListener;
-import de.bitub.step.p21.P21ParserListener;
-import de.bitub.step.p21.StepLexer;
-import de.bitub.step.p21.StepParser;
 import de.bitub.step.p21.concurrrent.P21DataLineRunnable;
 import de.bitub.step.p21.di.P21Module;
 import de.bitub.step.p21.mapper.NameToClassifierMap;
@@ -57,6 +48,8 @@ import de.bitub.step.p21.mapper.NameToContainerListsMapImpl;
 import de.bitub.step.p21.util.LoggerHelper;
 import de.bitub.step.p21.util.P21Index;
 import de.bitub.step.p21.util.P21IndexImpl.IdStructuralFeaturePair;
+import de.bitub.step.p21.util.P21IndexImpl.ListTriple;
+import de.bitub.step.p21.util.XPressModel;
 
 /**
  * <!-- begin-user-doc -->
@@ -69,10 +62,13 @@ public class P21LoadImpl implements P21Load
 {
   private static final Logger LOGGER = LoggerHelper.init(Level.SEVERE, P21LoadImpl.class);
 
-  protected P21Resource resource;
-  protected InputStream inputStream;
   protected P21Helper helper;
-  protected Map<?, ?> options;
+  protected EPackage ePackage;
+
+  private Injector injector = Guice.createInjector(new P21Module());
+  private ExecutorService executor = Executors.newFixedThreadPool(10);
+
+  private NameToContainerListsMap container;
 
   /**
    * <!-- begin-user-doc -->
@@ -96,18 +92,73 @@ public class P21LoadImpl implements P21Load
   @Override
   public void load(P21Resource resource, InputStream inputStream, Map<?, ?> options) throws IOException
   {
-    this.resource = resource;
-    this.inputStream = inputStream;
-    this.options = options;
+    this.ePackage = (EPackage) options.get("ePackage");
 
-    EPackage ePackage = (EPackage) options.get("ePackage");
+    initResource(resource, inputStream);
 
-//    StepToModel stepToModel = new StepToModelImpl(ePackage.getEFactoryInstance(), (EClass) ePackage.getEClassifiers().get(1));
-//    de.bitub.step.p21.P21ParserListener listener = new de.bitub.step.p21.P21ParserListener(stepToModel);
+  }
 
-    Injector injector = Guice.createInjector(new P21Module());
+  private void initResource(P21Resource resource, InputStream inputStream) throws IOException
+  {
+    // extract entities from DATA section
+    //
+    List<Future<EObject>> futures = readEntityInstanceListFromDATA(inputStream);
 
-    ExecutorService executor = Executors.newFixedThreadPool(10);
+    // put all entities under shared schema container
+    //
+    long start = System.currentTimeMillis();
+    EObject schemaContainer = saveLooseEntitiesintoSchemaContainer(toList(futures));
+    System.out.println((System.currentTimeMillis() - start) + " ms to collect entities in root container.");
+
+    // link unresolved and already created entities
+    //
+    start = System.currentTimeMillis();
+    linkUnresolvedReferences();
+    System.out.println((System.currentTimeMillis() - start) + " ms to resolve references.");
+
+    executor.shutdown();
+    resource.getContents().add(schemaContainer);
+  }
+
+  private List<EObject> toList(List<Future<EObject>> futures)
+  {
+    List<EObject> entities = new ArrayList<>();
+
+    for (Future<EObject> future : futures) {
+
+      try {
+        entities.add(future.get());
+      }
+      catch (InterruptedException | ExecutionException e) {
+        LOGGER.severe(e.getStackTrace().toString());
+      }
+    }
+
+    return entities;
+  }
+
+  private EObject saveLooseEntitiesintoSchemaContainer(List<EObject> entities)
+  {
+    // TODO derive container name from model
+    container = new NameToContainerListsMapImpl(ePackage, "IFC4");
+    for (EObject entity : entities) {
+      if (!Objects.isNull(entity)) {
+        addEntityTo(entity, container);
+      }
+    }
+    return container.getRootEntity();
+  }
+
+  private void addEntityTo(EObject entity, NameToContainerListsMap container)
+  {
+    if (Objects.nonNull(entity)) {
+      String entityName = entity.eClass().getName();
+      container.addEObject(entityName, entity);
+    }
+  }
+
+  private List<Future<EObject>> readEntityInstanceListFromDATA(InputStream inputStream) throws IOException
+  {
     List<P21DataLineRunnable> tasks = new ArrayList<>();
     NameToClassifierMap nameToClassifierMap = new NameToClassifierMapImpl(ePackage);
 
@@ -136,12 +187,10 @@ public class P21LoadImpl implements P21Load
         }
       }
     }
-    System.out.println((System.currentTimeMillis() - start) + " ms to read lines.");
-
-    EClass ifc4 = (EClass) ePackage.getEClassifier("IFC4");
-    NameToContainerListsMap container = new NameToContainerListsMapImpl(ePackage, EcoreUtil.create(ifc4));
+    System.out.println((System.currentTimeMillis() - start) + " ms to read lines of DATA section.");
 
     start = System.currentTimeMillis();
+
     // collect results
     //
     List<Future<EObject>> futures = null;
@@ -152,103 +201,183 @@ public class P21LoadImpl implements P21Load
       LOGGER.severe(e.getStackTrace().toString());
     }
 
-    System.out.println((System.currentTimeMillis() - start) + " ms to collect entities.");
-    start = System.currentTimeMillis();
+    System.out.println((System.currentTimeMillis() - start) + " ms to parse entities.");
 
-    // fill resource
-    //
-    futures.stream().filter(Objects::nonNull).map((future) -> {
-      try {
-        EObject object = future.get();
-        return object;
-      }
-      catch (Exception e) {
-        LOGGER.severe(e.getStackTrace().toString());
-        return null;
-      }
-    }).filter(Objects::nonNull).forEach((o) -> {
-      container.addEObject(o.eClass().getName(), o);
-    });
-
-    System.out.println((System.currentTimeMillis() - start) + " ms to save into resource.");
-    start = System.currentTimeMillis();
-
-    P21Index entites = injector.getInstance(P21Index.class);
-    Map<String, Collection<IdStructuralFeaturePair>> unresolvedPairs = entites.retrieveUnresolved();
-
-    for (String key : unresolvedPairs.keySet()) {
-      final EObject toStore = entites.retrieve(key);
-
-      executor.execute(() -> {
-
-        for (IdStructuralFeaturePair pair : unresolvedPairs.get(key)) {
-          try {
-            EObject needs = entites.retrieve(pair.id);
-            needs.eSet(pair.feature, toStore);
-          }
-          catch (ClassCastException e) {
-            LOGGER.severe(e.getStackTrace().toString());
-          }
-        }
-      });
-
-    }
-
-    executor.shutdown();
-    System.out.println((System.currentTimeMillis() - start) + " ms to resolve references.");
-
-    resource.getContents().add(container.getEntity());
+    return futures;
   }
 
-  private void parse(String line, P21ParserListener listener)
+  private void linkUnresolvedReferences()
   {
-    CharStream input = new ANTLRInputStream(line);
-    StepLexer lexer = new StepLexer(input);
-    TokenStream tokens = new CommonTokenStream(lexer);
-    StepParser parser = new StepParser(tokens);
+    P21Index index = injector.getInstance(P21Index.class);
 
-    // try with simpler/faster SLL(*)
-    //
-    parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+    linkReferenceContainingEntities(index);
+    linkReferencesContainingLists(index);
+  }
 
-    // we don't want error messages or recovery during first try
-    //
-    parser.removeErrorListeners();
-    parser.setErrorHandler(new BailErrorStrategy());
-
-    ParseTree tree = null;
-
+  private void connectEntityWithUnresolvedReference(IdStructuralFeaturePair pair, P21Index index, EObject resolvedEntity)
+  {
     try {
-//      long start = System.currentTimeMillis();
-      tree = parser.entityInstance();
-//      System.out.println((System.currentTimeMillis() - start) + " ms to create parse tree");
+      EObject entity = index.retrieve(pair.id);
+
+      if (XPressModel.isSelect(pair.feature) && !XPressModel.isDelegate(pair.feature)) {
+
+        entity.eSet(pair.feature, prepareSelect(pair.feature, resolvedEntity));
+      } else {
+
+        if (XPressModel.isDelegate(pair.feature)) {
+
+          entity.eSet(pair.feature, prepareDelegate(pair.feature, resolvedEntity));
+
+        } else {
+          entity.eSet(pair.feature, resolvedEntity);
+        }
+      }
     }
-    catch (RuntimeException ex) {
+    catch (ClassCastException e) {
+      e.printStackTrace();
+      LOGGER.severe(e.getStackTrace().toString());
 
-      if (ex.getClass() == RuntimeException.class && ex.getCause() instanceof RecognitionException) {
+    }
+  }
 
-        // The BailErrorStrategy wraps the RecognitionExceptions in
-        // RuntimeExceptions so we have to make sure we're detecting
-        // a true RecognitionException not some other kind
+  private EObject prepareDelegate(EStructuralFeature feature, EObject resolvedEntity)
+  {
+//    System.out.println("Prepare Delegate: " + resolvedEntity.eClass().getName() + " into " + feature.getEType().getName() + "@"
+//        + feature.getName());
+    EObject delegate = null;
+    EClass featureType = ((EClass) feature.getEType());
 
-        // rewind input stream
-        //
-        lexer.reset();
+    if (featureType.isInterface()) {
+      EClass interfaceType = featureType;
 
-        // back to standard listeners/handlers
-        //
-        parser.addErrorListener(ConsoleErrorListener.INSTANCE);
-        parser.setErrorHandler(new DefaultErrorStrategy());
+      // search for subtype of interface delegate
+      //
+      for (EStructuralFeature resFeature : resolvedEntity.eClass().getEAllStructuralFeatures()) {
 
-        // try full LL(*)
-        //
-        parser.getInterpreter().setPredictionMode(PredictionMode.LL);
+        if (resFeature.getEType() instanceof EClass) {
+          EClass featureClass = (EClass) resFeature.getEType();
 
-        tree = parser.exchangeFile();
+          if (interfaceType.isSuperTypeOf(featureClass)) {
+//            System.out.println(interfaceType.getName() + " > " + featureClass.getName());
+
+            delegate = EcoreUtil.create(featureClass);
+            delegate.eSet(((EReference) resFeature).getEOpposite(), resolvedEntity);
+          } else {
+//            System.out.println(interfaceType.getName() + " != " + featureClass.getName());
+          }
+        }
       }
     }
 
-    ParseTreeWalker walker = new ParseTreeWalker();
-    walker.walk(listener, tree);
+    return delegate;
+  }
+
+  private EObject prepareSelect(EStructuralFeature feature, EObject resolvedEntity)
+  {
+    // create select class
+    //
+    EObject select = EcoreUtil.create((EClass) feature.getEType());
+
+    // set entity to correct select field
+    //
+    for (EStructuralFeature selectFeature : select.eClass().getEAllStructuralFeatures()) {
+      if (selectFeature.getEType().isInstance(resolvedEntity)) {
+        select.eSet(selectFeature, resolvedEntity);
+      }
+    }
+
+    return select;
+  }
+
+  private void connectListWrapperWithUnresolvedReferences(ListTriple triple, P21Index index)
+  {
+    try {
+      // resolve all references
+      //
+      List<EObject> entities = index.retrieveAll(triple.references); // IfcCartesianPoint
+
+      // set entity list into correct list wrapper
+      EObject listWrapper = triple.wrapper;
+      EStructuralFeature innerListFeat = triple.feature;
+
+      // get list          
+      @SuppressWarnings("unchecked")
+      final EList<EObject> list = (EList<EObject>) listWrapper.eGet(innerListFeat);
+
+      boolean isSelectContainingFeature = XPressModel.isSelect(innerListFeat);
+      boolean isDelegateContainingFeature = XPressModel.isDelegate(innerListFeat);
+      if (isSelectContainingFeature || isDelegateContainingFeature) {
+
+        if (isDelegateContainingFeature) {
+
+          // handle DELEGATES & SELECT DELGATES list
+          //
+          EList<? extends EObject> delegates = ECollections
+              .asEList(entities.stream().map(entity -> prepareDelegate(innerListFeat, entity)).collect(Collectors.toList()));
+          ECollections.setEList(list, delegates);
+        } else {
+
+          // handle SELECTs list
+          //
+          EList<? extends EObject> selects = ECollections
+              .asEList(entities.stream().map(entity -> prepareSelect(innerListFeat, entity)).collect(Collectors.toList()));
+          ECollections.setEList(list, selects);
+        }
+
+//        if (isSelectContainingFeature) {
+//
+//          boolean isSelectDelegateContainingFeature = XPressModel.isSelectProxy(innerListFeat);
+//          if (isSelectDelegateContainingFeature) {
+//
+//            // handle SELECT DELGATES list
+//            //          
+//            EList<? extends EObject> selects = ECollections
+//                .asEList(entities.stream().map(entity -> prepareDelegate(innerListFeat, entity)).collect(Collectors.toList()));
+//            ECollections.setEList(list, selects);
+//          } else {
+//
+//            // handle SELECTs list
+//            //
+//            EList<? extends EObject> selects = ECollections
+//                .asEList(entities.stream().map(entity -> prepareSelect(innerListFeat, entity)).collect(Collectors.toList()));
+//            ECollections.setEList(list, selects);
+//          }
+//        } else {
+//
+//          // handle DELEGATES list
+//          //
+//          EList<? extends EObject> delegates = ECollections
+//              .asEList(entities.stream().map(entity -> prepareDelegate(innerListFeat, entity)).collect(Collectors.toList()));
+//          ECollections.setEList(list, delegates);
+//        }
+
+      } else {
+
+        // handle ENTITY list
+        //
+        ECollections.setEList(list, ECollections.asEList(entities));
+      }
+    }
+    catch (ClassCastException | ArrayStoreException | IllegalArgumentException | NullPointerException e) {
+      e.printStackTrace();
+      LOGGER.severe(e.getStackTrace().toString());
+    }
+  }
+
+  private void linkReferenceContainingEntities(P21Index index)
+  {
+    index.retrieveUnresolved().forEach((reference, pairs) -> {
+      EObject toBeSet = index.retrieve(reference);
+      pairs.forEach((pair) -> {
+        executor.execute(() -> connectEntityWithUnresolvedReference(pair, index, toBeSet));
+      });
+    });
+  }
+
+  private void linkReferencesContainingLists(P21Index index)
+  {
+    index.retrieveUnresolvedLists().forEach((triple) -> {
+      executor.execute(() -> connectListWrapperWithUnresolvedReferences(triple, index));
+    });
   }
 }

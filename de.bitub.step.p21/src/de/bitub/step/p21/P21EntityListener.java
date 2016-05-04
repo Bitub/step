@@ -1,8 +1,8 @@
 package de.bitub.step.p21;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import org.eclipse.emf.common.util.ECollections;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import com.google.inject.Inject;
 
 import de.bitub.step.p21.StepParser.IntegerContext;
+import de.bitub.step.p21.StepParser.ListContext;
 import de.bitub.step.p21.StepParser.RealContext;
 import de.bitub.step.p21.StepParser.SimpleEntityInstanceContext;
 import de.bitub.step.p21.StepParser.StringContext;
@@ -36,6 +37,10 @@ public class P21EntityListener extends P21LevelListener
   private String curKeyword = null;
   private String curId = null;
 
+  // helper to storing current list
+  //
+  private EObject listWrapper = null;
+
   @Inject
   public P21EntityListener(P21Index entities, IndexUtil index)
   {
@@ -51,9 +56,17 @@ public class P21EntityListener extends P21LevelListener
       String reference = ctx.ENTITY_INSTANCE_NAME().getText();
 
       if (!Antlr4Util.partOfList(ctx)) {
+
         handleEntityInstanceName(reference);
       } else {
-        handleEntityInstanceNameList(reference);
+
+        if (index.level() == 1) {
+          handleEntityInstanceNameList(reference);
+        }
+
+        if (index.level() > 1) {
+          handleEntityInstanceNameNestedList(reference);
+        }
       }
     }
 
@@ -116,34 +129,102 @@ public class P21EntityListener extends P21LevelListener
       StepUntypedToEcore.eReal(index.current(), curObject, ctx.getText());
     } else {
 
-      handlePrimitiveList(Double.parseDouble(ctx.getText()));
+      double value = Double.parseDouble(ctx.getText());
+
+      if (index.level() == 1) {
+        handlePrimitiveList(value);
+      }
+
+      if (index.level() > 1) {
+        handleNestedPrimitiveList(value);
+      }
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> void handleNestedPrimitiveList(T value)
+  {
+    EStructuralFeature listFeature = XPressModel.p21FeatureBy(curObject, index.entityLevelIndex());
+    EList<EObject> list = (EList<EObject>) curObject.eGet(listFeature);
+
+    // multidimensional list with delegates, non-schema helpers
+    //
+    if (XPressModel.isDelegate(listFeature)) {
+
+      if (listFeature.getEType() instanceof EClass) {
+        EClass eClass = (EClass) listFeature.getEType();
+
+        boolean isListIndexAlreadySet = list.size() > index.upper();
+        if (!isListIndexAlreadySet) {
+
+          // create and set the primitive list wrapper
+          //
+          EObject primitiveListWrapper = EcoreUtil.create(eClass);
+          list.add(index.upper(), primitiveListWrapper);
+          setValueToList(eClass, primitiveListWrapper, value);
+
+        } else {
+
+          EObject primitiveListWrapper = list.get(index.upper());
+          setValueToList(eClass, primitiveListWrapper, value);
+        }
+      }
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> void setValueToList(EClass eClass, EObject primitiveListWrapper, T value)
+  {
+    EStructuralFeature innerListFeature = eClass.getEStructuralFeatures().get(0);
+    EList<T> valueList = (EList<T>) primitiveListWrapper.eGet(innerListFeature);
+    valueList.add(value);
   }
 
   @SuppressWarnings("unchecked")
   private <T> void handlePrimitiveList(T value)
   {
-    EStructuralFeature feature = XPressModel.p21FeatureBy(curObject, index.upper());
+    listWrapper = null;
 
+    EStructuralFeature feature = XPressModel.p21FeatureBy(curObject, index.upper());
     if (feature.isMany()) {
-      EList<T> list = ECollections.asEList(Arrays.asList(value));
-      ECollections.setEList((EList<T>) curObject.eGet(feature), list);
+      EList<T> oldList = (EList<T>) curObject.eGet(feature);
+      oldList.add(value);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void handleEntityInstanceNameNestedList(String ref)
+  {
+    EStructuralFeature listFeature = XPressModel.p21FeatureBy(curObject, index.entityLevelIndex());
+    EList<EObject> list = (EList<EObject>) curObject.eGet(listFeature);
+
+    // multidimensional list with delegates, non-schema helpers
+    //
+    if (XPressModel.isDelegate(listFeature)) {
+      if (listFeature.getEType() instanceof EClass) {
+        EClass eClass = (EClass) listFeature.getEType();
+
+        boolean isListIndexAlreadySet = list.size() > index.upper();
+        if (!isListIndexAlreadySet) {
+
+          // create and set the primitive list wrapper
+          //
+          EObject entityListWrapper = EcoreUtil.create(eClass);
+          list.add(index.upper(), entityListWrapper);
+          listWrapper = entityListWrapper;
+
+        } else {
+
+          EObject entityListWrapper = list.get(index.upper());
+          listWrapper = entityListWrapper;
+        }
+      }
     }
   }
 
   private void handleEntityInstanceNameList(String ref)
   {
-    EStructuralFeature feature = XPressModel.p21FeatureBy(curObject, index.upper());
-
-    if (feature.isMany()) {
-
-      // multidimensional list with delegates, non-schema helpers
-      //
-      if (XPressModel.isNew(feature.getEType())) {
-//        System.out.println(feature.getEType() + " " + feature.getName());
-
-      }
-    }
+    listWrapper = curObject;
   }
 
   private void handleEntityInstanceName(String ref)
@@ -152,6 +233,34 @@ public class P21EntityListener extends P21LevelListener
     //
     EStructuralFeature feature = XPressModel.p21FeatureBy(curObject, index.current());
     entities.store(ref, curId, feature);
+  }
+
+  @Override
+  public void exitList(ListContext ctx)
+  {
+    // handle non-empty list with references
+    //
+    if (!ctx.parameters.isEmpty() && Antlr4Util.isParentOf(ctx, UntypedContext.class)) {
+
+      boolean isNested = index.level() > 1;
+      if (isNested) {
+
+        List<String> refs = ctx.parameters.stream().map(p -> p.getText()).collect(Collectors.toList());
+//        System.out.println(refs + " -> " + listWrapper.eClass().getName() + "@"
+//            + listWrapper.eClass().getEStructuralFeatures().get(0).getName());
+        entities.store(refs, listWrapper, listWrapper.eClass().getEStructuralFeatures().get(0));
+        listWrapper = null;
+      }
+
+      if (index.level() == 1 && listWrapper != null) {
+
+        List<String> refs = ctx.parameters.stream().map(p -> p.getText()).collect(Collectors.toList());
+//        System.out.println(
+//            refs + " -> " + listWrapper.eClass().getName() + "@" + XPressModel.p21FeatureBy(curObject, index.upper()).getName());
+        entities.store(refs, listWrapper, XPressModel.p21FeatureBy(curObject, index.upper()));
+      }
+    }
+    super.exitList(ctx);
   }
 
   public EObject entity()

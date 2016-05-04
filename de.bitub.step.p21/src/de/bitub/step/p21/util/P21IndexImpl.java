@@ -1,6 +1,8 @@
 package de.bitub.step.p21.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -21,6 +23,9 @@ public class P21IndexImpl implements P21Index
   // (key => values) <-> (#5 => (#2, Attribute/Refernce), (#1, Attribute/Refernce))
   //
   private final SetMultimap<String, IdStructuralFeaturePair> unresolved = HashMultimap.create();
+  private final SetMultimap<String, ListPair> unresolvedList = HashMultimap.create();
+
+  public final List<ListTriple> triples = new ArrayList<P21IndexImpl.ListTriple>();
 
   private P21IndexImpl()
   {
@@ -50,9 +55,75 @@ public class P21IndexImpl implements P21Index
   }
 
   @Override
+  public void store(String ref, int listIndex, EObject listWrapper)
+  {
+    unresolvedList.put(ref, new ListPair(listIndex, listWrapper));
+  }
+
+  @Override
   public Map<String, Collection<IdStructuralFeaturePair>> retrieveUnresolved()
   {
     return unresolved.asMap();
+  }
+
+  @Override
+  public List<ListTriple> retrieveUnresolvedLists()
+  {
+    return triples;
+  }
+
+  /**
+   * Store a string list with unresolved references (e.g. #12).
+   * And an list wrapper object which will be filled with the
+   * resolved entity instances.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * 
+   * @generated NOT
+   * @author Riemi - 03.05.2016
+   */
+  public class ListTriple
+  {
+    public List<String> references;
+
+    public EObject wrapper;
+
+    public EStructuralFeature feature;
+
+    public ListTriple(List<String> references, EObject wrapper, EStructuralFeature listFeature)
+    {
+      this.references = references;
+      this.wrapper = wrapper;
+      this.feature = listFeature;
+    }
+
+    @Override
+    public String toString()
+    {
+      StringBuilder sb = new StringBuilder();
+      sb.append("(" + references + " -> " + wrapper.eClass().getName() + "@" + feature.getName() + ")");
+      return sb.toString();
+    }
+  }
+
+  public class ListPair
+  {
+    public int index;
+    public EObject wrapper;
+
+    public ListPair(int index, EObject wrapper)
+    {
+      this.index = index;
+      this.wrapper = wrapper;
+    }
+
+    @Override
+    public String toString()
+    {
+      StringBuilder sb = new StringBuilder();
+      sb.append("(" + index + " -> " + wrapper + ")");
+      return sb.toString();
+    }
   }
 
   public class IdStructuralFeaturePair
@@ -77,6 +148,24 @@ public class P21IndexImpl implements P21Index
       sb.append("(" + id + " -> " + featureName + ")");
       return sb.toString();
     }
+  }
+
+  @Override
+  public void store(List<String> references, EObject listWrapper, EStructuralFeature listFeature)
+  {
+    triples.add(new ListTriple(references, listWrapper, listFeature));
+  }
+
+  @Override
+  public List<EObject> retrieveAll(List<String> references)
+  {
+    List<EObject> entities = new ArrayList<EObject>();
+
+    for (String ref : references) {
+      entities.add(retrieve(ref));
+    }
+
+    return entities;
   }
 
 }

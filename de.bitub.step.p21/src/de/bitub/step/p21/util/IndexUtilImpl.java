@@ -51,4 +51,22 @@ public class IndexUtilImpl implements IndexUtil
   {
     return curIndex;
   }
+
+  @Override
+  public int entityLevelIndex()
+  {
+    return indexStack.getLast();
+  }
+
+  @Override
+  public int level()
+  {
+    return indexStack.size();
+  }
+
+  @Override
+  public String toString()
+  {
+    return "Level: " + level() + " Index: " + current();
+  }
 }

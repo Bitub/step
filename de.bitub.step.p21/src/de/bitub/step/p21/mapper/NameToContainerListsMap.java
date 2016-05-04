@@ -6,7 +6,7 @@ import org.eclipse.emf.ecore.EObject;
 public interface NameToContainerListsMap
 {
 
-  EObject getEntity();
+  EObject getRootEntity();
 
   EList<? extends EObject> getEList(String name);
 

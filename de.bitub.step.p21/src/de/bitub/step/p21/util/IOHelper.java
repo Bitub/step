@@ -60,14 +60,14 @@ public class IOHelper
     // Get the resource
     //
     XMIResource resource = (XMIResource) resSet.createResource(uri, null);
-    resource.getContents().add(eObject);
 
     try {
+      resource.getContents().add(eObject);
       resource.save(Collections.EMPTY_MAP);
       IOHelper.LOGGER.info(String.format("%s saved.", eObject));
     }
-    catch (IOException exception) {
-
+    catch (IOException | NullPointerException exception) {
+      LOGGER.severe(exception.toString());
       IOHelper.LOGGER
           .warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri, exception.getMessage()));
     }

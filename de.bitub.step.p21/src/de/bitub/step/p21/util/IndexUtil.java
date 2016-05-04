@@ -12,4 +12,8 @@ public interface IndexUtil
   int current();
 
   int upper();
+
+  int level();
+
+  int entityLevelIndex();
 }
