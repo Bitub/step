@@ -1,6 +1,6 @@
 package de.bitub.step.p21.util;
 
-public interface IXPressModel
+public interface XPressModelConstants
 {
   String XPRESS_MODEL_ANNOTATION_SRC = "http://www.bitub.de/express/XpressModel";
   String P21_MODEL_ANNOTATION_SRC = "http://www.bitub.de/express/P21";

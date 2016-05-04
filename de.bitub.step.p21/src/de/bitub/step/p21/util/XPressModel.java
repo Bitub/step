@@ -26,7 +26,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
  * @generated NOT
  * @author Riemi - 16.06.2015
  */
-public class XPressModel implements IXPressModel
+public class XPressModel implements XPressModelConstants
 {
 
   public static boolean isDelegate(EModelElement eModelElement)
