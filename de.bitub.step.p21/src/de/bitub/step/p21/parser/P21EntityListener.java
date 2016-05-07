@@ -115,7 +115,8 @@ public class P21EntityListener extends P21LevelListener
   {
     boolean isTyped = Objects.isNull(typedName);
     if (isTyped) {
-      StepUntypedToEcore.setEStructuralFeature(index.current(), curObject, value);
+      EStructuralFeature eStructuralFeature = XPressModel.p21FeatureBy(curObject, index.current());
+      curObject.eSet(eStructuralFeature, value);
     }
 
     EStructuralFeature feature = XPressModel.p21FeatureBy(curObject, index.current());

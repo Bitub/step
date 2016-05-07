@@ -22,7 +22,9 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.XMIResource;
+import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
 import de.bitub.step.p21.persistence.P21Resource;
 import de.bitub.step.p21.persistence.P21ResourceFactoryImpl;
@@ -60,6 +62,39 @@ public class IOHelper
     //
     XMIResource resource = (XMIResource) resSet.createResource(uri, null);
     resource.getDefaultSaveOptions().put(XMIResource.OPTION_KEEP_DEFAULT_CONTENT, Boolean.TRUE);
+    resource.getContents().add(eObject);
+
+    try {
+      resource.save(null);
+
+      IOHelper.LOGGER.info(String.format("%s saved.", eObject));
+    }
+    catch (IOException exception) {
+      exception.printStackTrace();
+      IOHelper.LOGGER.warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri, exception));
+    }
+    catch (Exception exception) {
+      exception.printStackTrace();
+      IOHelper.LOGGER
+          .severe(String.format("Something unexpected happened while saving resource %s. See reason %s", uri, exception));
+    }
+  }
+
+  public static void storeAsXML(EObject eObject, URI uri)
+  {
+    // Obtain a new resource set
+    //
+    ResourceSet resSet = new ResourceSetImpl();
+
+    // Register the P21 resource factory for the .xml extension
+    //
+    resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xml", new XMLResourceFactoryImpl());
+
+    // Get the resource
+    //
+    XMLResource resource = (XMLResource) resSet.createResource(uri, null);
+    resource.getDefaultSaveOptions().put(XMLResource.OPTION_KEEP_DEFAULT_CONTENT, Boolean.TRUE);
+    resource.getDefaultLoadOptions().put(XMLResource.OPTION_KEEP_DEFAULT_CONTENT, Boolean.TRUE);
     resource.getContents().add(eObject);
 
     try {
