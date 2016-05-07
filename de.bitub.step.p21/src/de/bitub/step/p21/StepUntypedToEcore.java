@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
+import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -34,7 +35,7 @@ public class StepUntypedToEcore
 {
   private static final Logger LOGGER = LoggerHelper.init(Level.WARNING, StepUntypedToEcore.class);
 
-  private static void setEStructuralFeature(int parameterIndex, EObject eObject, Object value)
+  public static void setEStructuralFeature(int parameterIndex, EObject eObject, Object value)
   {
     EStructuralFeature eStructuralFeature = XPressModel.p21FeatureBy(eObject, parameterIndex);
 
@@ -86,15 +87,22 @@ public class StepUntypedToEcore
         }
       }
 
-      // TODO handle SELECT
-      StepUntypedToEcore.setEReference(eReference, eObject, value);
+      // TODO check if needed
+      if (!XPressModel.isSelect(eReference)) {
+        System.out.printf("%s@%s > %s with %s\n", eObject.eClass().getName(), eReference.getName(),
+            eReference.getEType().getName(), value);
+        StepUntypedToEcore.setEReference(eReference, eObject, value);
+      } else {
+
+        System.out.printf("%s@%s > %s with %s\n", eObject.eClass().getName(), eReference.getName(),
+            eReference.getEType().getName(), value);
+      }
     }
   }
 
   private static void setEAttribute(EAttribute eAttribute, EObject eObject, Object value)
   {
     eObject.eSet(eAttribute, value);
-
   }
 
   private static void setEReference(EReference eReference, EObject eObject, Object value)
@@ -144,20 +152,74 @@ public class StepUntypedToEcore
     }
   }
 
-  public static void eBoolean(int index, EObject eObject, String value)
+  public static void eSelect(EStructuralFeature selectFeature, EObject eObject, String typedName, Object value)
   {
-    switch (value) {
-      case "T":
-        StepUntypedToEcore.setEStructuralFeature(index, eObject, Boolean.TRUE);
-        break;
+    EObject select = prepareSelect(selectFeature, value, typedName);
+    eObject.eSet(selectFeature, select);
+  }
 
-      case "F":
-        StepUntypedToEcore.setEStructuralFeature(index, eObject, Boolean.FALSE);
-        break;
+  public static EObject prepareSelect(EStructuralFeature selectFeature, Object entity, String typeName)
+  {
+    // create select class
+    //
+    EObject select = setSelectValue(selectFeature, entity);
 
-      default:
-        LOGGER.warning("Undefined boolean type!");
-        break;
+    // set enumeration to indicate which value was set
+    //
+    setSelectEnumValue(select, typeName);
+    return select;
+  }
+
+  private static void setSelectEnumValue(EObject select, String typeName)
+  {
+    EStructuralFeature enumFeature = XPressModel.getSelectEnumeration(select);
+
+    // set enumeration to indicate which value was set
+    //
+    if (enumFeature.getEType() instanceof EEnum) {
+      EEnum selectEnum = (EEnum) enumFeature.getEType();
+
+      // set correct enumeration literal to identify which SELECT value was set
+      //
+      Object enumeration = EcoreUtil.createFromString(selectEnum, typeName);
+      select.eSet(enumFeature, enumeration);
     }
+  }
+
+  private static EObject setSelectValue(EStructuralFeature selectFeature, Object entity)
+  {
+    // create select class
+    //
+    EObject select = EcoreUtil.create((EClass) selectFeature.getEType());
+
+    // set entity to correct select field
+    //
+    EStructuralFeature valueFeature = XPressModel.selectFeature(select, entity);
+
+    // set correct value into select
+    //
+    select.eSet(valueFeature, entity);
+    return select;
+  }
+
+  public static EObject prepareSelect(EStructuralFeature selectFeature, EObject entity)
+  {
+    // create select class
+    //
+    EObject select = EcoreUtil.create((EClass) selectFeature.getEType());
+
+    // set entity to correct select field
+    //
+    EStructuralFeature valueFeature = XPressModel.selectFeature(select, entity);
+
+    // set correct value into select
+    //
+    select.eSet(valueFeature, entity);
+
+    // set enumeration to indicate which value was set
+    //
+    setSelectEnumValue(select, valueFeature.getEType().getName().toUpperCase());
+
+    return select;
   }
 }

@@ -24,7 +24,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.ECollections;
 import org.eclipse.emf.common.util.EList;
@@ -39,10 +38,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import de.bitub.step.p21.P21Index;
-import de.bitub.step.p21.XPressModel;
 import de.bitub.step.p21.P21IndexImpl.IdStructuralFeaturePair;
 import de.bitub.step.p21.P21IndexImpl.ListTriple;
-import de.bitub.step.p21.concurrrent.P21DataLineRunnable;
+import de.bitub.step.p21.StepUntypedToEcore;
+import de.bitub.step.p21.XPressModel;
+import de.bitub.step.p21.concurrrent.P21DataLineTask;
 import de.bitub.step.p21.di.P21Module;
 import de.bitub.step.p21.mapper.NameToClassifierMap;
 import de.bitub.step.p21.mapper.NameToClassifierMapImpl;
@@ -103,6 +103,7 @@ public class P21LoadImpl implements P21Load
     // extract entities from DATA section
     //
     List<Future<EObject>> futures = readEntityInstanceListFromDATA(inputStream);
+//    executor.shutdown();
 
     // put all entities under shared schema container
     //
@@ -127,9 +128,16 @@ public class P21LoadImpl implements P21Load
     for (Future<EObject> future : futures) {
 
       try {
-        entities.add(future.get());
+        EObject entity = future.get();
+
+        if (Objects.nonNull(entity)) {
+          entities.add(entity);
+        } else {
+          // TODO Should not occur.
+        }
       }
       catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
         LOGGER.severe(e.getStackTrace().toString());
       }
     }
@@ -159,7 +167,7 @@ public class P21LoadImpl implements P21Load
 
   private List<Future<EObject>> readEntityInstanceListFromDATA(InputStream inputStream) throws IOException
   {
-    List<P21DataLineRunnable> tasks = new ArrayList<>();
+    List<P21DataLineTask> taskList = new ArrayList<>();
     NameToClassifierMap nameToClassifierMap = new NameToClassifierMapImpl(ePackage);
 
     long start = System.currentTimeMillis();
@@ -179,7 +187,7 @@ public class P21LoadImpl implements P21Load
           listener.setPackage(ePackage);
           listener.setNameToClassifierMap(nameToClassifierMap);
 
-          tasks.add(new P21DataLineRunnable(listener, line));
+          taskList.add(new P21DataLineTask(listener, line));
         }
 
         if (line.equalsIgnoreCase("DATA;")) {
@@ -193,17 +201,18 @@ public class P21LoadImpl implements P21Load
 
     // collect results
     //
-    List<Future<EObject>> futures = null;
+    List<Future<EObject>> resultList = null;
     try {
-      futures = executor.invokeAll(tasks);
+      resultList = executor.invokeAll(taskList);
     }
     catch (InterruptedException e) {
+      e.printStackTrace();
       LOGGER.severe(e.getStackTrace().toString());
     }
 
     System.out.println((System.currentTimeMillis() - start) + " ms to parse entities.");
 
-    return futures;
+    return resultList;
   }
 
   private void linkUnresolvedReferences()
@@ -216,168 +225,153 @@ public class P21LoadImpl implements P21Load
 
   private void connectEntityWithUnresolvedReference(IdStructuralFeaturePair pair, P21Index index, EObject resolvedEntity)
   {
-    try {
-      EObject entity = index.retrieve(pair.id);
+    EObject entity = null;
+//    try {
+    entity = index.retrieve(pair.id);
 
-      if (XPressModel.isSelect(pair.feature) && !XPressModel.isDelegate(pair.feature)) {
+    // handle SELECTS
+    //
+    if (XPressModel.isSelect(pair.feature) && !XPressModel.isDelegate(pair.feature)) {
 
-        entity.eSet(pair.feature, prepareSelect(pair.feature, resolvedEntity));
+      entity.eSet(pair.feature, StepUntypedToEcore.prepareSelect(pair.feature, resolvedEntity));
+    } else {
+
+      if (XPressModel.isDelegate(pair.feature)) {
+
+        entity.eSet(pair.feature, createDelegate(pair.feature, resolvedEntity));
       } else {
 
-        if (XPressModel.isDelegate(pair.feature)) {
-
-          entity.eSet(pair.feature, prepareDelegate(pair.feature, resolvedEntity));
-
-        } else {
+        try {
           entity.eSet(pair.feature, resolvedEntity);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+          System.out.println("UNRESOLVED: " + resolvedEntity + "  " + pair.feature);
         }
       }
     }
-    catch (ClassCastException e) {
-      e.printStackTrace();
-      LOGGER.severe(e.getStackTrace().toString());
-
-    }
+//    }
+//    catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+//      e.printStackTrace();
+//      LOGGER.severe(entity + " -> " + resolvedEntity);
+//    }
   }
 
-  private EObject prepareDelegate(EStructuralFeature feature, EObject resolvedEntity)
+  private EObject createDelegate(EStructuralFeature delegateFeature, EObject targetEntity)
   {
-//    System.out.println("Prepare Delegate: " + resolvedEntity.eClass().getName() + " into " + feature.getEType().getName() + "@"
-//        + feature.getName());
     EObject delegate = null;
-    EClass featureType = ((EClass) feature.getEType());
+    EClass superDelegateType = ((EClass) delegateFeature.getEType());
 
-    if (featureType.isInterface()) {
-      EClass interfaceType = featureType;
+//    try {
+    if (superDelegateType.isInterface()) {
+      EClass interfaceType = superDelegateType;
 
+      // TODO find correct feature / not first one
       // search for subtype of interface delegate
       //
-      for (EStructuralFeature resFeature : resolvedEntity.eClass().getEAllStructuralFeatures()) {
+      for (EStructuralFeature curFeature : targetEntity.eClass().getEAllStructuralFeatures()) {
 
-        if (resFeature.getEType() instanceof EClass) {
-          EClass featureClass = (EClass) resFeature.getEType();
+        if (curFeature.getEType() instanceof EClass) {
+          EClass curFeatureType = (EClass) curFeature.getEType();
 
-          if (interfaceType.isSuperTypeOf(featureClass)) {
-//            System.out.println(interfaceType.getName() + " > " + featureClass.getName());
+          if (interfaceType.isSuperTypeOf(curFeatureType)) {// && curFeature.isMany()) {
 
-            delegate = EcoreUtil.create(featureClass);
-            delegate.eSet(((EReference) resFeature).getEOpposite(), resolvedEntity);
-          } else {
-//            System.out.println(interfaceType.getName() + " != " + featureClass.getName());
+            // create delegate object and set first site of bi-reference
+            //
+            delegate = EcoreUtil.create(curFeatureType);
+            try {
+              delegate.eSet(((EReference) curFeature).getEOpposite(), targetEntity);
+            }
+            catch (ArrayIndexOutOfBoundsException e) {
+              System.out.println("DELEGATE: " + curFeature + "  " + ((EReference) curFeature).getEOpposite());
+            }
           }
         }
       }
     }
+//    }
+//    catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
+//      System.out.println(delegateFeature);
+//      System.out.println(targetEntity);
+//    }
 
     return delegate;
   }
 
-  private EObject prepareSelect(EStructuralFeature feature, EObject resolvedEntity)
-  {
-    // create select class
-    //
-    EObject select = EcoreUtil.create((EClass) feature.getEType());
-
-    // set entity to correct select field
-    //
-    for (EStructuralFeature selectFeature : select.eClass().getEAllStructuralFeatures()) {
-      if (selectFeature.getEType().isInstance(resolvedEntity)) {
-        select.eSet(selectFeature, resolvedEntity);
-      }
-    }
-
-    return select;
-  }
-
   private void connectListWrapperWithUnresolvedReferences(ListTriple triple, P21Index index)
   {
+    // resolve all references
+    //
+    EList<EObject> entities = mapToResultantEntities(triple.feature, index.retrieveAll(triple.references));
+
+    // get list          
+    @SuppressWarnings("unchecked")
+    final EList<EObject> list = (EList<EObject>) triple.wrapper.eGet(triple.feature);
+
     try {
-      // resolve all references
-      //
-      List<EObject> entities = index.retrieveAll(triple.references); // IfcCartesianPoint
-
-      // set entity list into correct list wrapper
-      EObject listWrapper = triple.wrapper;
-      EStructuralFeature innerListFeat = triple.feature;
-
-      // get list          
-      @SuppressWarnings("unchecked")
-      final EList<EObject> list = (EList<EObject>) listWrapper.eGet(innerListFeat);
-
-      boolean isSelectContainingFeature = XPressModel.isSelect(innerListFeat);
-      boolean isDelegateContainingFeature = XPressModel.isDelegate(innerListFeat);
-      if (isSelectContainingFeature || isDelegateContainingFeature) {
-
-        if (isDelegateContainingFeature) {
-
-          // handle DELEGATES & SELECT DELGATES list
-          //
-          EList<? extends EObject> delegates = ECollections
-              .asEList(entities.stream().map(entity -> prepareDelegate(innerListFeat, entity)).collect(Collectors.toList()));
-          ECollections.setEList(list, delegates);
-        } else {
-
-          // handle SELECTs list
-          //
-          EList<? extends EObject> selects = ECollections
-              .asEList(entities.stream().map(entity -> prepareSelect(innerListFeat, entity)).collect(Collectors.toList()));
-          ECollections.setEList(list, selects);
-        }
-
-//        if (isSelectContainingFeature) {
-//
-//          boolean isSelectDelegateContainingFeature = XPressModel.isSelectProxy(innerListFeat);
-//          if (isSelectDelegateContainingFeature) {
-//
-//            // handle SELECT DELGATES list
-//            //          
-//            EList<? extends EObject> selects = ECollections
-//                .asEList(entities.stream().map(entity -> prepareDelegate(innerListFeat, entity)).collect(Collectors.toList()));
-//            ECollections.setEList(list, selects);
-//          } else {
-//
-//            // handle SELECTs list
-//            //
-//            EList<? extends EObject> selects = ECollections
-//                .asEList(entities.stream().map(entity -> prepareSelect(innerListFeat, entity)).collect(Collectors.toList()));
-//            ECollections.setEList(list, selects);
-//          }
-//        } else {
-//
-//          // handle DELEGATES list
-//          //
-//          EList<? extends EObject> delegates = ECollections
-//              .asEList(entities.stream().map(entity -> prepareDelegate(innerListFeat, entity)).collect(Collectors.toList()));
-//          ECollections.setEList(list, delegates);
-//        }
-
-      } else {
-
-        // handle ENTITY list
-        //
-        ECollections.setEList(list, ECollections.asEList(entities));
-      }
+      ECollections.setEList(list, entities);
     }
-    catch (ClassCastException | ArrayStoreException | IllegalArgumentException | NullPointerException e) {
+    catch (ArrayIndexOutOfBoundsException e) {
+      System.out.println("LIST: " + triple + " " + entities);
       e.printStackTrace();
-      LOGGER.severe(e.getStackTrace().toString());
     }
+  }
+
+  private EList<EObject> mapToResultantEntities(EStructuralFeature listFeature, List<EObject> entities)
+  {
+    EList<EObject> result = ECollections.newBasicEListWithCapacity(entities.size());
+
+    // DELEGATEs && DELEGATE-SELECTs
+    //
+    if (XPressModel.isDelegate(listFeature)) {
+
+      for (EObject entity : entities) {
+        EObject delegate = createDelegate(listFeature, entity);
+        result.add(delegate);
+      }
+      return result;
+    }
+
+    // SELECTs
+    //
+    if (XPressModel.isSelect(listFeature)) {
+
+      for (EObject entity : entities) {
+        EObject delegate = StepUntypedToEcore.prepareSelect(listFeature, entity);
+        result.add(delegate);
+      }
+      return result;
+    }
+
+    // ENTITYs
+    //
+    return ECollections.asEList(entities);
   }
 
   private void linkReferenceContainingEntities(P21Index index)
   {
     index.retrieveUnresolved().forEach((reference, pairs) -> {
+
       EObject toBeSet = index.retrieve(reference);
-      pairs.forEach((pair) -> {
-        executor.execute(() -> connectEntityWithUnresolvedReference(pair, index, toBeSet));
-      });
+
+      if (Objects.nonNull(toBeSet)) {
+        pairs.forEach((pair) -> {
+
+          if (Objects.nonNull(pair)) {
+            executor.execute(() -> connectEntityWithUnresolvedReference(pair, index, toBeSet));
+          } else {
+            LOGGER.severe(pair.toString());
+          }
+        });
+      }
     });
   }
 
   private void linkReferencesContainingLists(P21Index index)
   {
     index.retrieveUnresolvedLists().forEach((triple) -> {
-      executor.execute(() -> connectListWrapperWithUnresolvedReferences(triple, index));
+      if (!Objects.isNull(triple)) {
+        executor.execute(() -> connectListWrapperWithUnresolvedReferences(triple, index));
+      }
     });
   }
 }

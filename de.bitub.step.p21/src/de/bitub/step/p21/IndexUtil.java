@@ -2,7 +2,6 @@ package de.bitub.step.p21;
 
 public interface IndexUtil
 {
-
   void levelDown();
 
   void levelUp();
@@ -16,4 +15,8 @@ public interface IndexUtil
   int level();
 
   int entityLevelIndex();
+
+  boolean isNestedListLevel();
+
+  boolean isListLevel();
 }

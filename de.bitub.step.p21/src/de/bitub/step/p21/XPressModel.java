@@ -87,4 +87,42 @@ public class XPressModel implements XPressModelConstants
     }
     return annotatedFeatures.get(p21Index);
   }
+
+  public static EStructuralFeature selectFeature(EObject select, Object value)
+  {
+    for (EStructuralFeature feature : select.eClass().getEStructuralFeatures()) {
+
+      if (feature.getEType().isInstance(value)) {
+        return feature;
+      }
+    }
+
+    throw new IndexOutOfBoundsException("No corresponding feature for " + value + " in SELECT " + select);
+  }
+
+  public static String toLongLogicalEnum(String shortLiteral)
+  {
+    switch (shortLiteral) {
+      case "F":
+        shortLiteral = "FALSE";
+        break;
+
+      case "T":
+        shortLiteral = "TRUE";
+        break;
+
+      case "U":
+        shortLiteral = "UNKNOWN";
+        break;
+    }
+
+    return shortLiteral;
+  }
+
+  public static EStructuralFeature getSelectEnumeration(EObject select)
+  {
+    String selectClassName = select.eClass().getName();
+    String enumFeatureName = Character.toLowerCase(selectClassName.charAt(0)) + selectClassName.substring(1);
+    return select.eClass().getEStructuralFeature(enumFeatureName);
+  }
 }

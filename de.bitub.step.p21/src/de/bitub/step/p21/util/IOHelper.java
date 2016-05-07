@@ -11,7 +11,6 @@
 package de.bitub.step.p21.util;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -60,20 +59,22 @@ public class IOHelper
     // Get the resource
     //
     XMIResource resource = (XMIResource) resSet.createResource(uri, null);
+    resource.getDefaultSaveOptions().put(XMIResource.OPTION_KEEP_DEFAULT_CONTENT, Boolean.TRUE);
+    resource.getContents().add(eObject);
 
     try {
-      resource.getContents().add(eObject);
-      resource.save(Collections.EMPTY_MAP);
+      resource.save(null);
+
       IOHelper.LOGGER.info(String.format("%s saved.", eObject));
     }
-    catch (IOException | NullPointerException exception) {
-      LOGGER.severe(exception.toString());
-      IOHelper.LOGGER
-          .warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri, exception.getMessage()));
+    catch (IOException exception) {
+      exception.printStackTrace();
+      IOHelper.LOGGER.warning(String.format("Failed to save %s to resource %s. See reason %s", eObject, uri, exception));
     }
     catch (Exception exception) {
-      IOHelper.LOGGER.severe(
-          String.format("Something unexpected happened while saving resource %s. See reason %s", uri, exception.getMessage()));
+      exception.printStackTrace();
+      IOHelper.LOGGER
+          .severe(String.format("Something unexpected happened while saving resource %s. See reason %s", uri, exception));
     }
   }
 

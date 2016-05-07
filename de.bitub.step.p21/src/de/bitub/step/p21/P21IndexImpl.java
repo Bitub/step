@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -135,7 +136,13 @@ public class P21IndexImpl implements P21Index
     List<EObject> entities = new ArrayList<EObject>();
 
     for (String ref : references) {
-      entities.add(retrieve(ref));
+
+      EObject entity = retrieve(ref);
+      if (Objects.nonNull(entity)) {
+        entities.add(entity);
+      } else {
+        System.out.println("Null entry in un-resolved reference. " + ref);
+      }
     }
 
     return entities;

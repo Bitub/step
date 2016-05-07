@@ -69,4 +69,16 @@ public class IndexUtilImpl implements IndexUtil
   {
     return "Level: " + level() + " Index: " + current();
   }
+
+  @Override
+  public boolean isListLevel()
+  {
+    return indexStack.size() == 1;
+  }
+
+  @Override
+  public boolean isNestedListLevel()
+  {
+    return indexStack.size() > 1;
+  }
 }

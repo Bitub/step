@@ -1,5 +1,7 @@
 package de.bitub.step.p21.persistence;
 
+import java.util.Objects;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
@@ -19,7 +21,6 @@ import de.bitub.step.p21.parser.P21EntityListener;
 
 public class SingleLineEntityParser
 {
-
   public EObject parse(String line, P21EntityListener listener)
   {
     CharStream input = new ANTLRInputStream(line);
@@ -42,7 +43,7 @@ public class SingleLineEntityParser
       tree = parser.entityInstance();
     }
     catch (RuntimeException ex) {
-
+      ex.printStackTrace();
       if (ex.getClass() == RuntimeException.class && ex.getCause() instanceof RecognitionException) {
 
         // The BailErrorStrategy wraps the RecognitionExceptions in
@@ -66,8 +67,16 @@ public class SingleLineEntityParser
       }
     }
 
-    ParseTreeWalker walker = new ParseTreeWalker();
-    walker.walk(listener, tree);
+    // could not parse subtree -> result is tree being null
+    //
+    if (Objects.nonNull(tree)) {
+      ParseTreeWalker walker = new ParseTreeWalker();
+      walker.walk(listener, tree);
+    } else {
+
+      // TODO report unhandled lines
+      System.out.println("Could not parse: " + line);
+    }
 
     return listener.entity();
   }
