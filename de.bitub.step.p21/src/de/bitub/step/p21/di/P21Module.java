@@ -18,6 +18,11 @@ public class P21Module extends AbstractModule
     bind(P21Index.class).toInstance(P21IndexImpl.eINSTANCE);
 
     bind(IndexUtil.class).to(IndexUtilImpl.class);
+
+//    bind(NameToClassifierMap.class).to(NameToClassifierMapImpl.class);
+//
+//    bind(NameToContainerListsMap.class).to(NameToContainerListsMapImpl.class);
+
   }
 
   @Provides
@@ -25,4 +30,23 @@ public class P21Module extends AbstractModule
   {
     return new P21EntityListener(entities, index);
   }
+
+//  @Provides
+//  P21DataLineTasksGenerator provideP21DataLineTasksGenerator(NameToClassifierMapImpl nameToClassifierMap)
+//  {
+//    return new P21DataLineTasksGenerator(nameToClassifierMap);
+//  }
+//
+//  @Provides
+//  NameToClassifierMap provideNameToClassifierMap(EPackage ePackage)
+//  {
+//    return new NameToClassifierMapImpl(ePackage);
+//  }
+//
+//  @Provides
+//  NameToContainerListsMap provideNameToContainerListsMap(EPackage ePackage)
+//  {
+//    EObject schemaRootContainer = XPressModel.getRootContainer(ePackage);
+//    return new NameToContainerListsMapImpl(schemaRootContainer);
+//  }
 }

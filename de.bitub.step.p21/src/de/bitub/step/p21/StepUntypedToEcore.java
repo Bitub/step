@@ -10,11 +10,16 @@
  */
 package de.bitub.step.p21;
 
+import java.util.List;
+
+import org.eclipse.emf.common.util.ECollections;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
@@ -111,5 +116,73 @@ public class StepUntypedToEcore
     setSelectEnumValue(select, valueFeature.getEType().getName().toUpperCase());
 
     return select;
+  }
+
+  // TODO improve
+  public static EObject prepareDelegate(EStructuralFeature delegateFeature, EObject targetEntity)
+  {
+    EObject delegate = null;
+    EClass superDelegateType = ((EClass) delegateFeature.getEType());
+
+    if (superDelegateType.isInterface()) {
+      EClass interfaceType = superDelegateType;
+
+      // TODO find correct feature / not first one
+      // search for subtype of interface delegate
+      //
+      for (EStructuralFeature curFeature : targetEntity.eClass().getEAllStructuralFeatures()) {
+
+        if (curFeature.getEType() instanceof EClass) {
+          EClass curFeatureType = (EClass) curFeature.getEType();
+
+          if (interfaceType.isSuperTypeOf(curFeatureType)) {// && curFeature.isMany()) {
+
+            // create delegate object and set first site of bi-reference
+            //
+            delegate = EcoreUtil.create(curFeatureType);
+            try {
+              delegate.eSet(((EReference) curFeature).getEOpposite(), targetEntity);
+            }
+            catch (ArrayIndexOutOfBoundsException e) {
+              System.out.println("DELEGATE: " + curFeature + "  " + ((EReference) curFeature).getEOpposite());
+            }
+          }
+        }
+      }
+    }
+
+    return delegate;
+  }
+
+  // TODO improve
+  public static EList<EObject> mapToResultantEntities(EStructuralFeature listFeature, List<EObject> entities)
+  {
+    EList<EObject> result = ECollections.newBasicEListWithCapacity(entities.size());
+
+    // DELEGATEs && DELEGATE-SELECTs
+    //
+    if (XPressModel.isDelegate(listFeature)) {
+
+      for (EObject entity : entities) {
+        EObject delegate = StepUntypedToEcore.prepareDelegate(listFeature, entity);
+        result.add(delegate);
+      }
+      return result;
+    }
+
+    // SELECTs
+    //
+    if (XPressModel.isSelect(listFeature)) {
+
+      for (EObject entity : entities) {
+        EObject delegate = StepUntypedToEcore.prepareSelect(listFeature, entity);
+        result.add(delegate);
+      }
+      return result;
+    }
+
+    // ENTITYs
+    //
+    return ECollections.asEList(entities);
   }
 }

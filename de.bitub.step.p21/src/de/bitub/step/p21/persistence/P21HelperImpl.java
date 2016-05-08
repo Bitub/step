@@ -10,7 +10,13 @@
  */
 package de.bitub.step.p21.persistence;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 
 /**
@@ -67,5 +73,24 @@ public class P21HelperImpl implements P21Helper
       packageRegistry =
           resource.getResourceSet() == null ? EPackage.Registry.INSTANCE : resource.getResourceSet().getPackageRegistry();
     }
+  }
+
+  @Override
+  public List<EObject> futuresToEntities(List<Future<EObject>> futures)
+  {
+    List<EObject> entities = new ArrayList<>();
+
+    for (Future<EObject> future : futures) {
+
+      try {
+        EObject entity = future.get();
+        entities.add(entity);
+      }
+      catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+      }
+    }
+
+    return entities;
   }
 }

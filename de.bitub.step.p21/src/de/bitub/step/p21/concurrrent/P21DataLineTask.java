@@ -24,12 +24,6 @@ public class P21DataLineTask implements Callable<EObject>
   @Override
   public EObject call() throws Exception
   {
-//    System.out.printf("Start parsing line: %s\n", this.line);
-    return parse(line, listener);
-  }
-
-  private EObject parse(String line, P21EntityListener listener)
-  {
     SingleLineEntityParser parser = new SingleLineEntityParser();
     EObject result = null;
     try {
@@ -40,5 +34,4 @@ public class P21DataLineTask implements Callable<EObject>
     }
     return result;
   }
-
 }

@@ -10,13 +10,21 @@
  */
 package de.bitub.step.p21.persistence;
 
+import java.util.List;
+import java.util.concurrent.Future;
+
+import org.eclipse.emf.ecore.EObject;
+
 /**
  * <!-- begin-user-doc -->
  * <!-- end-user-doc -->
+ * 
  * @generated NOT
  * @author Riemi - 19.04.2015
  */
 public interface P21Helper
 {
+
+  List<EObject> futuresToEntities(List<Future<EObject>> futures);
 
 }

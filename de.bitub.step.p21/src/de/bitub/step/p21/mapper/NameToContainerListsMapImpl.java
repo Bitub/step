@@ -1,64 +1,74 @@
 package de.bitub.step.p21.mapper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 
 public class NameToContainerListsMapImpl implements NameToContainerListsMap
 {
-  private Map<String, EList<EObject>> containerLists = null;
+  private Map<String, EList<EObject>> eNameToContainmentListMap = null;
 
-  public EObject entity = null;
+  private EObject entitiesRootContainer = null;
 
-  public NameToContainerListsMapImpl(EPackage ePackage, String classifierName)
+  public NameToContainerListsMapImpl(EObject entitiesRootContainer)
   {
-    this.entity = EcoreUtil.create((EClass) ePackage.getEClassifier(classifierName));
-    init(ePackage);
+    this.entitiesRootContainer = entitiesRootContainer;
   }
 
-  private void init(EPackage ePackage)
+  @Override
+  public void addEntity(String entityName, EObject entity)
   {
-    containerLists = keywordToContainmentList(entity);
+    getContainmentList(entityName).add(entity);
   }
 
-  @SuppressWarnings("unchecked")
-  private Map<String, EList<EObject>> keywordToContainmentList(EObject container)
+  @Override
+  public void addEntities(List<EObject> entities)
   {
-    EList<EReference> containments = container.eClass().getEAllContainments();
-    Map<String, EList<EObject>> containerLists = new HashMap<>(containments.size());
+    for (EObject entity : entities) {
 
-    for (EReference eReference : containments) {
-      Object containmentList = container.eGet(eReference);
-
-      if (containmentList instanceof EList) {
-        containerLists.put(eReference.getName().toUpperCase(), (EList<EObject>) containmentList);
+      if (Objects.nonNull(entity)) {
+        addEntity(entity);
       }
     }
-
-    return containerLists;
   }
 
   @Override
-  public void addEObject(String name, EObject eObject)
+  public void addEntity(EObject entity)
   {
-    getEList(name).add(eObject);
+    String entityName = entity.eClass().getName();
+    addEntity(entityName, entity);
   }
 
   @Override
-  public EList<EObject> getEList(String name)
+  public EList<EObject> getContainmentList(String name)
   {
-    return containerLists.get(name.toUpperCase());
+    if (null == eNameToContainmentListMap) {
+
+      EList<EReference> containments = entitiesRootContainer.eClass().getEAllContainments();
+      Map<String, EList<EObject>> result = new HashMap<>(containments.size());
+
+      for (EReference eReference : containments) {
+
+        String key = eReference.getName().toUpperCase(); // store all upper-case name
+        Object containmentList = entitiesRootContainer.eGet(eReference);
+
+        if (containmentList instanceof EList) {
+          result.put(key, (EList<EObject>) containmentList);
+        }
+      }
+      eNameToContainmentListMap = result;
+    }
+    return eNameToContainmentListMap.get(name.toUpperCase());
   }
 
   @Override
   public EObject getRootEntity()
   {
-    return entity;
+    return entitiesRootContainer;
   }
 }

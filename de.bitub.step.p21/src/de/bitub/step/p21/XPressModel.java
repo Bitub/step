@@ -14,8 +14,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EModelElement;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
@@ -124,5 +126,11 @@ public class XPressModel implements XPressModelConstants
     String selectClassName = select.eClass().getName();
     String enumFeatureName = Character.toLowerCase(selectClassName.charAt(0)) + selectClassName.substring(1);
     return select.eClass().getEStructuralFeature(enumFeatureName);
+  }
+
+  public static EObject getRootContainer(EPackage ePackage)
+  {
+    // TODO determine rootContainer from EPackage by annotation
+    return EcoreUtil.create((EClass) ePackage.getEClassifier("IFC4"));
   }
 }

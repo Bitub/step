@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
@@ -30,7 +29,6 @@ import de.bitub.step.p21.util.Antlr4Util;
 public class P21EntityListener extends P21LevelListener
 {
   P21Index entities;
-  EPackage ePackage;
   NameToClassifierMap classifierMap;
 
   // save different variables for current entity subtree walk
@@ -323,11 +321,6 @@ public class P21EntityListener extends P21LevelListener
   public EObject entity()
   {
     return curObject;
-  }
-
-  public void setPackage(EPackage ePackage)
-  {
-    this.ePackage = ePackage;
   }
 
   public void setNameToClassifierMap(NameToClassifierMap nameToClassifierMap)
