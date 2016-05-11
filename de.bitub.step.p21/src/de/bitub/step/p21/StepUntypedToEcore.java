@@ -210,4 +210,24 @@ public class StepUntypedToEcore
       }
     }
   }
+
+  public static void connectListWrapperWithUnresolvedReferences(EStructuralFeature feature, EObject wrapper,
+      List<EObject> resolvedEntities)
+  {
+    // resolve all references
+    //
+    EList<EObject> entities = StepUntypedToEcore.mapToResultantEntities(feature, resolvedEntities);
+
+    // get list          
+    @SuppressWarnings("unchecked")
+    final EList<EObject> list = (EList<EObject>) wrapper.eGet(feature);
+
+    try {
+      ECollections.setEList(list, entities);
+    }
+    catch (ArrayIndexOutOfBoundsException e) {
+      e.printStackTrace();
+    }
+  }
+
 }

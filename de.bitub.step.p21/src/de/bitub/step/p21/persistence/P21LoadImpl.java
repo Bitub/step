@@ -21,8 +21,6 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.emf.common.util.ECollections;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 
@@ -30,10 +28,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import de.bitub.step.p21.P21Index;
-import de.bitub.step.p21.P21IndexImpl.ListTriple;
-import de.bitub.step.p21.StepUntypedToEcore;
 import de.bitub.step.p21.XPressModel;
 import de.bitub.step.p21.concurrrent.P21DataLineTask;
+import de.bitub.step.p21.concurrrent.P21ResolveReferencesListTask;
+import de.bitub.step.p21.concurrrent.P21ResolveReferencesTask;
 import de.bitub.step.p21.di.P21Module;
 import de.bitub.step.p21.mapper.NameToContainerListsMap;
 import de.bitub.step.p21.mapper.NameToContainerListsMapImpl;
@@ -141,45 +139,15 @@ public class P21LoadImpl implements P21Load
     linkReferencesContainingLists(index);
   }
 
-  private void connectListWrapperWithUnresolvedReferences(ListTriple triple, P21Index index)
-  {
-    // resolve all references
-    //
-    EList<EObject> entities = StepUntypedToEcore.mapToResultantEntities(triple.feature, index.retrieveAll(triple.references));
-
-    // get list          
-    @SuppressWarnings("unchecked")
-    final EList<EObject> list = (EList<EObject>) triple.wrapper.eGet(triple.feature);
-
-    try {
-      ECollections.setEList(list, entities);
-    }
-    catch (ArrayIndexOutOfBoundsException e) {
-      System.out.println("LIST: " + triple + " " + entities);
-      e.printStackTrace();
-    }
-  }
-
   private void linkReferenceContainingEntities(P21Index index)
   {
     index.retrieveUnresolved().forEach((reference, pairs) -> {
-
       EObject toBeSet = index.retrieve(reference);
 
-      if (Objects.nonNull(toBeSet)) {
-        pairs.forEach((pair) -> {
-
-          if (Objects.nonNull(pair)) {
-
-            EObject entity = index.retrieve(pair.id);
-            executor.execute(() -> StepUntypedToEcore.connectEntityWithResolvedReference(pair.feature, entity, toBeSet));
-          } else {
-            LOGGER.severe(pair.toString());
-          }
-        });
-      } else {
-        // TODO Report unresolved references
-      }
+      pairs.forEach((pair) -> {
+        EObject entity = index.retrieve(pair.id);
+        executor.execute(new P21ResolveReferencesTask(pair.feature, entity, toBeSet));
+      });
     });
   }
 
@@ -187,7 +155,8 @@ public class P21LoadImpl implements P21Load
   {
     index.retrieveUnresolvedLists().forEach((triple) -> {
       if (!Objects.isNull(triple)) {
-        executor.execute(() -> connectListWrapperWithUnresolvedReferences(triple, index));
+        List<EObject> entities = index.retrieveAll(triple.references);
+        executor.execute(new P21ResolveReferencesListTask(triple.feature, triple.wrapper, entities));
       }
     });
   }
