@@ -30,14 +30,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import de.bitub.step.p21.P21Index;
-import de.bitub.step.p21.P21IndexImpl.IdStructuralFeaturePair;
 import de.bitub.step.p21.P21IndexImpl.ListTriple;
 import de.bitub.step.p21.StepUntypedToEcore;
 import de.bitub.step.p21.XPressModel;
 import de.bitub.step.p21.concurrrent.P21DataLineTask;
 import de.bitub.step.p21.di.P21Module;
-import de.bitub.step.p21.mapper.NameToClassifierMap;
-import de.bitub.step.p21.mapper.NameToClassifierMapImpl;
 import de.bitub.step.p21.mapper.NameToContainerListsMap;
 import de.bitub.step.p21.mapper.NameToContainerListsMapImpl;
 import de.bitub.step.p21.util.LoggerHelper;
@@ -84,18 +81,17 @@ public class P21LoadImpl implements P21Load
   public void load(P21Resource resource, InputStream inputStream, Map<?, ?> options) throws IOException
   {
     this.ePackage = (EPackage) options.get("ePackage");
-
-    initResource(resource, inputStream);
-
+    load(resource, inputStream);
   }
 
-  private void initResource(P21Resource resource, InputStream inputStream) throws IOException
+  private void load(P21Resource resource, InputStream inputStream) throws IOException
   {
     // extract entities from DATA section
     //
-    NameToClassifierMap nameToClassifierMap = new NameToClassifierMapImpl(ePackage);
-    P21DataLineTasksGenerator taskGenerator = new P21DataLineTasksGenerator(nameToClassifierMap);
-    List<P21DataLineTask> taskList = taskGenerator.generateWorkTasks(inputStream);
+    P21DataLineTasksGenerator taskGenerator = injector.getInstance(P21DataLineTasksGenerator.class);
+    taskGenerator.setEPackage(ePackage);
+
+    List<P21DataLineTask> taskList = taskGenerator.generateWorkTasksFrom(inputStream);
 
     long start = System.currentTimeMillis();
 
@@ -144,33 +140,6 @@ public class P21LoadImpl implements P21Load
     linkReferencesContainingLists(index);
   }
 
-  private void connectEntityWithUnresolvedReference(IdStructuralFeaturePair pair, P21Index index, EObject resolvedEntity)
-  {
-    EObject entity = null;
-    entity = index.retrieve(pair.id);
-
-    // handle SELECTS
-    //
-    if (XPressModel.isSelect(pair.feature) && !XPressModel.isDelegate(pair.feature)) {
-
-      entity.eSet(pair.feature, StepUntypedToEcore.prepareSelect(pair.feature, resolvedEntity));
-    } else {
-
-      if (XPressModel.isDelegate(pair.feature)) {
-
-        entity.eSet(pair.feature, StepUntypedToEcore.prepareDelegate(pair.feature, resolvedEntity));
-      } else {
-
-        try {
-          entity.eSet(pair.feature, resolvedEntity);
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-          System.out.println("UNRESOLVED: " + resolvedEntity + "  " + pair.feature);
-        }
-      }
-    }
-  }
-
   private void connectListWrapperWithUnresolvedReferences(ListTriple triple, P21Index index)
   {
     // resolve all references
@@ -200,11 +169,15 @@ public class P21LoadImpl implements P21Load
         pairs.forEach((pair) -> {
 
           if (Objects.nonNull(pair)) {
-            executor.execute(() -> connectEntityWithUnresolvedReference(pair, index, toBeSet));
+
+            EObject entity = index.retrieve(pair.id);
+            executor.execute(() -> StepUntypedToEcore.connectEntityWithResolvedReference(pair.feature, entity, toBeSet));
           } else {
             LOGGER.severe(pair.toString());
           }
         });
+      } else {
+        // TODO Report unresolved references
       }
     });
   }

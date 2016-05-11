@@ -11,6 +11,7 @@
 package de.bitub.step.p21.util;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -65,7 +66,7 @@ public class IOHelper
     resource.getContents().add(eObject);
 
     try {
-      resource.save(null);
+      resource.save(Collections.emptyMap());
 
       IOHelper.LOGGER.info(String.format("%s saved.", eObject));
     }

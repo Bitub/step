@@ -4,17 +4,14 @@ import java.util.concurrent.Callable;
 
 import org.eclipse.emf.ecore.EObject;
 
-import com.google.inject.Inject;
-
 import de.bitub.step.p21.parser.P21EntityListener;
-import de.bitub.step.p21.persistence.SingleLineEntityParser;
+import de.bitub.step.p21.parser.SingleLineEntityParser;
 
 public class P21DataLineTask implements Callable<EObject>
 {
   P21EntityListener listener;
   String line = "";
 
-  @Inject
   public P21DataLineTask(P21EntityListener listener, String line)
   {
     this.listener = listener;

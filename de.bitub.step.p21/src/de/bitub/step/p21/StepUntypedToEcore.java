@@ -185,4 +185,29 @@ public class StepUntypedToEcore
     //
     return ECollections.asEList(entities);
   }
+
+  // TODO improve
+  public static void connectEntityWithResolvedReference(EStructuralFeature feature, EObject entity, EObject resolvedEntity)
+  {
+    // handle SELECTS
+    //
+    if (XPressModel.isSelect(feature) && !XPressModel.isDelegate(feature)) {
+
+      entity.eSet(feature, StepUntypedToEcore.prepareSelect(feature, resolvedEntity));
+    } else {
+
+      if (XPressModel.isDelegate(feature)) {
+
+        entity.eSet(feature, StepUntypedToEcore.prepareDelegate(feature, resolvedEntity));
+      } else {
+
+        try {
+          entity.eSet(feature, resolvedEntity);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+          System.out.println("UNRESOLVED: " + resolvedEntity + "  " + feature);
+        }
+      }
+    }
+  }
 }

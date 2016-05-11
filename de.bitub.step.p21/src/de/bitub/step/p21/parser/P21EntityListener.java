@@ -43,10 +43,11 @@ public class P21EntityListener extends P21LevelListener
   private String typedName;
 
   @Inject
-  public P21EntityListener(P21Index entities, IndexUtil index)
+  public P21EntityListener(P21Index entities, IndexUtil index, NameToClassifierMap classifierMap)
   {
     super(index);
     this.entities = entities;
+    this.classifierMap = classifierMap;
   }
 
   @Override
@@ -322,10 +323,10 @@ public class P21EntityListener extends P21LevelListener
   {
     return curObject;
   }
-
-  public void setNameToClassifierMap(NameToClassifierMap nameToClassifierMap)
-  {
-    this.classifierMap = nameToClassifierMap;
-  }
+//
+//  public void setNameToClassifierMap(NameToClassifierMap nameToClassifierMap)
+//  {
+//    this.classifierMap = nameToClassifierMap;
+//  }
 
 }

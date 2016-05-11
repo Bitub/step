@@ -1,4 +1,4 @@
-package de.bitub.step.p21.persistence;
+package de.bitub.step.p21.parser;
 
 import java.util.Objects;
 
@@ -17,7 +17,6 @@ import org.eclipse.emf.ecore.EObject;
 
 import de.bitub.step.p21.StepLexer;
 import de.bitub.step.p21.StepParser;
-import de.bitub.step.p21.parser.P21EntityListener;
 
 public class SingleLineEntityParser
 {
