@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 import org.eclipse.emf.ecore.EObject;
@@ -13,7 +14,9 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.google.inject.Singleton;
 
+@Singleton
 public class AllP21EntitiesImpl implements AllP21Entities
 {
 
@@ -25,7 +28,7 @@ public class AllP21EntitiesImpl implements AllP21Entities
   //
   private final SetMultimap<String, IdStructuralFeaturePair> unresolved = HashMultimap.create();
 
-  public final List<ListTriple> triples = new ArrayList<AllP21EntitiesImpl.ListTriple>();
+  public final ConcurrentLinkedQueue<ListTriple> triples = new ConcurrentLinkedQueue<>(); // Collections.synchronizedList(new ArrayList<>());
 
   private AllP21EntitiesImpl()
   {
@@ -61,7 +64,7 @@ public class AllP21EntitiesImpl implements AllP21Entities
   }
 
   @Override
-  public List<ListTriple> retrieveUnresolvedLists()
+  public Collection<ListTriple> retrieveUnresolvedLists()
   {
     return triples;
   }

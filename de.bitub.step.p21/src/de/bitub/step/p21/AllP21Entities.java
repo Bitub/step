@@ -18,7 +18,7 @@ public interface AllP21Entities
 
   Map<String, Collection<IdStructuralFeaturePair>> retrieveUnresolved();
 
-  List<ListTriple> retrieveUnresolvedLists();
+  Collection<ListTriple> retrieveUnresolvedLists();
 
   EObject store(String id, EObject object);
 
