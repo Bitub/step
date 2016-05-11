@@ -69,10 +69,16 @@ public class P21LoadImpl implements P21Load
     this.helper = helper;
   }
 
+  private static boolean startsWithEntityId(String text)
+  {
+    return ID_AT_START.matcher(text).find();
+  }
+
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * 
+   * @throws Exception
    * @generated NOT
    * @see de.bitub.step.p21.persistence.P21Load#load(de.bitub.step.p21.persistence.P21Resource,
    *      java.io.InputStream, java.util.Map)

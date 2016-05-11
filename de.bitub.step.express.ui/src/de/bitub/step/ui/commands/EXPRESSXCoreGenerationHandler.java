@@ -29,7 +29,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.xtext.util.StringInputStream;
 
-import de.bitub.step.generator.XcoreGenerator;
+import de.bitub.step.xcore.XcoreGenerator;
 
 
 /**
@@ -60,7 +60,7 @@ public class EXPRESSXCoreGenerationHandler extends AbstractHandler implements IH
         Resource xtextResource = rs.getResource(uri, true);
         
         XcoreGenerator oclInEcoreGenerator = new XcoreGenerator();
-        oclInEcoreGenerator.setProjectFolder(file.getProject().getFullPath().toString());
+        // TODO file.getProject().getFullPath().toString()
         
         IFile genFile = file.getParent().getFile(new Path(file.getName()+".xcore")); //$NON-NLS-1$
         

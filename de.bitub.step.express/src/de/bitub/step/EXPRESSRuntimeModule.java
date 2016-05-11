@@ -13,7 +13,7 @@ package de.bitub.step;
 
 import org.eclipse.xtext.generator.IGenerator;
 
-import de.bitub.step.generator.XcoreGenerator;
+import de.bitub.step.xcore.XcoreGenerator;
 
 /**
  * Use this class to register components to be used at runtime / without the
@@ -24,7 +24,7 @@ import de.bitub.step.generator.XcoreGenerator;
  */
 public class EXPRESSRuntimeModule extends de.bitub.step.AbstractEXPRESSRuntimeModule
 {
-
+  
   /**
    * Overwrite DI bindings from EXPRESSgenerator to Xcoregenerator.
    */
@@ -33,4 +33,5 @@ public class EXPRESSRuntimeModule extends de.bitub.step.AbstractEXPRESSRuntimeMo
   {
     return XcoreGenerator.class;
   }
+   
 }
