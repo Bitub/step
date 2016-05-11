@@ -22,5 +22,6 @@ Export-Package: de.bitub.step.p21;
  de.bitub.step.p21.di,
  de.bitub.step.p21.mapper;uses:="org.eclipse.emf.ecore,org.eclipse.emf.common.util,de.bitub.step.p21",
  de.bitub.step.p21.parser,
+ de.bitub.step.p21.parser.util,
  de.bitub.step.p21.persistence,
  de.bitub.step.p21.util
