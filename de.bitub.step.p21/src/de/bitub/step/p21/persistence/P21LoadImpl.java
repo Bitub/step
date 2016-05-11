@@ -69,11 +69,6 @@ public class P21LoadImpl implements P21Load
     this.helper = helper;
   }
 
-  private static boolean startsWithEntityId(String text)
-  {
-    return ID_AT_START.matcher(text).find();
-  }
-
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
