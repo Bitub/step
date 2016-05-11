@@ -1,4 +1,4 @@
-package de.bitub.step.p21.persistence;
+package de.bitub.step.p21.parser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,7 +13,6 @@ import com.google.inject.Inject;
 
 import de.bitub.step.p21.concurrrent.P21DataLineTask;
 import de.bitub.step.p21.di.P21ParserFactory;
-import de.bitub.step.p21.parser.P21EntityListener;
 
 public class P21DataLineTasksGenerator
 {
