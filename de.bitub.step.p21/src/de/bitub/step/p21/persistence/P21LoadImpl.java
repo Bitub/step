@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.EPackage;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import de.bitub.step.p21.P21Index;
+import de.bitub.step.p21.AllP21Entities;
 import de.bitub.step.p21.XPressModel;
 import de.bitub.step.p21.concurrrent.P21DataLineTask;
 import de.bitub.step.p21.concurrrent.P21ResolveReferencesListTask;
@@ -133,13 +133,13 @@ public class P21LoadImpl implements P21Load
 
   private void linkUnresolvedReferences()
   {
-    P21Index index = injector.getInstance(P21Index.class);
+    AllP21Entities index = injector.getInstance(AllP21Entities.class);
 
     linkReferenceContainingEntities(index);
     linkReferencesContainingLists(index);
   }
 
-  private void linkReferenceContainingEntities(P21Index index)
+  private void linkReferenceContainingEntities(AllP21Entities index)
   {
     index.retrieveUnresolved().forEach((reference, pairs) -> {
       EObject toBeSet = index.retrieve(reference);
@@ -151,7 +151,7 @@ public class P21LoadImpl implements P21Load
     });
   }
 
-  private void linkReferencesContainingLists(P21Index index)
+  private void linkReferencesContainingLists(AllP21Entities index)
   {
     index.retrieveUnresolvedLists().forEach((triple) -> {
       if (!Objects.isNull(triple)) {

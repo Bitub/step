@@ -7,12 +7,12 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
-import de.bitub.step.p21.P21IndexImpl.IdStructuralFeaturePair;
-import de.bitub.step.p21.P21IndexImpl.ListTriple;
+import de.bitub.step.p21.AllP21EntitiesImpl.IdStructuralFeaturePair;
+import de.bitub.step.p21.AllP21EntitiesImpl.ListTriple;
 
-public interface P21Index
+public interface AllP21Entities
 {
-  P21Index eINSTANCE = P21IndexImpl.init();
+  AllP21Entities eINSTANCE = AllP21EntitiesImpl.init();
 
   EObject retrieve(String id);
 

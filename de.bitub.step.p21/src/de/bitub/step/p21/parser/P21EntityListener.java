@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import com.google.inject.Inject;
 
-import de.bitub.step.p21.P21Index;
+import de.bitub.step.p21.AllP21Entities;
 import de.bitub.step.p21.StepParser.IntegerContext;
 import de.bitub.step.p21.StepParser.ListContext;
 import de.bitub.step.p21.StepParser.RealContext;
@@ -28,7 +28,7 @@ import de.bitub.step.p21.util.Antlr4Util;
 
 public class P21EntityListener extends P21LevelListener
 {
-  P21Index entities;
+  AllP21Entities entities;
   NameToClassifierMap classifierMap;
 
   // save different variables for current entity subtree walk
@@ -43,7 +43,7 @@ public class P21EntityListener extends P21LevelListener
   private String typedName;
 
   @Inject
-  public P21EntityListener(P21Index entities, IndexUtil index, NameToClassifierMap classifierMap)
+  public P21EntityListener(AllP21Entities entities, IndexUtil index, NameToClassifierMap classifierMap)
   {
     super(index);
     this.entities = entities;

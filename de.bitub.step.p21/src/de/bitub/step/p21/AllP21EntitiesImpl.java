@@ -14,7 +14,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
-public class P21IndexImpl implements P21Index
+public class AllP21EntitiesImpl implements AllP21Entities
 {
 
   // (key => value) <-> (#21 => EObject [Entity])
@@ -25,15 +25,15 @@ public class P21IndexImpl implements P21Index
   //
   private final SetMultimap<String, IdStructuralFeaturePair> unresolved = HashMultimap.create();
 
-  public final List<ListTriple> triples = new ArrayList<P21IndexImpl.ListTriple>();
+  public final List<ListTriple> triples = new ArrayList<AllP21EntitiesImpl.ListTriple>();
 
-  private P21IndexImpl()
+  private AllP21EntitiesImpl()
   {
   }
 
-  static P21IndexImpl init()
+  static AllP21EntitiesImpl init()
   {
-    return new P21IndexImpl();
+    return new AllP21EntitiesImpl();
   }
 
   @Override

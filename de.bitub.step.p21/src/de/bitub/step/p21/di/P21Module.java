@@ -2,8 +2,8 @@ package de.bitub.step.p21.di;
 
 import com.google.inject.AbstractModule;
 
-import de.bitub.step.p21.P21Index;
-import de.bitub.step.p21.P21IndexImpl;
+import de.bitub.step.p21.AllP21Entities;
+import de.bitub.step.p21.AllP21EntitiesImpl;
 import de.bitub.step.p21.parser.util.IndexUtil;
 import de.bitub.step.p21.parser.util.IndexUtilImpl;
 
@@ -23,7 +23,7 @@ public class P21Module extends AbstractModule
   @Override
   protected void configure()
   {
-    bind(P21Index.class).toInstance(P21IndexImpl.eINSTANCE);
+    bind(AllP21Entities.class).toInstance(AllP21EntitiesImpl.eINSTANCE);
 
     bind(IndexUtil.class).to(IndexUtilImpl.class);
 
