@@ -76,10 +76,26 @@ public class P21EntityListener extends P21LevelListener
 
     if (XPressModel.isSelect(feature)) {
 
-      setSelect(feature, literal);
+      switch (literal) {
+        case "FALSE":
+          setSelect(feature, false);
+          break;
+
+        case "TRUE":
+          setSelect(feature, true);
+          break;
+
+        case "UNKNOWN":
+          setSelect(feature, literal); // TODO should be enumeration of Literal class
+          break;
+
+        default:
+          setSelect(feature, literal);
+      }
+
     } else {
 
-      StepUntypedToEcore.eEnum(index.current(), curObject, literal);
+      StepUntypedToEcore.eEnum(index.current(), curObject, (String) literal);
     }
   }
 

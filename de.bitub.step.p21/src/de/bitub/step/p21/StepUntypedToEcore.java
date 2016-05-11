@@ -53,11 +53,11 @@ public class StepUntypedToEcore
     eObject.eSet(selectFeature, select);
   }
 
-  public static EObject prepareSelect(EStructuralFeature selectFeature, Object entity, String typeName)
+  public static EObject prepareSelect(EStructuralFeature selectFeature, Object value, String typeName)
   {
     // create select class
     //
-    EObject select = setSelectValue(selectFeature, entity);
+    EObject select = setSelectValue(selectFeature, value);
 
     // set enumeration to indicate which value was set
     //
@@ -81,7 +81,7 @@ public class StepUntypedToEcore
     }
   }
 
-  private static EObject setSelectValue(EStructuralFeature selectFeature, Object entity)
+  private static EObject setSelectValue(EStructuralFeature selectFeature, Object value)
   {
     // create select class
     //
@@ -89,11 +89,16 @@ public class StepUntypedToEcore
 
     // set entity to correct select field
     //
-    EStructuralFeature valueFeature = XPressModel.selectFeature(select, entity);
+    EStructuralFeature valueFeature = XPressModel.selectFeature(select, value);
+
+    // TODO find better solution to handle UNKNOWN logical values
+    if (valueFeature.getEType().getName().equalsIgnoreCase("Logical")) {
+      value = EcoreUtil.createFromString((EDataType) valueFeature.getEType(), (String) value);
+    }
 
     // set correct value into select
     //
-    select.eSet(valueFeature, entity);
+    select.eSet(valueFeature, value);
     return select;
   }
 

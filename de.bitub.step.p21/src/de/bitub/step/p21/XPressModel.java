@@ -92,6 +92,14 @@ public class XPressModel implements XPressModelConstants
 
   public static EStructuralFeature selectFeature(EObject select, Object value)
   {
+    // TODO better solution to distinguish between UNKOWN Logical
+    if (value instanceof String) {
+      String unknown = (String) value;
+      if (unknown.equals("UNKNOWN")) {
+        return select.eClass().getEStructuralFeature("logicalValue");
+      }
+    }
+
     for (EStructuralFeature feature : select.eClass().getEStructuralFeatures()) {
 
       if (feature.getEType().isInstance(value)) {

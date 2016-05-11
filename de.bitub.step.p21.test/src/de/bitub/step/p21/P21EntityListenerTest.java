@@ -7,6 +7,7 @@ import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 
 import org.buildingsmart.ifc4.DoubleInList;
+import org.buildingsmart.ifc4.EnumIfcValue;
 import org.buildingsmart.ifc4.Ifc4Package;
 import org.buildingsmart.ifc4.IfcBSplineSurfaceWithKnots;
 import org.buildingsmart.ifc4.IfcBuilding;
@@ -14,8 +15,12 @@ import org.buildingsmart.ifc4.IfcCartesianPoint;
 import org.buildingsmart.ifc4.IfcCartesianPointInList;
 import org.buildingsmart.ifc4.IfcElementCompositionEnum;
 import org.buildingsmart.ifc4.IfcMaterialLayerSetUsage;
+import org.buildingsmart.ifc4.IfcPropertySingleValue;
 import org.buildingsmart.ifc4.IfcRationalBSplineSurfaceWithKnots;
+import org.buildingsmart.ifc4.IfcValue;
+import org.buildingsmart.ifc4.Logical;
 import org.eclipse.emf.ecore.EObject;
+import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -132,6 +137,40 @@ public class P21EntityListenerTest
       DoubleInList doubleList = (DoubleInList) surface.getWeightsData().get(0);
       assertThat(doubleList.getAList().size(), is(2));
     }
+  }
+
+  @Test
+  public void parsePropertySinglevalueWithBooleanSelect()
+  {
+    String line = "#323= IFCPROPERTYSINGLEVALUE('LoadBearing',$,IFCBOOLEAN(.T.),$);";
+    EObject entity = parser.parse(line, listener);
+
+    assertThat(entity, instanceOf(IfcPropertySingleValue.class));
+    IfcPropertySingleValue propertySingleValue = (IfcPropertySingleValue) entity;
+
+    IfcValue unit = propertySingleValue.getNominalValue();
+
+    assertThat(unit.getIfcValue(), is(EnumIfcValue.IFCBOOLEAN));
+    assertThat(unit.getValue(), is(instanceOf(boolean.class)));
+
+    assertThat(unit.isBooleanValue(), is(true));
+    assertThat(unit.getStringValue(), IsNull.nullValue());
+  }
+
+  @Test
+  public void parsePropertySinglevalueWithLogicalSelect()
+  {
+    String line = "#926=IFCPROPERTYSINGLEVALUE('AboveGround',$,IFCLOGICAL(.U.),$);";
+    EObject entity = parser.parse(line, listener);
+
+    assertThat(entity, instanceOf(IfcPropertySingleValue.class));
+    IfcPropertySingleValue propertySingleValue = (IfcPropertySingleValue) entity;
+
+    IfcValue unit = propertySingleValue.getNominalValue();
+
+    assertThat(unit.getIfcValue(), is(EnumIfcValue.IFCLOGICAL));
+    assertThat(unit.getValue(), is(instanceOf(Logical.class)));
+    assertThat(unit.getStringValue(), IsNull.nullValue());
   }
 
   @Test
