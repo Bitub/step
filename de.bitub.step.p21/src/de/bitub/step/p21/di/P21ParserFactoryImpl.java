@@ -5,10 +5,10 @@ import org.eclipse.emf.ecore.EPackage;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-import de.bitub.step.p21.IndexUtil;
 import de.bitub.step.p21.P21Index;
 import de.bitub.step.p21.mapper.NameToClassifierMapImpl;
 import de.bitub.step.p21.parser.P21EntityListener;
+import de.bitub.step.p21.parser.util.IndexUtil;
 
 public class P21ParserFactoryImpl implements P21ParserFactory
 {

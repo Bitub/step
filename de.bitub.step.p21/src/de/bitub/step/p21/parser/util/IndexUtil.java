@@ -1,4 +1,4 @@
-package de.bitub.step.p21;
+package de.bitub.step.p21.parser.util;
 
 public interface IndexUtil
 {

@@ -12,7 +12,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import com.google.inject.Inject;
 
-import de.bitub.step.p21.IndexUtil;
 import de.bitub.step.p21.P21Index;
 import de.bitub.step.p21.StepParser.IntegerContext;
 import de.bitub.step.p21.StepParser.ListContext;
@@ -24,6 +23,7 @@ import de.bitub.step.p21.StepParser.UntypedContext;
 import de.bitub.step.p21.StepUntypedToEcore;
 import de.bitub.step.p21.XPressModel;
 import de.bitub.step.p21.mapper.NameToClassifierMap;
+import de.bitub.step.p21.parser.util.IndexUtil;
 import de.bitub.step.p21.util.Antlr4Util;
 
 public class P21EntityListener extends P21LevelListener

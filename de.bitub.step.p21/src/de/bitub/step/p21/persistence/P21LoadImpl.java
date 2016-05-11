@@ -80,10 +80,10 @@ public class P21LoadImpl implements P21Load
   public void load(P21Resource resource, InputStream inputStream, Map<?, ?> options) throws IOException
   {
     this.ePackage = (EPackage) options.get("ePackage");
-    load(resource, inputStream);
+    load(resource, inputStream, (EPackage) options.get("ePackage"));
   }
 
-  private void load(P21Resource resource, InputStream inputStream) throws IOException
+  private void load(P21Resource resource, InputStream inputStream, EPackage ePackage) throws IOException
   {
     // extract entities from DATA section
     //
