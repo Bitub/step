@@ -14,7 +14,7 @@ public class XPressModelTest extends AbstractP21TestHelper
   public void testIsNew()
   {
     EClass select = Ifc4Package.eINSTANCE.getIfcFillStyleSelect();
-    EClass proxy = Ifc4Package.eINSTANCE.getProxyIfcConstraintIfcExternalReferenceRelationship();
+    EClass proxy = Ifc4Package.eINSTANCE.getDelegateIfcConstraintIfcExternalReferenceRelationship();
 
     Assert.assertEquals(true, XPressModel.isNew(proxy));
     Assert.assertEquals(false, XPressModel.isNew(select.eClass()));
@@ -24,7 +24,7 @@ public class XPressModelTest extends AbstractP21TestHelper
   public void testIsGenerated()
   {
     EClass select = Ifc4Package.eINSTANCE.getIfcFillStyleSelect();
-    EClass proxy = Ifc4Package.eINSTANCE.getProxyIfcConstraintIfcExternalReferenceRelationship();
+    EClass proxy = Ifc4Package.eINSTANCE.getDelegateIfcConstraintIfcExternalReferenceRelationship();
 
     Assert.assertEquals(false, XPressModel.isGenerated(proxy));
     Assert.assertEquals(true, XPressModel.isGenerated(select));
