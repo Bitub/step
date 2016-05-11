@@ -80,11 +80,20 @@ public class P21HelperImpl implements P21Helper
   {
     List<EObject> entities = new ArrayList<>();
 
+    int completedTasks = 0;
+    double done = 0.;
+
     for (Future<EObject> future : futures) {
 
       try {
         EObject entity = future.get();
         entities.add(entity);
+        ++completedTasks;
+        double newDone = ((double) completedTasks / futures.size()) * 100;
+        if (Math.abs(newDone - done) > 5) {
+          System.out.printf("%.2f%n", newDone);
+          done = newDone;
+        }
       }
       catch (InterruptedException | ExecutionException e) {
         e.printStackTrace();

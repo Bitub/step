@@ -12,6 +12,7 @@ package de.bitub.step.p21.persistence;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -92,17 +93,15 @@ public class P21LoadImpl implements P21Load
 
     List<P21DataLineTask> taskList = taskGenerator.generateWorkTasksFrom(inputStream);
 
+    System.out.println(taskList.size() + " tasks to complete.");
+
     long start = System.currentTimeMillis();
 
     // collect results
     //
-    List<Future<EObject>> futures = null;
-    try {
-      futures = executor.invokeAll(taskList);
-    }
-    catch (InterruptedException e) {
-      e.printStackTrace();
-      LOGGER.severe(e.getStackTrace().toString());
+    List<Future<EObject>> futures = new ArrayList<>();
+    for (P21DataLineTask task : taskList) {
+      futures.add(executor.submit(task));
     }
 
     System.out.println((System.currentTimeMillis() - start) + " ms to parse entities.");
