@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: P21 Parser Tests
+Bundle-SymbolicName: de.bitub.step.p21.test
+Bundle-Version: 0.1.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.junit;bundle-version="4.12.0",
+ org.junit.source;bundle-version="4.12.0",
+ com.google.inject,
+ de.bitub.step.p21;bundle-version="0.1.0",
+ org.buildingsmart.ifc4;bundle-version="0.3.0"
