@@ -138,7 +138,7 @@ public class IOHelper
 
     try {
       Map<Object, Object> options = new HashMap<Object, Object>();
-      options.put("ePackage", ePackage);
+      options.put(P21Resource.OPTION_PACKAGE_NS_URI, ePackage.getNsURI());
 
       resource.load(options);
 
