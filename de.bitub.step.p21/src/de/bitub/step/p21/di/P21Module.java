@@ -1,6 +1,10 @@
 package de.bitub.step.p21.di;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 
 import de.bitub.step.p21.AllP21Entities;
 import de.bitub.step.p21.AllP21EntitiesImpl;
@@ -28,5 +32,11 @@ public class P21Module extends AbstractModule
     bind(IndexUtil.class).to(IndexUtilImpl.class);
 
     bind(P21ParserFactory.class).to(P21ParserFactoryImpl.class);
+  }
+
+  @Provides
+  ExecutorService provideExecutor()
+  {
+    return Executors.newFixedThreadPool(10);
   }
 }

@@ -42,7 +42,6 @@ public class P21HelperImpl implements P21Helper
    */
   public P21HelperImpl()
   {
-    // TODO Auto-generated constructor stub
   }
 
   /**
@@ -55,6 +54,17 @@ public class P21HelperImpl implements P21Helper
   {
     this();
     setResource(resource);
+  }
+
+  public P21Resource getResource()
+  {
+    return resource;
+  }
+
+  @Override
+  public EPackage getEPackage(String nsURI)
+  {
+    return packageRegistry.getEPackage(nsURI);
   }
 
   public void setResource(P21Resource resource)

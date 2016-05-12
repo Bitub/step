@@ -19,11 +19,10 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -37,7 +36,6 @@ import de.bitub.step.p21.di.P21Module;
 import de.bitub.step.p21.mapper.NameToContainerListsMap;
 import de.bitub.step.p21.mapper.NameToContainerListsMapImpl;
 import de.bitub.step.p21.parser.P21DataLineTasksGenerator;
-import de.bitub.step.p21.util.LoggerHelper;
 
 /**
  * <!-- begin-user-doc -->
@@ -48,15 +46,15 @@ import de.bitub.step.p21.util.LoggerHelper;
  */
 public class P21LoadImpl implements P21Load
 {
-  private static final Logger LOGGER = LoggerHelper.init(Level.SEVERE, P21LoadImpl.class);
-
+  protected P21Resource resource;
+  protected InputStream is;
   protected P21Helper helper;
+  protected Map<?, ?> options;
+
   protected EPackage ePackage;
 
   private Injector injector = Guice.createInjector(new P21Module());
   private ExecutorService executor = Executors.newFixedThreadPool(10);
-
-  private NameToContainerListsMap containmentListMap;
 
   /**
    * <!-- begin-user-doc -->
@@ -67,6 +65,18 @@ public class P21LoadImpl implements P21Load
   public P21LoadImpl(P21Helper helper)
   {
     this.helper = helper;
+  }
+
+  protected void handleErrors() throws IOException
+  {
+    if (!resource.getErrors().isEmpty()) {
+      Resource.Diagnostic error = resource.getErrors().get(0);
+      if (error instanceof Exception) {
+        throw new Resource.IOWrappedException((Exception) error);
+      } else {
+        throw new IOException(error.getMessage());
+      }
+    }
   }
 
   /**
@@ -81,11 +91,16 @@ public class P21LoadImpl implements P21Load
   @Override
   public void load(P21Resource resource, InputStream inputStream, Map<?, ?> options) throws IOException
   {
-    this.ePackage = (EPackage) options.get("ePackage");
-    load(resource, inputStream, (EPackage) options.get("ePackage"));
+    this.resource = resource;
+    this.is = inputStream;
+    this.options = options;
+
+    this.ePackage = helper.getEPackage((String) options.get(P21Resource.OPTION_PACKAGE_NS_URI));
+
+    load(resource, inputStream);
   }
 
-  private void load(P21Resource resource, InputStream inputStream, EPackage ePackage) throws IOException
+  private void load(P21Resource resource, InputStream inputStream) throws IOException
   {
     // extract entities from DATA section
     //
@@ -94,10 +109,6 @@ public class P21LoadImpl implements P21Load
 
     List<P21DataLineTask> taskList = taskGenerator.generateWorkTasksFrom(inputStream);
 
-    System.out.println(taskList.size() + " tasks to complete.");
-
-    long start = System.currentTimeMillis();
-
     // collect results
     //
     List<Future<EObject>> futures = new ArrayList<>();
@@ -105,28 +116,25 @@ public class P21LoadImpl implements P21Load
       futures.add(executor.submit(task));
     }
 
-    System.out.println((System.currentTimeMillis() - start) + " ms to parse entities.");
-
     // put all entities under shared schema container
     //
-    start = System.currentTimeMillis();
     EObject schemaContainer = saveLooseEntitiesintoSchemaContainer(helper.futuresToEntities(futures));
-    System.out.println((System.currentTimeMillis() - start) + " ms to collect entities in root container.");
 
     // link unresolved and already created entities
     //
-    start = System.currentTimeMillis();
     linkUnresolvedReferences();
-    System.out.println((System.currentTimeMillis() - start) + " ms to resolve references.");
 
     executor.shutdown();
     resource.getContents().add(schemaContainer);
+
+    helper = null;
+    handleErrors();
   }
 
   private EObject saveLooseEntitiesintoSchemaContainer(List<EObject> entities)
   {
     EObject rootContainer = XPressModel.getRootContainer(ePackage);
-    containmentListMap = new NameToContainerListsMapImpl(rootContainer);
+    NameToContainerListsMap containmentListMap = new NameToContainerListsMapImpl(rootContainer);
     containmentListMap.addEntities(entities);
     return rootContainer;
   }
@@ -134,7 +142,6 @@ public class P21LoadImpl implements P21Load
   private void linkUnresolvedReferences()
   {
     AllP21Entities index = injector.getInstance(AllP21Entities.class);
-
     linkReferenceContainingEntities(index);
     linkReferencesContainingLists(index);
   }

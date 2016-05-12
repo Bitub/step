@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 
 /**
  * <!-- begin-user-doc -->
@@ -24,7 +25,7 @@ import org.eclipse.emf.ecore.EObject;
  */
 public interface P21Helper
 {
-
   List<EObject> futuresToEntities(List<Future<EObject>> futures);
 
+  EPackage getEPackage(String nsURI);
 }
