@@ -35,12 +35,12 @@ target/
 # ignore log files
 *.log
 
-
-de.bitub.step.express/schemas/
-de.bitub.step.p21/docs/
-
+# ignore generated files
 src-gen/**/*
 src-gen/
 xtend-gen/**/*
 xtend-gen/
+
+de.bitub.step.express/schemas/
+de.bitub.step.p21/docs/
 de.bitub.step.express/src/de/bitub/step/generator/EXPRESSGenerator.xtend
