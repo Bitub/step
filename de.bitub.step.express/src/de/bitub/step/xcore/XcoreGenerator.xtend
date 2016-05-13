@@ -80,6 +80,7 @@ class XcoreGenerator implements IGenerator {
 	 */
 	val public Map<Options, Object> options = newHashMap  
 
+	val escapeKeywords = <String>newHashSet("id", "contains", "opposite", "refers", "unique", "unordered")
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
@@ -193,6 +194,12 @@ class XcoreGenerator implements IGenerator {
 		annotation "http://www.bitub.de/express/P21" as P21
 				
 		'''		
+	}
+	
+	
+	def private String escapeKeyword(String v) {
+		
+		if(escapeKeywords.contains(v)) "^"+v else v
 	}
 	
 	
@@ -638,7 +645,7 @@ class XcoreGenerator implements IGenerator {
 			class «nestedCollectorName» {
 				
 				«c.type.compileAnnotation
-					»«IF c.type.nestedAggregation»contains «ELSE»«IF !c.builtinAlias»refers «ELSE»«ENDIF»«ENDIF
+					»«IF c.type.nestedAggregation»contains «ELSE»«IF !c.builtinAlias»«IF !c.uniqueReference»@Ecore(^unique="false") «ENDIF»refers «ELSE»«ENDIF»«ENDIF
 					»«compiled» a«c.type.fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»
 			}
 			'''			
@@ -806,20 +813,34 @@ class XcoreGenerator implements IGenerator {
 		'''
 	}
 
+	// Whether to use containment or not
+	def isContainementReference(Attribute a) {
+		
+		if(a.hasDelegate)
+			a.declaringInverseAttribute 
+		else
+			a.type.hasDelegate || a.refersConcept.isReferencedSelect			
+	}
+	
+	// Whether to use an EClass reference
+	def isReferable(Attribute a) {
+		
+		a.type.referable || a.type.hasDelegate
+	}
 
 	def compileAttribute(Attribute a) { 
 		
 		val compiled = a.type.compileDatatype
 		'''«a.compileAnnotation
-			»«IF a.type.referable || a.type.hasDelegate
-				»«IF a.hasDelegate
-					»«IF a.declaringInverseAttribute»contains «ELSE»refers «ENDIF // Containment to declaring delegate
-				»«ELSE
-					»«IF a.type.hasDelegate || a.refersConcept.isReferencedSelect»contains «ELSE»refers «ENDIF»«ENDIF // Nested delegate or referenced select					
+			»«IF a.referable
+				»«IF a.containementReference»contains «
+				ELSE
+					»«IF !a.type.uniqueReference && !a.inverseRelation»@Ecore(^unique="false") «ENDIF»refers «
+				ENDIF
 			»«ENDIF
 			»«IF a.derivedAttribute»derived «ENDIF
-			»«compiled» «a.name.toFirstLower
-			»«IF a.inverseRelation» opposite «a.oppositeQN.toFirstLower»«ENDIF»'''
+			»«compiled» «a.name.toFirstLower.escapeKeyword
+			»«IF a.inverseRelation» opposite «a.oppositeQN.toFirstLower.escapeKeyword»«ENDIF»'''
 	}
 	
 	
