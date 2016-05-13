@@ -80,6 +80,7 @@ class XcoreGenerator implements IGenerator {
 	 */
 	val public Map<Options, Object> options = newHashMap  
 
+	val escapeKeywords = <String>newHashSet("id", "contains", "opposite", "refers", "unique", "unordered")
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
@@ -193,6 +194,12 @@ class XcoreGenerator implements IGenerator {
 		annotation "http://www.bitub.de/express/P21" as P21
 				
 		'''		
+	}
+	
+	
+	def private String escapeKeyword(String v) {
+		
+		if(escapeKeywords.contains(v)) "^"+v else v
 	}
 	
 	
@@ -832,8 +839,8 @@ class XcoreGenerator implements IGenerator {
 				ENDIF
 			»«ENDIF
 			»«IF a.derivedAttribute»derived «ENDIF
-			»«compiled» «a.name.toFirstLower
-			»«IF a.inverseRelation» opposite «a.oppositeQN.toFirstLower»«ENDIF»'''
+			»«compiled» «a.name.toFirstLower.escapeKeyword
+			»«IF a.inverseRelation» opposite «a.oppositeQN.toFirstLower.escapeKeyword»«ENDIF»'''
 	}
 	
 	
