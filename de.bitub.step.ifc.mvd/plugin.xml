@@ -8,7 +8,7 @@
    <extension point="org.eclipse.emf.ecore.generated_package">
       <!-- @generated mvdXML -->
       <package
-            uri="http://buildingsmart-tech.org/mvdXML/mvdXML1-1"
+            uri="http://buildingsmart-tech.org/mvd/XML/1.1"
             class="org.buildingsmart.mvd.mvdxml.MvdXmlPackage"
             genModel="model/mvdXML.genmodel"/>
    </extension>
