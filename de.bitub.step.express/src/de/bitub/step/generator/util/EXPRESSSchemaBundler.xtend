@@ -34,112 +34,112 @@ class EXPRESSSchemaBundler {
 
 	new(Schema schema) {
 		LOGGER.addAppender(new ConsoleAppender)
-		schema.initGraph
+//		schema.initGraph
 	}
 
 	private def createEdgeWithName(Vertex from, Vertex to, EdgeTypeEnum edgeType, String name) {
 		from.createEdgeTo(to, edgeType).setProperty("name", name)
 	}
 
-	private def createTypedEdge(Vertex from, EdgeTypeEnum edgeTypeEnum) {
+//	private def createTypedEdge(Vertex from, EdgeTypeEnum edgeTypeEnum) {
+//
+//		[ Attribute attr |
+//			val dataType = attr.type.refersDatatype
+//			val entityType = attr.type.refersConcept
+//			if (attr.type.isReferable) { // Selects and Entities
+//
+//				if (dataType instanceof SelectType || dataType instanceof EnumType) {
+//					val to = graph.getById((dataType.eContainer as Type).name)
+//					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
+//				}
+//
+//				if (entityType instanceof Entity) {
+//					val to = graph.getById(entityType.name)
+//					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
+//				}
+//			} else {
+//				if (dataType instanceof EnumType) {
+//					val to = graph.getById((dataType.eContainer as Type).name)
+//					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
+//				}
+//			}
+//		]
+//	}
 
-		[ Attribute attr |
-			val dataType = attr.type.refersDatatype
-			val entityType = attr.type.refersConcept
-			if (attr.type.isReferable) { // Selects and Entities
-
-				if (dataType instanceof SelectType || dataType instanceof EnumType) {
-					val to = graph.getById((dataType.eContainer as Type).name)
-					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
-				}
-
-				if (entityType instanceof Entity) {
-					val to = graph.getById(entityType.name)
-					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
-				}
-			} else {
-				if (dataType instanceof EnumType) {
-					val to = graph.getById((dataType.eContainer as Type).name)
-					from.createEdgeWithName(to, edgeTypeEnum, attr.name)
-				}
-			}
-		]
-	}
-
-	private def initGraph(Schema schema) {
-
-		// prepare (Entity/Select/Enum)
-		//
-		schema.entity.forEach [
-			graph.addVertex(it.name, NodeTypeEnum.ENTITY)
-		]
-
-		schema.type.forEach [
-			val dataType = schemaUtil.refersDatatype(it)
-			if (dataType instanceof SelectType) {
-				graph.addVertex(it.name, NodeTypeEnum.SELECT)
-			}
-			if (dataType instanceof EnumType) {
-				graph.addVertex(it.name, NodeTypeEnum.ENUMERATION)
-			}
-		]
-
-		// prepare edges 
-		//
-		schema.entity.forEach [
-			val from = graph.getById(it.name)
-			//
-			// (Entity) -[EXTENDS]-> (Entity)
-			//
-			it.supertype.forEach [
-				val to = graph.getById(it.name)
-				from.createEdgeTo(to, EdgeTypeEnum.EXTENDS)
-			]
-			//
-			// (Entity) -[INVERSE]-> (Entity)
-			//
-			it.getDeclaringInverseAttribute.forEach [
-				val to = graph.getById(it.opposite.hostEntity.name)
-				from.createEdgeWithName(to, EdgeTypeEnum.INVERSE, it.name)
-			]
-			//
-			// (Entity) -[ATTR]-> (Entity/Select/Enumeration)
-			//
-			it.getExplicitAttribute.forEach [
-				from.createTypedEdge(EdgeTypeEnum.ATTRIBUTE).apply(it)
-			]
-			//
-			// (Entity) -[DERIVED]-> (Entity/Select/Enumeration)
-			//
-			it.getDerivedAttribute.forEach [
-				from.createTypedEdge(EdgeTypeEnum.DERIVED).apply(it)
-			]
-		]
-
-		// prepare edges(Select -ATTR-> Entity/Select/Enumeration)
-		//
-		schema.type.map[it.datatype].filter(typeof(SelectType)).forEach [
-			val from = graph.getById((it.eContainer as Type).name)
-			// each select
-			// 
-			(it as SelectType).select.forEach [
-				// Select -> Entity
-				if (it instanceof Entity) {
-					val to = graph.getById(it.name)
-					from.createEdgeWithName(to, EdgeTypeEnum.ATTRIBUTE, it.name)
-				}
-				// Select -> Enum / Select
-				if (it instanceof Type) {
-
-					val selectOrEnum = (it as Type).refersDatatype
-					if (selectOrEnum instanceof SelectType || selectOrEnum instanceof EnumType) {
-						val to = graph.getById((selectOrEnum.eContainer as Type).name)
-						from.createEdgeWithName(to, EdgeTypeEnum.ATTRIBUTE, it.name)
-					}
-				}
-			]
-		]
-	}
+//	private def initGraph(Schema schema) {
+//
+//		// prepare (Entity/Select/Enum)
+//		//
+//		schema.entity.forEach [
+//			graph.addVertex(it.name, NodeTypeEnum.ENTITY)
+//		]
+//
+//		schema.type.forEach [
+//			val dataType = schemaUtil.refersDatatype(it)
+//			if (dataType instanceof SelectType) {
+//				graph.addVertex(it.name, NodeTypeEnum.SELECT)
+//			}
+//			if (dataType instanceof EnumType) {
+//				graph.addVertex(it.name, NodeTypeEnum.ENUMERATION)
+//			}
+//		]
+//
+//		// prepare edges 
+//		//
+//		schema.entity.forEach [
+//			val from = graph.getById(it.name)
+//			//
+//			// (Entity) -[EXTENDS]-> (Entity)
+//			//
+//			it.supertype.forEach [
+//				val to = graph.getById(it.name)
+//				from.createEdgeTo(to, EdgeTypeEnum.EXTENDS)
+//			]
+//			//
+//			// (Entity) -[INVERSE]-> (Entity)
+//			//
+//			it.getDeclaringInverseAttribute.forEach [
+//				val to = graph.getById(it.opposite.hostEntity.name)
+//				from.createEdgeWithName(to, EdgeTypeEnum.INVERSE, it.name)
+//			]
+//			//
+//			// (Entity) -[ATTR]-> (Entity/Select/Enumeration)
+//			//
+//			it.getExplicitAttribute.forEach [
+//				from.createTypedEdge(EdgeTypeEnum.ATTRIBUTE).apply(it)
+//			]
+//			//
+//			// (Entity) -[DERIVED]-> (Entity/Select/Enumeration)
+//			//
+//			it.getDerivedAttribute.forEach [
+//				from.createTypedEdge(EdgeTypeEnum.DERIVED).apply(it)
+//			]
+//		]
+//
+//		// prepare edges(Select -ATTR-> Entity/Select/Enumeration)
+//		//
+//		schema.type.map[it.datatype].filter(typeof(SelectType)).forEach [
+//			val from = graph.getById((it.eContainer as Type).name)
+//			// each select
+//			// 
+//			(it as SelectType).select.forEach [
+//				// Select -> Entity
+//				if (it instanceof Entity) {
+//					val to = graph.getById(it.name)
+//					from.createEdgeWithName(to, EdgeTypeEnum.ATTRIBUTE, it.name)
+//				}
+//				// Select -> Enum / Select
+//				if (it instanceof Type) {
+//
+//					val selectOrEnum = (it as Type).refersDatatype
+//					if (selectOrEnum instanceof SelectType || selectOrEnum instanceof EnumType) {
+//						val to = graph.getById((selectOrEnum.eContainer as Type).name)
+//						from.createEdgeWithName(to, EdgeTypeEnum.ATTRIBUTE, it.name)
+//					}
+//				}
+//			]
+//		]
+//	}
 
 	def getGraph() {
 		graph
@@ -201,14 +201,14 @@ class EXPRESSSchemaBundler {
 			collect(Collectors.toList());
 	}
 
-	def inverseEntities(Entity entity) {
-		Lists.newArrayList(entity.getDeclaringInverseAttribute.map[it.opposite.eContainer as Entity]) as List<Entity>
-	}
+//	def inverseEntities(Entity entity) {
+//		Lists.newArrayList(entity.getDeclaringInverseAttribute.map[it.opposite.eContainer as Entity]) as List<Entity>
+//	}
 
-	def inverseEntitiesInInheritanceChain(Entity entity) {
-		entity.allSuperTypes.stream().flatMap[e|e.inverseEntities.stream].collect(Collectors.toSet).stream.
-			collect(Collectors.toList);
-	}
+//	def inverseEntitiesInInheritanceChain(Entity entity) {
+//		entity.allSuperTypes.stream().flatMap[e|e.inverseEntities.stream].collect(Collectors.toSet).stream.
+//			collect(Collectors.toList);
+//	}
 
 	def allSuperTypes(Entity entity) {
 		entity.bfs([e|e.supertype]);
@@ -218,9 +218,9 @@ class EXPRESSSchemaBundler {
 		entity.bfs([e|e.directRelatives]);
 	}
 
-	def inverseComponent(Entity enitiy) {
-		enitiy.bfs([e|e.inverseEntitiesInInheritanceChain])
-	}
+//	def inverseComponent(Entity enitiy) {
+//		enitiy.bfs([e|e.inverseEntitiesInInheritanceChain])
+//	}
 
 	private def bfs(Entity entity, Function<Entity, List<Entity>> function) {
 

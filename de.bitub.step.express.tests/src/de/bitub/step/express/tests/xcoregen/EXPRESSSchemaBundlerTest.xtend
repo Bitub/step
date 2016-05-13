@@ -48,53 +48,53 @@ class EXPRESSSchemaBundlerTest extends AbstractXcoreGeneratorTest {
 		ifc4Add1.entity.stream.filter[e|e.name.equalsIgnoreCase(entityName)].findFirst;
 	}
 
-	@Test
-	def void testInverseComponent() {
-		entityName.searchExecAndPrintCollection[e|bundler.inverseComponent(e)]
-	}
+//	@Test
+//	def void testInverseComponent() {
+//		entityName.searchExecAndPrintCollection[e|bundler.inverseComponent(e)]
+//	}
 
-	@Test
-	def void testInverseEntities() {
-		entityName.searchExecAndPrintCollection[e|bundler.inverseEntitiesInInheritanceChain(e)]
-	}
+//	@Test
+//	def void testInverseEntities() {
+//		entityName.searchExecAndPrintCollection[e|bundler.inverseEntitiesInInheritanceChain(e)]
+//	}
 
 	@Test
 	def void testAllSuperTypes() {
 		entityName.searchExecAndPrintCollection[e|bundler.allSuperTypes(e)]
 	}
 
-	@Test
-	def testAllInverseEntitySets() {
-
-		val graph = GraphFactory.eINSTANCE.createGraph
-
-		// create all graph nodes (entities)
-		ifc4Add1.entity.map [ entity |
-			val node = GraphFactory.eINSTANCE.createVertex;
-			node.name = entity.name
-			node.add(NodeTypeEnum.ENTITY);
-			node.setGraph(graph);
-			node
-		].toMap[it.name];
-
-		ifc4Add1.entity.forEach [ entity |
-			val from = graph.getById(entity.name)
-			entity.getDeclaringInverseAttribute.forEach [ inverseAttr |
-				val to = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
-				from.createEdgeTo(to, EdgeTypeEnum.INVERSE);
-			];
-		]
-
-		ifc4Add1.entity.forEach [ entity |
-			val sub = graph.getById(entity.name)
-			entity.getDeclaringInverseAttribute.forEach [ inverseAttr |
-				val supers = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
-				sub.createEdgeTo(supers, EdgeTypeEnum.EXTENDS);
-			];
-		]
-
-		GraphConstructionTest.storeAsXMI(graph);
-	}
+//	@Test
+//	def testAllInverseEntitySets() {
+//
+//		val graph = GraphFactory.eINSTANCE.createGraph
+//
+//		// create all graph nodes (entities)
+//		ifc4Add1.entity.map [ entity |
+//			val node = GraphFactory.eINSTANCE.createVertex;
+//			node.name = entity.name
+//			node.add(NodeTypeEnum.ENTITY);
+//			node.setGraph(graph);
+//			node
+//		].toMap[it.name];
+//
+//		ifc4Add1.entity.forEach [ entity |
+//			val from = graph.getById(entity.name)
+//			entity.getDeclaringInverseAttribute.forEach [ inverseAttr |
+//				val to = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
+//				from.createEdgeTo(to, EdgeTypeEnum.INVERSE);
+//			];
+//		]
+//
+//		ifc4Add1.entity.forEach [ entity |
+//			val sub = graph.getById(entity.name)
+//			entity.getDeclaringInverseAttribute.forEach [ inverseAttr |
+//				val supers = graph.getById((inverseAttr.opposite.eContainer as Entity).name)
+//				sub.createEdgeTo(supers, EdgeTypeEnum.EXTENDS);
+//			];
+//		]
+//
+//		GraphConstructionTest.storeAsXMI(graph);
+//	}
 
 	def void testAllConnected() {
 		entityName.searchOnly.ifPresent[e|
