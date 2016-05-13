@@ -25,6 +25,9 @@ import org.eclipse.emf.ecore.resource.Resource;
  */
 public interface P21Resource extends Resource
 {
+  String OPTION_PACKAGE_NS_URI = "nsURI";
+
+  String OPTION_E_PACKAGE = "ePackage";
 
   /**
    * <!-- begin-user-doc -->

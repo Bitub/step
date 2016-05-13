@@ -10,10 +10,8 @@
  */
 package de.bitub.step.express.tests.xcoregen
 
-import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.CollectionType
-import de.bitub.step.util.EXPRESSExtension
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Test
@@ -21,11 +19,11 @@ import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
 
+import static extension de.bitub.step.util.EXPRESSExtension.*
+
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
 class XcoreNestedTypeWrappers extends AbstractXcoreGeneratorTest {
-		
-	@Inject extension EXPRESSExtension
 		
    	val schema =
     		'''

@@ -14,20 +14,19 @@ package de.bitub.step.xcore
 import de.bitub.step.analyzing.EXPRESSModelInfo
 import de.bitub.step.express.Attribute
 import de.bitub.step.express.CollectionType
+import de.bitub.step.express.DataType
 import de.bitub.step.express.Entity
-import de.bitub.step.express.Type
-import de.bitub.step.util.EXPRESSExtension
-import java.util.Set
-import org.eclipse.emf.ecore.EObject
-import org.eclipse.xtext.naming.QualifiedName
 import de.bitub.step.express.ReferenceType
+import de.bitub.step.express.Type
+import java.util.Set
+import org.eclipse.xtext.naming.QualifiedName
+
+import static extension de.bitub.step.util.EXPRESSExtension.*
 
 class XcoreInfo {
 
 	val private extension EXPRESSModelInfo modelInfo
-	
-	val private extension EXPRESSExtension modelExtension
-	
+		
 	/**
 	 * A delegate reference.
 	 */
@@ -59,7 +58,6 @@ class XcoreInfo {
 	
 	new (EXPRESSModelInfo info) {
 		this.modelInfo = info
-		this.modelExtension =  new EXPRESSExtension
 	}
 	
 	def int getCountOfDelegate() {
@@ -81,7 +79,7 @@ class XcoreInfo {
 	def String getDelegateQN(CollectionType c) {
 				
 		// Inline aggregation
-		qualifiedNameAggregationMap.get(c.qualifiedAggregationName)
+		qualifiedNameAggregationMap.get(c.qualifiedReference)
 	}
 	
 	def Set<Delegate> getDelegates(Attribute a) {
@@ -94,7 +92,12 @@ class XcoreInfo {
 		qualifiedNameDelegateMap.get(a)?.findFirst[targetAttribute == b].qualifiedName
 	}
 	
-	def dispatch boolean hasDelegate(EObject o) {
+	def dispatch boolean hasDelegate(Entity o) {
+		
+		false
+	}
+
+	def dispatch boolean hasDelegate(DataType o) {
 		
 		false
 	}
@@ -118,7 +121,7 @@ class XcoreInfo {
 	def dispatch boolean hasDelegate(CollectionType c) {
 		
 		// Inline aggregation
-		qualifiedNameAggregationMap.containsKey(c.qualifiedAggregationName)
+		qualifiedNameAggregationMap.containsKey(c.qualifiedReference)
 	}
 	
 	def dispatch boolean hasDelegate(Attribute a) {
@@ -126,9 +129,14 @@ class XcoreInfo {
 		qualifiedNameDelegateMap.containsKey(a)
 	}
 	
+	def dispatch boolean hasDelegate(Type a) {
+		
+		a.datatype.hasDelegate
+	}
+	
 	def String createNestedDelegate(CollectionType c) {
 	
-		var QualifiedName qn = c.qualifiedAggregationName
+		var QualifiedName qn = c.qualifiedReference
 		
 		if(qualifiedNameAggregationMap.containsKey(qn)) {
 			
@@ -136,13 +144,13 @@ class XcoreInfo {
 		}
 		
 		var String nestedQN
-		if(c.typeAggregation) {
-					
-			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
-		} else {
+//		if(c.typeAggregation) {
+//					
+//			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
+//		} else {
 			
 			nestedQN = qn.skipLast(1).segments.join.toFirstUpper.replace('''[]''','''InList''')			
-		}
+//		}
 		
 		qualifiedNameAggregationMap.put( qn, nestedQN )
 		

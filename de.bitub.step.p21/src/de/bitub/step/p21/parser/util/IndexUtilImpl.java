@@ -1,9 +1,9 @@
-package de.bitub.step.p21.util;
+package de.bitub.step.p21.parser.util;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class IndexUtil
+public class IndexUtilImpl implements IndexUtil
 {
   Deque<Integer> indexStack = new ArrayDeque<Integer>();
 
@@ -52,4 +52,33 @@ public class IndexUtil
     return curIndex;
   }
 
+  @Override
+  public int entityLevelIndex()
+  {
+    return indexStack.getLast();
+  }
+
+  @Override
+  public int level()
+  {
+    return indexStack.size();
+  }
+
+  @Override
+  public String toString()
+  {
+    return "Level: " + level() + " Index: " + current();
+  }
+
+  @Override
+  public boolean isListLevel()
+  {
+    return indexStack.size() == 1;
+  }
+
+  @Override
+  public boolean isNestedListLevel()
+  {
+    return indexStack.size() > 1;
+  }
 }

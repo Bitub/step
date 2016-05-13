@@ -20,6 +20,7 @@ import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
+import java.util.Set
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 
@@ -84,7 +85,7 @@ class EXPRESSExtension {
 	/**
 	 * Get the antity container for the given attribute.
 	 */
-	def getHostEntity(Attribute attribute) {
+	def static getHostEntity(Attribute attribute) {
 		
 		attribute.getContainerOfType(typeof(Entity))
 	}
@@ -97,7 +98,7 @@ class EXPRESSExtension {
 	/**
 	 * Get all derived attributes of the given entity.
 	 */
-	def getDerivedAttribute(Entity entity) {
+	def static getDerivedAttribute(Entity entity) {
 		
 		entity.attribute.filter[it.expression != null]
 	}
@@ -105,7 +106,7 @@ class EXPRESSExtension {
 	/**
 	 * Get all inverse attributes of the given entity.
 	 */
-	def getDeclaringInverseAttribute(Entity entity) {
+	def static getDeclaringInverseAttribute(Entity entity) {
 		
 		entity.attribute.filter[it.opposite != null]
 	}
@@ -113,7 +114,7 @@ class EXPRESSExtension {
 	/**
 	 * Whether the current data type is translated to a nested aggregation.
 	 */
-	def dispatch boolean isNestedAggregation(DataType c) {
+	def static dispatch boolean isNestedAggregation(DataType c) {
 		
 		false
 	}
@@ -121,7 +122,7 @@ class EXPRESSExtension {
 	/**
 	 * Whether the current reference type is translated to a nested aggregation.
 	 */
-	def dispatch boolean isNestedAggregation(ReferenceType c) {
+	def static dispatch boolean isNestedAggregation(ReferenceType c) {
 		
 		(c.instance instanceof Type) && (c.instance as Type).datatype.nestedAggregation
 	}
@@ -129,15 +130,30 @@ class EXPRESSExtension {
 	/**
 	 * Whether the current collection type is translated to a nested aggregation.
 	 */
-	def dispatch boolean isNestedAggregation(CollectionType c) {
+	def static dispatch boolean isNestedAggregation(CollectionType c) {
 		
 		c.type instanceof CollectionType
 	}
 
+	def static boolean isTypeAggregation(Type c) {
+		
+		c.datatype.typeAggregation
+	}
+
+	def static boolean isTypeAggregation(DataType c) {
+		
+		switch(c) {
+			CollectionType:
+				c.typeAggregation
+			default:
+				false
+		}
+	}
+	
 	/**
 	 * True, if collection type references a type wrapper pattern.
 	 */
-	def boolean isTypeAggregation(CollectionType c) {
+	def static boolean isTypeAggregation(CollectionType c) {
 		
 		c.type.builtinAlias
 	}
@@ -146,7 +162,7 @@ class EXPRESSExtension {
 	/**
 	 * True, if derived.
 	 */
-	def isDerivedAttribute(Attribute a) {
+	def static isDerivedAttribute(Attribute a) {
 		
 		null != a.expression
 	}
@@ -154,7 +170,7 @@ class EXPRESSExtension {
 	/**
 	 * True, if attribute declares the inverse relation
 	 */
-	def isDeclaringInverseAttribute(Attribute a) {
+	def static isDeclaringInverseAttribute(Attribute a) {
 
 		null != a.opposite
 	}
@@ -168,7 +184,7 @@ class EXPRESSExtension {
 	 * <li>defined lower or upper reference bound (i.e. given runtime thresholds via attribute)</li>
 	 * </ul>
 	 */
-	def isOneToManyRelation(Attribute a) {
+	def static isOneToManyRelation(Attribute a) {
 
 		if (a.type instanceof CollectionType) {
 
@@ -180,7 +196,7 @@ class EXPRESSExtension {
 		false
 	}
 	
-	def dispatch DataType refersDatatype(Attribute a) {
+	def static dispatch DataType refersDatatype(Attribute a) {
 		
 		a.type.refersDatatype
 	}
@@ -188,7 +204,7 @@ class EXPRESSExtension {
 	/**
 	 * Computes the final referenced datatype (i.e. a collection of collection of some data type)
 	 */
-	def dispatch DataType refersDatatype(Type t) {
+	def static dispatch DataType refersDatatype(Type t) {
 
 		t.datatype.refersDatatype
 	}
@@ -196,7 +212,7 @@ class EXPRESSExtension {
 	/**
 	 * Returns the transitive associated datatype.
 	 */
-	def dispatch DataType refersDatatype(DataType t) {
+	def static dispatch DataType refersDatatype(DataType t) {
 
 		if (t instanceof ReferenceType) {
 
@@ -219,7 +235,21 @@ class EXPRESSExtension {
 	/**
 	 * Whether a datatype is referable (non-datatype in Java terms).
 	 */
-	def isReferable(DataType t) {
+	def static isReferable(ExpressConcept t) {
+
+		switch(t) {
+			
+			Type:
+				t.referable
+			default:
+				true			
+		}
+	}
+
+	/**
+	 * Whether a datatype is referable (non-datatype in Java terms).
+	 */
+	def static isReferable(Type t) {
 
 		switch(t.refersDatatype) {
 			
@@ -234,23 +264,42 @@ class EXPRESSExtension {
 		}
 	}
 	
-	def isSelect(Attribute a) {
+
+	/**
+	 * Whether a datatype is referable (non-datatype in Java terms).
+	 */
+	def static isReferable(DataType t) {
+
+		switch(t.refersDatatype) {
+			
+			ReferenceType:
+				// Entity only
+				true
+			SelectType:
+				// The only class-wrapped type		
+				true
+			default:
+				false			
+		}
+	}
+	
+	def static isSelect(Attribute a) {
 		
 		a.type.refersDatatype instanceof SelectType
 	}
 	
-	def isEnum(Attribute a) {
+	def static isEnum(Attribute a) {
 		
 		a.refersDatatype instanceof EnumType
 	}	
 	
-	def isHostedByEntity(Attribute a) {
+	def static isHostedByEntity(Attribute a) {
 		
 		null != a.getContainerOfType(typeof(Entity))
 	}
 	
 	
-	def dispatch ExpressConcept refersConcept(Attribute c) {
+	def static dispatch ExpressConcept refersConcept(Attribute c) {
 		
 		c.type.refersConcept
 	}
@@ -258,19 +307,21 @@ class EXPRESSExtension {
 	/**
 	 * Returns the transitively referred concept, if there's any referenced
 	 */
-	def dispatch ExpressConcept refersConcept(ExpressConcept c) {
+	def static dispatch ExpressConcept refersConcept(ExpressConcept c) {
 	
 		switch(c) {
 			
-			Type: (c as Type).datatype.refersConcept
-			default: c
+			Type: 
+				(c as Type).datatype.refersConcept
+			default: 
+				c
 		} 		
 	}	
 
 	/**
 	 * Returns the transitively referred concept, if there's any referenced
 	 */
-	def dispatch ExpressConcept refersConcept(DataType dataType) {
+	def static dispatch ExpressConcept refersConcept(DataType dataType) {
 
 		switch (dataType) {
 			
@@ -281,24 +332,49 @@ class EXPRESSExtension {
 				dataType.type.refersConcept
 			
 			default: 
-				dataType.eContainer as Type
+				
+				if(dataType.eContainer instanceof Type) {
+					
+					dataType.eContainer as Type
+				} else {
+					
+					null
+				}
 		}
 	}
 
 	/**
 	 * Returns the parent attribute of a specific data type.
 	 */
-	def getHostAttribute(DataType t) {
+	def static getHostAttribute(DataType t) {
 
 		t.getContainerOfType(typeof(Attribute))
 	}
 	
-	def isHostedByAttribute(DataType t) {
+	def static isHostedByAttribute(DataType t) {
 		
 		null != t.getContainerOfType(typeof(Attribute)) 
 	}
 	
-	def boolean isAggregation(ExpressConcept c) {
+	
+	def static boolean isUniqueReference(DataType t) {
+		
+		switch(t) {
+			
+			ReferenceType:
+				if(t.instance instanceof Type) {
+					(t.instance as Type).datatype.uniqueReference
+				} else {
+					true
+				}
+			CollectionType:
+				"SET".equals(t.name)
+			default:
+				true
+		}
+	}
+	
+	def static boolean isAggregation(ExpressConcept c) {
 		
 		switch(c) {
 			
@@ -309,7 +385,7 @@ class EXPRESSExtension {
 		}
 	}
 	
-	def boolean isAggregation(DataType t){
+	def static boolean isAggregation(DataType t){
 		
 		switch(t){
 			
@@ -325,11 +401,11 @@ class EXPRESSExtension {
 	/**
 	 * True, if given concept is an alias (reference wrapper) to another concept.
 	 */
-	def boolean isNamedAlias(ExpressConcept e) {
+	def static boolean isNamedAlias(ExpressConcept e) {
 
 		switch(e) {
 			Type:
-				(e as Type).datatype instanceof ReferenceType
+				e.datatype instanceof ReferenceType			
 			default:
 				false
 		}
@@ -338,27 +414,54 @@ class EXPRESSExtension {
 	/**
 	 * True, if concept is a reference to a primitive data type.
 	 */
-	def dispatch boolean isBuiltinAlias(ExpressConcept e) {
+	def static dispatch boolean isBuiltinAlias(ExpressConcept e) {
 
 		switch e {
-			Type: e.datatype.builtinAlias
-			default: false
+			Type: 
+				e.datatype.builtinAlias
+			default: 
+				false
 		}
 	}
 
 	/**
 	 * True, if concept is a reference to a primitive data type.
 	 */
-	def dispatch boolean isBuiltinAlias(DataType t) {
+	def static dispatch boolean isBuiltinAlias(DataType t) {
 
 		switch t {
-			CollectionType: t.type.builtinAlias
-			ReferenceType: t.instance.builtinAlias
-			BuiltInType: true
-			default: false
+			CollectionType: 
+				t.type.builtinAlias
+			ReferenceType: 
+				t.instance.builtinAlias
+			BuiltInType: 
+				true
+			default: 
+				false
 		}
 	}
 	
-	
+	/**
+	 * Determines the flat set of EXPRESS concepts represented by given Select statement.
+	 */
+	def static Set<ExpressConcept> flattenSelect(SelectType selectType) {
+
+		val uniqueTypeSet = <ExpressConcept>newHashSet
+
+
+		// Self evaluation
+		var set = selectType.select.filter [
+			!(it instanceof Type && (it as Type).datatype instanceof SelectType)
+		].toSet;
+
+		// Recursion (filter all SELECTs)
+		selectType.select.filter [
+			it instanceof Type && (it as Type).datatype instanceof SelectType
+		].forEach[uniqueTypeSet += flattenSelect((it as Type).datatype as SelectType)]
+
+		uniqueTypeSet += set
+		
+		return uniqueTypeSet
+	}
 	
 }
