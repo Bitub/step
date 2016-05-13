@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.ui.newWizards">
+      <!-- @generated mvdXML -->
+      <category
+            id="org.eclipse.emf.ecore.Wizard.category.ID"
+            name="%_UI_Wizard_category"/>
+      <wizard
+            id="org.buildingsmart.mvd.mvdxml.presentation.MvdXmlModelWizardID"
+            name="%_UI_MvdXmlModelWizard_label"
+            class="org.buildingsmart.mvd.mvdxml.presentation.MvdXmlModelWizard"
+            category="org.eclipse.emf.ecore.Wizard.category.ID"
+            icon="icons/full/obj16/MvdXmlModelFile.gif">
+         <description>%_UI_MvdXmlModelWizard_description</description>
+         <selection class="org.eclipse.core.resources.IResource"/>
+      </wizard>
+   </extension>
+
+   <extension point="org.eclipse.ui.editors">
+      <!-- @generated mvdXML -->
+      <editor
+            id="org.buildingsmart.mvd.mvdxml.presentation.MvdXmlEditorID"
+            name="%_UI_MvdXmlEditor_label"
+            icon="icons/full/obj16/MvdXmlModelFile.gif"
+            extensions="mvdxml"
+            class="org.buildingsmart.mvd.mvdxml.presentation.MvdXmlEditor"
+            contributorClass="org.buildingsmart.mvd.mvdxml.presentation.MvdXmlActionBarContributor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <command
+               commandId="org.buildingsmart.mvd.editor.commands.tmvd2mvdxml"
+               label="Generate tMVD from mvdXML"
+               style="push"
+               tooltip="Generates an textual MVD from a selected mvdxml file.">
+            <visibleWhen
+                  checkEnabled="false">
+               <iterate>
+                  <adapt
+                        type="org.eclipse.core.resources.IResource">
+                     <test
+                           property="org.eclipse.core.resources.name"
+                           value="*.mvdxml">
+                     </test>
+                  </adapt>
+               </iterate>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.buildingsmart.mvd.commands.MVD2TextualMVDGenerationHandler"
+            commandId="org.buildingsmart.mvd.editor.commands.tmvd2mvdxml">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="org.buildingsmart.mvd.editor.category"
+            name="MVD Commands">
+      </category>
+      <command
+            categoryId="org.buildingsmart.mvd.editor.category"
+            id="org.buildingsmart.mvd.editor.commands.tmvd2mvdxml"
+            name="Generate tMVD from mvdXML">
+      </command>
+   </extension>
+
+</plugin>
