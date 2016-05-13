@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mvdXML xmlns="http://buildingsmart-tech.org/mvd/XML/1.1" uuid="8a70d456-c609-4ef7-b496-b92fd1e12796" name="example 7.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://buildingsmart-tech.org/mvd/XML/1.1 http://buildingsmart-tech.org/mvd/XML/1.1/mvdXML_V1.1.xsd">
+	<Templates>
+		<ConceptTemplate uuid="5c252c86-5bff-4372-9a27-b794069f9fbb" name="Property Sets for Objects and Types" applicableSchema="IFC4" applicableEntity="IfcObject">
+			<Rules>
+				<AttributeRule RuleID="PredefinedType" AttributeName="PredefinedType"/>
+				<AttributeRule AttributeName="IsDefinedBy">
+					<EntityRules>
+						<EntityRule EntityName="IfcRelDefinesByProperties">
+							<AttributeRules>
+								<AttributeRule AttributeName="RelatingPropertyDefinition">
+									<EntityRules>
+										<EntityRule EntityName="IfcPropertySet">
+											<References IdPrefix="O_">
+												<Template ref="7c4c45c5-7ba9-4e19-b473-3e97093b3e0d"/>
+											</References>
+										</EntityRule>
+									</EntityRules>
+								</AttributeRule>
+							</AttributeRules>
+						</EntityRule>
+					</EntityRules>
+				</AttributeRule>
+				<AttributeRule AttributeName="IsTypedBy">
+					<EntityRules>
+						<EntityRule EntityName="IfcRelDefinesByType">
+							<AttributeRules>
+								<AttributeRule AttributeName="RelatingType">
+									<EntityRules>
+										<EntityRule EntityName="IfcTypeObject">
+											<AttributeRules>
+												<AttributeRule AttributeName="HasPropertySets">
+													<EntityRules>
+														<EntityRule EntityName="IfcPropertySet">
+															<References IdPrefix="T_">
+																<Template ref="7c4c45c5-7ba9-4e19-b473-3e97093b3e0d"/>
+															</References>
+														</EntityRule>
+													</EntityRules>
+												</AttributeRule>
+											</AttributeRules>
+										</EntityRule>
+									</EntityRules>
+								</AttributeRule>
+							</AttributeRules>
+						</EntityRule>
+					</EntityRules>
+				</AttributeRule>
+			</Rules>
+		</ConceptTemplate>
+		<ConceptTemplate uuid="6655f6d0-29a8-47b8-8f3d-c9fce9c9a620" name="Single Value" applicableSchema="IFC4" applicableEntity="IfcPropertySingleValue" isPartial="true">
+			<Rules>
+				<AttributeRule RuleID="PName" AttributeName="Name">
+					<EntityRules>
+						<EntityRule EntityName="IfcIdentifier"/>
+					</EntityRules>
+				</AttributeRule>
+				<AttributeRule AttributeName="Description">
+					<EntityRules>
+						<EntityRule EntityName="IfcText"/>
+					</EntityRules>
+				</AttributeRule>
+				<AttributeRule RuleID="PSingleValue" AttributeName="NominalValue">
+					<EntityRules>
+						<EntityRule EntityName="IfcValue"/>
+					</EntityRules>
+				</AttributeRule>
+			</Rules>
+		</ConceptTemplate>
+		<ConceptTemplate uuid="7c4c45c5-7ba9-4e19-b473-3e97093b3e0d" name="Property Sets" code="" applicableSchema="IFC4" applicableEntity="IfcPropertySet" isPartial="true">
+			<Rules>
+				<AttributeRule RuleID="PsetName" AttributeName="Name">
+					<EntityRules>
+						<EntityRule EntityName="IfcLabel"/>
+					</EntityRules>
+				</AttributeRule>
+				<AttributeRule AttributeName="Description">
+					<EntityRules>
+						<EntityRule EntityName="IfcText"/>
+					</EntityRules>
+				</AttributeRule>
+				<AttributeRule AttributeName="HasProperties">
+					<EntityRules>
+						<EntityRule EntityName="IfcPropertySingleValue">
+							<References>
+								<Template ref="6655f6d0-29a8-47b8-8f3d-c9fce9c9a620"/>
+							</References>
+						</EntityRule>
+					</EntityRules>
+				</AttributeRule>
+			</Rules>
+		</ConceptTemplate>
+	</Templates>
+	<Views>
+		<ModelView uuid="72dad5df-6f61-49f2-ba8c-baccf24a6ce5" name="design phase" applicableSchema="IFC4" code="LPH 3">
+			<Definitions>
+				<Definition>
+					<Body lang="de"><![CDATA[Model progression requirements for design phase]]></Body>
+				</Definition>
+			</Definitions>
+			<ExchangeRequirements>
+				<ExchangeRequirement uuid="ae70f764-938b-4cf7-9814-c29a47f56b0e" name="design phase coordination" code="LPh 3a" applicability="export">
+					<Definitions>
+						<Definition>
+							<Body lang="de"><![CDATA[Model progression requirements for design phase for coordination.]]></Body>
+						</Definition>
+					</Definitions>
+				</ExchangeRequirement>
+			</ExchangeRequirements>
+			<Roots>
+				<ConceptRoot uuid="0e93f597-f5e1-475b-87a7-eb007993a50d" name="load bearing external walls" applicableRootEntity="IfcWall">
+					<Definitions>
+						<Definition>
+							<Body lang="de"><![CDATA[...]]></Body>
+						</Definition>
+					</Definitions>
+					<Applicability>
+						<Template ref="5c252c86-5bff-4372-9a27-b794069f9fbb"/>
+						<!-- Applicability part (AND): check IsExternal and LoadBearing property = true -->
+						<!-- NOTE: applicability is check prior for evaluating each <Concept>  -->
+						<TemplateRules operator="and">
+							<!-- two alternatives (property on occurrence or type) -->
+							<TemplateRules operator="or">
+								<!-- check occurrence property -->
+								<TemplateRule Parameters="O_PsetName[Value]='Pset_WallCommon' AND O_PName[Value]='IsExternal' AND O_PSingleValue[Value]=TRUE"/>
+								<!-- for check type properties two criteria must be checked: 1) defined on type and 2) not redefined on occurrence -->
+								<TemplateRules operator="and">
+									<TemplateRule Parameters="T_PsetName[Value]='Pset_WallCommon' AND T_PName[Value]='IsExternal' AND T_PSingleValue[Value]=TRUE"/>
+									<TemplateRules operator="not">
+										<TemplateRule Parameters="O_PsetName[Value]='Pset_WallCommon' AND O_PName[Value]='IsExternal'"/>
+									</TemplateRules>
+								</TemplateRules>
+							</TemplateRules>
+							<TemplateRules operator="or">
+								<TemplateRule Parameters="O_PsetName[Value]='Pset_WallCommon' AND O_PName[Value]='LoadBearing' AND O_PSingleValue[Value]=TRUE"/>
+								<!-- for check type properties two criteria must be checked: 1) defined on type and 2) not redefined on occurrence -->
+								<TemplateRules operator="and">
+									<TemplateRule Parameters="T_PsetName[Value]='Pset_WallCommon' AND T_PName[Value]='LoadBearing' AND T_PSingleValue[Value]=TRUE"/>
+									<TemplateRules operator="not">
+										<TemplateRule Parameters="O_PsetName[Value]='Pset_WallCommon' AND O_PName[Value]='LoadBearing'"/>
+									</TemplateRules>
+								</TemplateRules>
+							</TemplateRules>
+						</TemplateRules>
+					</Applicability>
+					<Concepts>
+						<!-- Test #1: check existence of FireRating property -->
+						<Concept uuid="983ddc5d-c0c8-47c9-8491-97add7677139" name="load bearing external walls required to have property 'FireRating'">
+							<Definitions>
+								<Definition>
+									<Body lang="de"><![CDATA[For all oad bearing external walls the property 'FireRating' shall be applied]]></Body>
+								</Definition>
+							</Definitions>
+							<Template ref="5c252c86-5bff-4372-9a27-b794069f9fbb"/>
+							<Requirements>
+								<Requirement applicability="export" exchangeRequirement="ae70f764-938b-4cf7-9814-c29a47f56b0e" requirement="mandatory"/>
+							</Requirements>
+							<TemplateRules operator="or">
+								<TemplateRule Parameters="O_PsetName[Value]='Pset_WallCommon' AND O_PName[Value]='FireRating' AND O_PSingleValue[Exists]=TRUE"/>
+								<TemplateRule Parameters="T_PsetName[Value]='Pset_WallCommon' AND T_PName[Value]='FireRating' AND T_PSingleValue[Exists]=TRUE"/>
+							</TemplateRules>
+						</Concept>
+						<!-- Test #2: check existence of ThermalTransmittance property -->
+						<Concept uuid="e9941408-82a6-4c00-a397-11087e6c5d1f" name="load bearing external walls required to have property 'ThermalTransmittance'">
+							<Definitions>
+								<Definition>
+									<Body lang="de"><![CDATA[For all oad bearing external walls the property 'ThermalTransmittance' shall be applied]]></Body>
+								</Definition>
+							</Definitions>
+							<Template ref="5c252c86-5bff-4372-9a27-b794069f9fbb"/>
+							<Requirements>
+								<Requirement applicability="export" exchangeRequirement="ae70f764-938b-4cf7-9814-c29a47f56b0e" requirement="mandatory"/>
+							</Requirements>
+							<TemplateRules operator="or">
+								<TemplateRule Parameters="O_PsetName[Value]='Pset_WallCommon' AND O_PName[Value]='ThermalTransmittance' AND O_PSingleValue[Exists]=TRUE"/>
+								<TemplateRule Parameters="T_PsetName[Value]='Pset_WallCommon' AND T_PName[Value]='ThermalTransmittance' AND T_PSingleValue[Exists]=TRUE"/>
+							</TemplateRules>
+						</Concept>
+						<!-- Test #3: check existence of PredefinedType attribute -->
+						<Concept uuid="a14ab957-e65d-48c1-84fe-8f99c2630646" name="load bearing external walls required to have attribute PredefinedType">
+							<Definitions>
+								<Definition>
+									<Body lang="de"><![CDATA[For all oad bearing external walls the property 'PredefinedType' shall be applied]]></Body>
+								</Definition>
+							</Definitions>
+							<Template ref="5c252c86-5bff-4372-9a27-b794069f9fbb"/>
+							<Requirements>
+								<Requirement applicability="export" exchangeRequirement="ae70f764-938b-4cf7-9814-c29a47f56b0e" requirement="mandatory"/>
+							</Requirements>
+							<TemplateRules operator="and">
+								<!-- PredefinedType is define _asSchema: logical statement should fail if there is no PredefinedType attribute -->
+								<!-- Do we need to check difference between $ (unset) and "" or () (empty string or set)? -->
+								<TemplateRule Parameters="PredefinedType[Exists]=TRUE"/>
+							</TemplateRules>
+						</Concept>
+					</Concepts>
+				</ConceptRoot>
+			</Roots>
+		</ModelView>
+	</Views>
+</mvdXML>

@@ -16,11 +16,13 @@ class TextualMVDParserTest extends AbstractTextualMVDTest {
 
 	@Inject extension ValidationTestHelper
 
-	val packageName = "src/org.buildingsmart.mvd.tmvd.tests".replace(".", "/")
+//	val packageName = "src/org.buildingsmart.mvd.tmvd.tests".replace(".", "/")
+	val mvdFolder = "mvd-files"
+	val tmvdFolder = "tmvd-files"
 
 	@Test
 	def testParsingMvdXML() {
-		val model = (packageName + "/DoorHasSelfClosing.mvdxml").loadMvdXML as MvdXML
+		val model = (mvdFolder + "/DoorHasSelfClosing.mvdxml").loadMvdXML as MvdXML
 		Assert::assertNotNull(model)
 
 		val templates = model.templates
@@ -34,19 +36,19 @@ class TextualMVDParserTest extends AbstractTextualMVDTest {
 
 	@Test
 	def testCorrectParsingOfTextualMVD() {
-		val model = (packageName + "/DoorHasSelfClosing.tmvd").loadTextualMVD as MvdXML
+		val model = (tmvdFolder + "/DoorHasSelfClosing.tmvd").loadTextualMVD as MvdXML
 		model.assertNoErrors
 	}
 
 	@Test
 	def testMvdXml2Tmvd() {
-		val model = (packageName + "/DesignTransferView_V2-corrected.mvdxml").loadMvdXML as MvdXML
-		model.saveTextualMVD(packageName + "/DesignTransferView_V2-corrected.tmvd")
+		val model = (mvdFolder + "/DesignTransferView_V2-corrected.mvdxml").loadMvdXML as MvdXML
+		model.saveTextualMVD(tmvdFolder + "/DesignTransferView_V2-corrected.tmvd")
 	}
 
 	@Test
 	def testParsingTextualMVD() {
-		val model = (packageName + "/DoorHasSelfClosing.tmvd").loadTextualMVD as MvdXML
+		val model = (tmvdFolder + "/DoorHasSelfClosing.tmvd").loadTextualMVD as MvdXML
 		Assert::assertNotNull(model)
 
 		val templates = model.templates

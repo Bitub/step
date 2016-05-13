@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mvdXML xmlns="http://buildingsmart-tech.org/mvdXML/mvdXML1-1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="" uuid="00000000-0000-0000-0000-000000000000">
+<mvdXML xmlns="http://buildingsmart-tech.org/mvd/XML/1.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="" uuid="00000000-0000-0000-0000-000000000000">
   <Templates>
     <ConceptTemplate applicableEntity="IfcObject" applicableSchema="IFC4" name="SinglePropertyValue" uuid="3bc6f595-3304-49d3-a790-f113c9af9f3a">
       <Rules>
