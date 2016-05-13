@@ -10,6 +10,7 @@ import org.eclipse.emf.ecore.xmi.XMLResource
 import org.eclipse.emf.ecore.xmi.XMLResource.ResourceHandler
 import org.eclipse.emf.ecore.xmi.impl.BasicResourceHandler
 import org.buildingsmart.mvd.mvdxml.Definitions
+import java.io.OutputStream
 
 class MvdXmlResourceHandler extends BasicResourceHandler implements ResourceHandler {
 
@@ -17,7 +18,7 @@ class MvdXmlResourceHandler extends BasicResourceHandler implements ResourceHand
 
 	val unnamedObjects = newArrayList()
 
-	override postLoad(XMLResource resource, InputStream inputStream, Map<?, ?> options) {
+	def transform(XMLResource resource) {
 		val treeIterator = EcoreUtil::getAllContents(resource, Boolean::TRUE)
 
 		while (treeIterator.hasNext) {
@@ -34,7 +35,7 @@ class MvdXmlResourceHandler extends BasicResourceHandler implements ResourceHand
 				System::out.println(code + " ->" + next.eIsSet(codeFeature))
 
 				if (null == code || code.isEmpty) {
-					next.eUnset(codeFeature) //.remove(next, codeFeature, code);
+					next.eUnset(codeFeature)
 				}
 			}
 
@@ -49,8 +50,8 @@ class MvdXmlResourceHandler extends BasicResourceHandler implements ResourceHand
 				}
 
 				// replace whitespace with underscore
-				val nameWithoutWhiteSpace = name.replaceAll("\\s", "_")
-				next.eSet(nameFeature, nameWithoutWhiteSpace)
+				val nameWithoutWhiteSpace = name.replaceAll("\\s", "_").replace('\'', '')
+				next.eSet(nameFeature, nameWithoutWhiteSpace)				
 			}
 
 			if (next instanceof AttributeRule) {
@@ -80,7 +81,16 @@ class MvdXmlResourceHandler extends BasicResourceHandler implements ResourceHand
 						ruleIdWithoutWhiteSpace)
 				}
 			}
+
 		}
+	}
+
+	override preSave(XMLResource resource, OutputStream outputStream, Map<?, ?> options) {
+		transform(resource)
+	}
+
+	override postLoad(XMLResource resource, InputStream inputStream, Map<?, ?> options) {
+		transform(resource);
 	}
 
 }

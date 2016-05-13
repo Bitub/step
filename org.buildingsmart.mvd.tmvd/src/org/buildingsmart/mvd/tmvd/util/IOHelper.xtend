@@ -58,13 +58,15 @@ class IOHelper {
 
 		// Get the resource
 		//
-		val resource = resSet.createResource(URI.createFileURI(fileName));
+		val resource = resSet.createResource(URI.createPlatformResourceURI(fileName, true));
 		resource.contents += eObject;
 
 		// Save the contents of the resource to the file system.
 		//
 		val options = SaveOptions.defaultOptions
-		options.addTo(newHashMap(XtextResource.OPTION_ENCODING -> "UTF8"))
+		options.addTo(
+			newHashMap(XtextResource.OPTION_ENCODING -> "UTF8",
+				XMLResource.OPTION_RESOURCE_HANDLER -> new MvdXmlResourceHandler))
 
 		try {
 			resource.save(options.toOptionsMap);
