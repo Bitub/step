@@ -12,16 +12,21 @@ Require-Bundle: de.bitub.step.p21.antlr;bundle-version="0.1.0",
  com.google.guava;bundle-version="15.0.0",
  com.google.inject;bundle-version="3.0.0",
  javax.inject;bundle-version="1.0.0",
- org.buildingsmart.ifc4;bundle-version="0.3.0"
-Export-Package: de.bitub.step.p21;
+ org.buildingsmart.ifc4;bundle-version="0.3.1"
+Export-Package: de.bitub.step.p21;uses:="org.eclipse.emf.ecore,org.eclipse.emf.common.util",
+ de.bitub.step.p21.concurrrent;uses:="org.eclipse.emf.ecore,de.bitub.step.p21.parser",
+ de.bitub.step.p21.di;uses:="org.eclipse.emf.ecore,com.google.inject,de.bitub.step.p21.parser",
+ de.bitub.step.p21.mapper;uses:="org.eclipse.emf.ecore,org.eclipse.emf.common.util",
+ de.bitub.step.p21.parser;
   uses:="org.eclipse.emf.ecore,
-   de.bitub.step.p21.header,
-   org.buildingsmart.ifc4,
+   de.bitub.step.p21,
    de.bitub.step.p21.mapper,
-   de.bitub.step.p21.util",
- de.bitub.step.p21.di,
- de.bitub.step.p21.mapper;uses:="org.eclipse.emf.ecore,org.eclipse.emf.common.util,de.bitub.step.p21",
- de.bitub.step.p21.parser,
- de.bitub.step.p21.parser.util,
- de.bitub.step.p21.persistence,
- de.bitub.step.p21.util
+   de.bitub.step.p21.parser.util,
+   de.bitub.step.p21.di",
+ de.bitub.step.p21.parser.util;uses:="org.antlr.v4.runtime",
+ de.bitub.step.p21.persistence;
+  uses:="org.eclipse.emf.ecore,
+   org.eclipse.emf.common.util,
+   org.eclipse.emf.ecore.resource.impl,
+   org.eclipse.emf.ecore.resource",
+ de.bitub.step.p21.util;uses:="org.eclipse.emf.ecore,org.eclipse.emf.common.util"

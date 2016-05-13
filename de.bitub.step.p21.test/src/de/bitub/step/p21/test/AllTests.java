@@ -1,4 +1,4 @@
-package de.bitub.step.p21;
+package de.bitub.step.p21.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

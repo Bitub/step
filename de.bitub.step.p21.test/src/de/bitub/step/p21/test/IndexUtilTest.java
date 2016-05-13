@@ -1,4 +1,4 @@
-package de.bitub.step.p21;
+package de.bitub.step.p21.test;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;

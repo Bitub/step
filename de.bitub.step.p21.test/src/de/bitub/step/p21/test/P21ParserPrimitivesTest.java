@@ -1,4 +1,4 @@
-package de.bitub.step.p21;
+package de.bitub.step.p21.test;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -28,6 +28,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import de.bitub.step.p21.AllP21Entities;
 import de.bitub.step.p21.di.P21Module;
 import de.bitub.step.p21.di.P21ParserFactory;
 import de.bitub.step.p21.parser.P21EntityListener;
