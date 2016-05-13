@@ -116,6 +116,12 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 		generatedXcoreFilename = "ifc4.exp.xcore"
 		generateXCore(readExpressSchema("IFC4"))
 	}
+		
+	@Test
+	def void testRunIfc2X3Conversion() {
+		generatedXcoreFilename = "ifc2x3.exp.xcore"
+		generateXCore(readExpressSchema("IFC2X3_TC1"))
+	}
 	
 	@Test
 	def void testRunIfc4Add1Conversion() {

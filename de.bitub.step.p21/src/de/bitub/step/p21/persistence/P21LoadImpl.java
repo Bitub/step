@@ -10,36 +10,32 @@
  */
 package de.bitub.step.p21.persistence;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.math.MathContext;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ConsoleErrorListener;
-import org.antlr.v4.runtime.DefaultErrorStrategy;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.atn.PredictionMode;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EFactory;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
 
-import de.bitub.step.p21.P21ParserListener;
-import de.bitub.step.p21.StepLexer;
-import de.bitub.step.p21.StepParser;
-import de.bitub.step.p21.mapper.StepToModel;
-import de.bitub.step.p21.mapper.StepToModelImpl;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import de.bitub.step.p21.AllP21Entities;
+import de.bitub.step.p21.XPressModel;
+import de.bitub.step.p21.concurrrent.P21DataLineTask;
+import de.bitub.step.p21.concurrrent.P21ResolveReferencesListTask;
+import de.bitub.step.p21.concurrrent.P21ResolveReferencesTask;
+import de.bitub.step.p21.di.P21Module;
+import de.bitub.step.p21.mapper.NameToContainerListsMap;
+import de.bitub.step.p21.mapper.NameToContainerListsMapImpl;
+import de.bitub.step.p21.parser.P21DataLineTasksGenerator;
 
 /**
  * <!-- begin-user-doc -->
@@ -51,14 +47,14 @@ import de.bitub.step.p21.mapper.StepToModelImpl;
 public class P21LoadImpl implements P21Load
 {
   protected P21Resource resource;
-  protected InputStream inputStream;
+  protected InputStream is;
   protected P21Helper helper;
   protected Map<?, ?> options;
 
-  private static final String ID_AT_START_REGEX = "^#\\d+";
-  private static final Pattern ID_AT_START = Pattern.compile(ID_AT_START_REGEX);
+  protected EPackage ePackage;
 
-  public static final String E_PACKAGE_OPTION = "ePackage";
+  private Injector injector = Guice.createInjector(new P21Module());
+  private ExecutorService executor = Executors.newFixedThreadPool(10);
 
   /**
    * <!-- begin-user-doc -->
@@ -71,9 +67,16 @@ public class P21LoadImpl implements P21Load
     this.helper = helper;
   }
 
-  private static boolean startsWithEntityId(String text)
+  protected void handleErrors() throws IOException
   {
-    return ID_AT_START.matcher(text).find();
+    if (!resource.getErrors().isEmpty()) {
+      Resource.Diagnostic error = resource.getErrors().get(0);
+      if (error instanceof Exception) {
+        throw new Resource.IOWrappedException((Exception) error);
+      } else {
+        throw new IOException(error.getMessage());
+      }
+    }
   }
 
   /**
@@ -89,83 +92,79 @@ public class P21LoadImpl implements P21Load
   public void load(P21Resource resource, InputStream inputStream, Map<?, ?> options) throws IOException
   {
     this.resource = resource;
-    this.inputStream = inputStream;
+    this.is = inputStream;
     this.options = options;
 
-    if (!options.containsKey(E_PACKAGE_OPTION)) {
-      throw new Error("Missing option 'ePackage' with EPackage object.");
-    }
+    this.ePackage = helper.getEPackage((String) options.get(P21Resource.OPTION_PACKAGE_NS_URI));
 
-    P21ParserListener listener = init((EPackage) options.get(E_PACKAGE_OPTION));
-
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-
-      long start = System.currentTimeMillis();
-      System.out.println("Start ...");
-      br.lines().filter(P21LoadImpl::startsWithEntityId).collect(Collectors.toList()).forEach(line -> parse(line, listener));
-      System.out.println("Finished in " + (System.currentTimeMillis() - start) + " ms");
-      resource.getContents().add(listener.data());
-    }
+    load(resource, inputStream);
   }
 
-  private P21ParserListener init(EPackage ePackage)
+  private void load(P21Resource resource, InputStream inputStream) throws IOException
   {
-    // setup needed ecore classes
+    // extract entities from DATA section
     //
-    EFactory eFactory = ePackage.getEFactoryInstance();
-    EClass entitiesContainer = (EClass) ePackage.getEClassifiers().get(1);
+    P21DataLineTasksGenerator taskGenerator = injector.getInstance(P21DataLineTasksGenerator.class);
+    taskGenerator.setEPackage(ePackage);
 
-    StepToModel stepToModel = new StepToModelImpl(eFactory, entitiesContainer);
-    return new P21ParserListener(stepToModel);
+    List<P21DataLineTask> taskList = taskGenerator.generateWorkTasksFrom(inputStream);
+
+    // collect results
+    //
+    List<Future<EObject>> futures = new ArrayList<>();
+    for (P21DataLineTask task : taskList) {
+      futures.add(executor.submit(task));
+    }
+
+    // put all entities under shared schema container
+    //
+    EObject schemaContainer = saveLooseEntitiesintoSchemaContainer(helper.futuresToEntities(futures));
+
+    // link unresolved and already created entities
+    //
+    linkUnresolvedReferences();
+
+    executor.shutdown();
+    resource.getContents().add(schemaContainer);
+
+    helper = null;
+    handleErrors();
   }
 
-  private void parse(String line, P21ParserListener listener)
+  private EObject saveLooseEntitiesintoSchemaContainer(List<EObject> entities)
   {
-    CharStream input = new ANTLRInputStream(line);
-    StepLexer lexer = new StepLexer(input);
-    TokenStream tokens = new CommonTokenStream(lexer);
-    StepParser parser = new StepParser(tokens);
+    EObject rootContainer = XPressModel.getRootContainer(ePackage);
+    NameToContainerListsMap containmentListMap = new NameToContainerListsMapImpl(rootContainer);
+    containmentListMap.addEntities(entities);
+    return rootContainer;
+  }
 
-    // try with simpler/faster SLL(*)
-    //
-    parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+  private void linkUnresolvedReferences()
+  {
+    AllP21Entities index = injector.getInstance(AllP21Entities.class);
+    linkReferenceContainingEntities(index);
+    linkReferencesContainingLists(index);
+  }
 
-    // we don't want error messages or recovery during first try
-    //
-    parser.removeErrorListeners();
-    parser.setErrorHandler(new BailErrorStrategy());
+  private void linkReferenceContainingEntities(AllP21Entities index)
+  {
+    index.retrieveUnresolved().forEach((reference, pairs) -> {
+      EObject toBeSet = index.retrieve(reference);
 
-    ParseTree tree = null;
+      pairs.forEach((pair) -> {
+        EObject entity = index.retrieve(pair.id);
+        executor.execute(new P21ResolveReferencesTask(pair.feature, entity, toBeSet));
+      });
+    });
+  }
 
-    try {
-      tree = parser.entityInstance();
-    }
-    catch (RuntimeException ex) {
-      if (ex.getClass() == RuntimeException.class && ex.getCause() instanceof RecognitionException) {
-
-        // The BailErrorStrategy wraps the RecognitionExceptions in
-        // RuntimeExceptions so we have to make sure we're detecting
-        // a true RecognitionException not some other kind
-
-        // rewind input stream
-        //
-        lexer.reset();
-
-        // back to standard listeners/handlers
-        //
-        parser.addErrorListener(ConsoleErrorListener.INSTANCE);
-        parser.setErrorHandler(new DefaultErrorStrategy());
-
-        // try full LL(*)
-        //
-        parser.getInterpreter().setPredictionMode(PredictionMode.LL);
-
-        tree = parser.entityInstance();
+  private void linkReferencesContainingLists(AllP21Entities index)
+  {
+    index.retrieveUnresolvedLists().forEach((triple) -> {
+      if (!Objects.isNull(triple)) {
+        List<EObject> entities = index.retrieveAll(triple.references);
+        executor.execute(new P21ResolveReferencesListTask(triple.feature, triple.wrapper, entities));
       }
-    }
-
-    ParseTreeWalker walker = new ParseTreeWalker();
-    walker.walk(listener, tree);
-//    }
+    });
   }
 }

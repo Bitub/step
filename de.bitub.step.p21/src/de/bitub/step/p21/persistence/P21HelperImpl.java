@@ -10,7 +10,13 @@
  */
 package de.bitub.step.p21.persistence;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 
 /**
@@ -36,7 +42,6 @@ public class P21HelperImpl implements P21Helper
    */
   public P21HelperImpl()
   {
-    // TODO Auto-generated constructor stub
   }
 
   /**
@@ -49,6 +54,17 @@ public class P21HelperImpl implements P21Helper
   {
     this();
     setResource(resource);
+  }
+
+  public P21Resource getResource()
+  {
+    return resource;
+  }
+
+  @Override
+  public EPackage getEPackage(String nsURI)
+  {
+    return packageRegistry.getEPackage(nsURI);
   }
 
   public void setResource(P21Resource resource)
@@ -67,5 +83,33 @@ public class P21HelperImpl implements P21Helper
       packageRegistry =
           resource.getResourceSet() == null ? EPackage.Registry.INSTANCE : resource.getResourceSet().getPackageRegistry();
     }
+  }
+
+  @Override
+  public List<EObject> futuresToEntities(List<Future<EObject>> futures)
+  {
+    List<EObject> entities = new ArrayList<>();
+
+    int completedTasks = 0;
+    double done = 0.;
+
+    for (Future<EObject> future : futures) {
+
+      try {
+        EObject entity = future.get();
+        entities.add(entity);
+        ++completedTasks;
+        double newDone = ((double) completedTasks / futures.size()) * 100;
+        if (Math.abs(newDone - done) > 5) {
+          System.out.printf("%.2f%n", newDone);
+          done = newDone;
+        }
+      }
+      catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+      }
+    }
+
+    return entities;
   }
 }
