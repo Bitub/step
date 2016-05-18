@@ -441,6 +441,10 @@
       <annotation
           source="http:/www.eclipse.org/oomph/targlets/TargetDefinitionGenerator">
         <detail
+            key="name">
+          <value>de.bitub.step-test</value>
+        </detail>
+        <detail
             key="location">
           <value>${installation.location/git/}${git.clone.step.remoteURI|gitRepository}/de.bitub.step.build-resources/de.bitub.step-test.target</value>
         </detail>
