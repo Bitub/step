@@ -352,6 +352,24 @@ class EXPRESSExtension {
 		null != t.getContainerOfType(typeof(Attribute)) 
 	}
 	
+	
+	def static boolean isUniqueReference(DataType t) {
+		
+		switch(t) {
+			
+			ReferenceType:
+				if(t.instance instanceof Type) {
+					(t.instance as Type).datatype.uniqueReference
+				} else {
+					true
+				}
+			CollectionType:
+				"SET".equals(t.name)
+			default:
+				true
+		}
+	}
+	
 	def static boolean isAggregation(ExpressConcept c) {
 		
 		switch(c) {
