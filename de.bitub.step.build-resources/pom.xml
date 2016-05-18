@@ -10,11 +10,11 @@
 	<name>BITUB EXPRESS / STEP P21 Build</name>
 
 	<properties>
-		<tycho-version>0.24.0</tycho-version>
-		<tycho-extras-version>0.24.0</tycho-extras-version>
+		<tycho-version>0.25.0</tycho-version>
+		<tycho-extras-version>0.25.0</tycho-extras-version>
 		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>	
-		<xtext.version>2.8.4</xtext.version>	
+		<xtext.version>2.9.1</xtext.version>	
 		<bitub.updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</bitub.updatesiteLocal>
 	</properties>
 
@@ -53,6 +53,21 @@
 			<targetPlatform>mars</targetPlatform>
 			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
 		  </properties>
+      </profile>
+      
+      <profile>
+		  <id>platform-test</id>
+		  <activation>
+			<activeByDefault>true</activeByDefault>
+			<property>
+			  <name>platform-name</name>
+			  <value>test</value>
+			</property>			
+		  </activation>
+		  <properties>
+			<targetPlatform>test</targetPlatform>
+			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
+		  </properties>
       </profile>	
 	  	  
     </profiles>
@@ -60,11 +75,7 @@
 	<modules>
 		<module>../de.bitub.step.express</module>
 		<module>../de.bitub.step.express.ui</module>
-		<module>../de.bitub.step.express.sdk-feature</module>
-
-		<!--
-		<module>../de.bitub.step.target-definition</module>
-		-->		 
+		<module>../de.bitub.step.express.sdk-feature</module> 
 		
 		<module>../de.bitub.step.p21</module>
 		<module>../de.bitub.step.p21.antlr</module>
