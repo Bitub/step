@@ -4,12 +4,12 @@ import org.eclipse.emf.mwe.utils.*
 import org.eclipse.xtext.generator.*
 import org.eclipse.xtext.ui.generator.*
 
-var grammarURI = "classpath:/org/buildingsmart/mvd/tmvd/TextualMVD.xtext"
 var fileExtensions = "tmvd"
 var projectName = "org.buildingsmart.mvd.tmvd"
 var runtimeProject = "../${projectName}"
 var generateXtendStub = true
 var encoding = "UTF-8"
+var grammarURI = "platform:/resource/${projectName}/src/org/buildingsmart/mvd/tmvd/TextualMVD.xtext"
 
 Workflow {
 	bean = StandaloneSetup {
