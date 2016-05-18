@@ -53,6 +53,21 @@
 			<targetPlatform>mars</targetPlatform>
 			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
 		  </properties>
+      </profile>
+      
+      <profile>
+		  <id>platform-test</id>
+		  <activation>
+			<activeByDefault>true</activeByDefault>
+			<property>
+			  <name>platform-name</name>
+			  <value>test</value>
+			</property>			
+		  </activation>
+		  <properties>
+			<targetPlatform>test</targetPlatform>
+			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
+		  </properties>
       </profile>	
 	  	  
     </profiles>

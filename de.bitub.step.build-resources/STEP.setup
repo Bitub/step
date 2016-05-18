@@ -442,7 +442,7 @@
           source="http:/www.eclipse.org/oomph/targlets/TargetDefinitionGenerator">
         <detail
             key="location">
-          <value>${installation.location/git/}${git.clone.step.remoteURI|gitRepository}/de.bitub.step.target-definition/de.bitub.step-mars.target</value>
+          <value>${installation.location/git/}${git.clone.step.remoteURI|gitRepository}/de.bitub.step.build-resources/de.bitub.step-test.target</value>
         </detail>
         <detail
             key="includeAllPlatforms">
