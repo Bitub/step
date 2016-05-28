@@ -4,9 +4,15 @@
 package org.buildingsmart.mvd.expressions.ui.labeling
 
 import com.google.inject.Inject
+import org.buildingsmart.mvd.expressions.expressionStrings.And
+import org.buildingsmart.mvd.expressions.expressionStrings.Expression
+import org.buildingsmart.mvd.expressions.expressionStrings.Or
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider
+import org.buildingsmart.mvd.expressions.expressionStrings.BooleanTerm
 
+//import org.buildingsmart.mvd.expressions.expressionStrings.Equality
+//import org.buildingsmart.mvd.expressions.expressionStrings.Comparison
 /**
  * Provides labels for EObjects.
  * 
@@ -20,12 +26,11 @@ class ExpressionStringsLabelProvider extends DefaultEObjectLabelProvider {
 	}
 
 	// Labels and icons can be computed like this:
-	
-//	def text(Greeting ele) {
-//		'A greeting to ' + ele.name
-//	}
-//
-//	def image(Greeting ele) {
-//		'Greeting.gif'
-//	}
+	def text(Expression expr) {
+		switch (expr) {
+			And: '''AND'''
+			Or: '''OR'''
+			BooleanTerm: '''«expr.op»'''
+		}.toString
+	}
 }

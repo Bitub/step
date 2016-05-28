@@ -6,11 +6,40 @@
     complianceLevel="6.0" copyrightFields="false" runtimeVersion="2.11">
   <genPackages prefix="ExpressionStrings" basePackage="org.buildingsmart.mvd.expressions"
       disposableProviderFactory="true" fileExtensions="mvdrule" ecorePackage="ExpressionStrings.ecore#/">
-    <genClasses ecoreClass="ExpressionStrings.ecore#//Model">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Model/greetings"/>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="ExpressionStrings.ecore#//Metric">
+      <genEnumLiterals ecoreEnumLiteral="ExpressionStrings.ecore#//Metric/VALUE"/>
+      <genEnumLiterals ecoreEnumLiteral="ExpressionStrings.ecore#//Metric/SIZE"/>
+      <genEnumLiterals ecoreEnumLiteral="ExpressionStrings.ecore#//Metric/TYPE"/>
+      <genEnumLiterals ecoreEnumLiteral="ExpressionStrings.ecore#//Metric/UNIQUE"/>
+      <genEnumLiterals ecoreEnumLiteral="ExpressionStrings.ecore#//Metric/EXISTS"/>
+    </genEnums>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Expression"/>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//BooleanTerm">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//BooleanTerm/param"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//BooleanTerm/op"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//BooleanTerm/value"/>
     </genClasses>
-    <genClasses ecoreClass="ExpressionStrings.ecore#//Greeting">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//Greeting/name"/>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Parameter">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//Parameter/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//Parameter/metric"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Value"/>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//LogicalLiteral">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//LogicalLiteral/value"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Or">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Or/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Or/right"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//And">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//And/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//And/right"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//RealLiteral">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//RealLiteral/value"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//StringLiteral">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//StringLiteral/value"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

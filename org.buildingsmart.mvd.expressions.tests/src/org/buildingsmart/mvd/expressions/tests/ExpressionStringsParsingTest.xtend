@@ -4,25 +4,25 @@
 package org.buildingsmart.mvd.expressions.tests
 
 import com.google.inject.Inject
-import org.buildingsmart.mvd.expressions.expressionStrings.Model
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
 import org.eclipse.xtext.junit4.util.ParseHelper
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.buildingsmart.mvd.expressions.expressionStrings.Expression
 
 @RunWith(XtextRunner)
 @InjectWith(ExpressionStringsInjectorProvider)
-class ExpressionStringsParsingTest{
+class ExpressionStringsParsingTest {
 
 	@Inject
-	ParseHelper<Model> parseHelper
+	ParseHelper<Expression> parseHelper
 
-	@Test 
+	@Test
 	def void loadModel() {
 		val result = parseHelper.parse('''
-			Hello Xtext!
+			O_PsetName [Value] = 'Pset_WallCommon' AND  O_PName [Value] = 'Thermal Transmittance' AND O_PSingleValue [Exists] = true
 		''')
 		Assert.assertNotNull(result)
 	}
