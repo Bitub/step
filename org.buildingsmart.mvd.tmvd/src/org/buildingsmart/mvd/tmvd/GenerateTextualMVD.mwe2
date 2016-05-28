@@ -70,10 +70,6 @@ Workflow {
 			// composedCheck = "org.eclipse.xtext.validation.NamesAreUniqueValidator"
 			}
 
-			// old scoping and exporting API 
-			// fragment = scoping.ImportNamespacesScopingFragment auto-inject {}
-			// fragment = exporting.QualifiedNamesFragment auto-inject {}
-
 			// scoping and exporting API
 			fragment = scoping.ImportURIScopingFragment auto-inject {}
 			fragment = exporting.SimpleNamesFragment auto-inject {}
@@ -83,8 +79,7 @@ Workflow {
 			fragment = generator.GeneratorFragment auto-inject {}
 
 			// formatter API 
-			//			fragment = formatting2.Formatter2Fragment auto-inject {}
-			fragment = ecore2xtext.FormatterFragment auto-inject {}
+			fragment = formatting2.Formatter2Fragment auto-inject {}
 
 			// labeling API 
 			fragment = labeling.LabelProviderFragment auto-inject {}

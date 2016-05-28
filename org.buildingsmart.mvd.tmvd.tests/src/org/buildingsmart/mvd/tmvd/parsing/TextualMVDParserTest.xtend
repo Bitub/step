@@ -1,4 +1,4 @@
-package org.buildingsmart.mvd.tmvd.tests
+package org.buildingsmart.mvd.tmvd.parsing
 
 import org.buildingsmart.mvd.mvdxml.MvdXML
 import org.buildingsmart.mvd.tmvd.TextualMVDInjectorProvider
@@ -9,6 +9,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import com.google.inject.Inject
 import org.eclipse.xtext.junit4.validation.ValidationTestHelper
+import org.buildingsmart.mvd.tmvd.AbstractTextualMVDTest
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(TextualMVDInjectorProvider))

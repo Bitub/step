@@ -89,7 +89,7 @@ class IOHelper {
 			injector.getInstance(XtextResourceFactory))
 
 		val resource = xcoreResourceSet.getResource(URI.createURI(fileName), Boolean.TRUE);
-		resource.contents.get(0) as  MvdXML
+		resource.contents.get(0) as MvdXML
 	}
 
 	def loadMvdXML(String fileName) {
@@ -118,7 +118,7 @@ class IOHelper {
 
 		// do not fail on unknown elements
 		options.put(XMLResource.OPTION_RECORD_UNKNOWN_FEATURE, Boolean.TRUE);
-		
+
 		// register hooks for pre and post laod events
 		options.put(XMLResource.OPTION_RESOURCE_HANDLER, new MvdXmlResourceHandler);
 

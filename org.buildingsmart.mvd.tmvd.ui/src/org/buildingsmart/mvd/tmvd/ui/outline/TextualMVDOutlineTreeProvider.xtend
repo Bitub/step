@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.EClassifier
 
 /**
  * Customization of the default outline structure.
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#outline
  */
 class TextualMVDOutlineTreeProvider extends DefaultOutlineTreeProvider {
@@ -59,9 +59,18 @@ class TextualMVDOutlineTreeProvider extends DefaultOutlineTreeProvider {
 	}
 
 	def void _createChildren(IOutlineNode outlineNode, ConceptTemplate conceptTemplate) {
-		conceptTemplate.rules.attributeRule.forEach [ attr |
-			outlineNode.createNode(attr)
-		]
+
+		if (conceptTemplate.rules != null) {
+			conceptTemplate.rules?.attributeRule.forEach [ attr |
+				outlineNode.createNode(attr)
+			]
+		}
+
+		if (conceptTemplate.subTemplates != null) {
+			conceptTemplate?.subTemplates?.conceptTemplate.forEach [
+				outlineNode.createNode(it)
+			]
+		}
 	}
 
 	/**
@@ -84,7 +93,7 @@ class TextualMVDOutlineTreeProvider extends DefaultOutlineTreeProvider {
 	def _text(Concept concept) {
 		concept.name.outlineStringWithType("Concept")
 	}
-	
+
 	def _text(ConceptTemplate conceptTemplate) {
 		conceptTemplate.name.outlineStringWithType("ConceptTemplate")
 	}

@@ -5,53 +5,56 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 import "http://buildingsmart-tech.org/mvd/XML/1.1"
 
 MvdXML returns MvdXML:
+	'@' 'UUID' LPAREN uuid=UUID RPAREN?
+	'mvd' name=ID
 	('author' author=STRING)?
 	('code' code=NORMALIZED_STRING)?
 	('copyright' copyright=STRING)?
 	('owner' owner=NORMALIZED_STRING)?
-	('status' status=StatusType)?
+	('status' status=StatusLiterals)?
 	('version' version=NORMALIZED_STRING)?
-	('@UUID' LPAREN uuid=UUID RPAREN)?
-	'mvd' name=ID
-	';'
-	('def' 'templates' ':' templates=TemplatesType 'end')?
-	('def' 'views' ':' views=ViewsType 'end')?;
+	('templates' templates=Templates)?
+	('views' views=Views)?;
 
-TemplatesType returns TemplatesType:
-	conceptTemplate+=ConceptTemplate ("," conceptTemplate+=ConceptTemplate)*;
+	/**
+ * A list of reusable concept templates, mvd:ConceptTemplate, that define the graph
+ * within the base IFC schema representing the entities and attributes needed to support the functional
+ * unit addressed by the concept
+ */
+Templates returns TemplatesType:
+	LCURLY conceptTemplate+=ConceptTemplate (conceptTemplate+=ConceptTemplate)* RCURLY;
 
-ViewsType returns ViewsType:
-	modelView+=ModelView ("," modelView+=ModelView)*;
+Views returns ViewsType:
+	LCURLY modelView+=ModelView (COMMATA modelView+=ModelView)* RCURLY;
 
 AnyURI returns type::AnyURI:
 	'AnyURI' STRING;
 
 ConceptTemplate returns ConceptTemplate:
-	'@UUID' LPAREN uuid=UUID RPAREN
-	name=ID ':' 'ConceptTemplate' '=>'
-	'['
-	('applicableEntity' applicableEntity=APPLICABLE_ENTITY_TYPE)?
-	'applicableSchema' applicableSchema=APPLICABLE_SCHEMA_TYPE
+	'@' 'UUID' LPAREN uuid=UUID RPAREN
+	name=ID EQUAL 'ConceptTemplate' LCURLY
+	('applicableEntity' ':' applicableEntity=APPLICABLE_ENTITY_TYPE)?
+	'applicableSchema' ':' applicableSchema=APPLICABLE_SCHEMA_TYPE
 	('author' author=NORMALIZED_STRING)?
 	('code' code=NORMALIZED_STRING)?
 	('copyright' copyright=AnyURI)?
 	('isPartial' isPartial=Boolean)?
 	('owner' owner=NORMALIZED_STRING)?
-	('status' status=StatusType)?
+	('status' status=StatusLiterals)?
 	('version' version=NORMALIZED_STRING)?
 	('definitions' definitions=Definitions)?
-	('def' 'rules' ':' rules=RulesType 'end')?
-	('def' 'subTemplates' ':' subTemplates=SubTemplatesType 'end')?
-	']';
+	('def' 'rules' ':' rules=RulesType)?
+	('def' 'subTemplates' ':' subTemplates=SubTemplates)?
+	RCURLY;
 
 Definitions returns Definitions:
-	'[' definition+=DefinitionType ("," definition+=DefinitionType)* ']';
+	LBRACKET definition+=Definition (COMMATA definition+=Definition)* RBRACKET;
 
 RulesType returns RulesType:
-	attributeRule+=AttributeRule (attributeRule+=AttributeRule)*;
+	LBRACKET attributeRule+=AttributeRule (attributeRule+=AttributeRule)* RBRACKET;
 
-SubTemplatesType returns SubTemplatesType:
-	conceptTemplate+=ConceptTemplate ("," conceptTemplate+=ConceptTemplate)*;
+SubTemplates returns SubTemplatesType:
+	LBRACKET conceptTemplate+=ConceptTemplate (COMMATA conceptTemplate+=ConceptTemplate)* RBRACKET;
 
 APPLICABLE_ENTITY_TYPE returns type::NormalizedString:
 	ID;
@@ -62,193 +65,202 @@ APPLICABLE_SCHEMA_TYPE returns type::NormalizedString:
 Boolean returns type::Boolean:
 	'true' | 'false';
 
-DefinitionType returns DefinitionType:
+Definition returns DefinitionType:
 	{DefinitionType}
-	'{'
-	('body' body=BodyType)?
-	('link' '{' link+=LinkType ("," link+=LinkType)* '}')?
-	'}';
+	LCURLY
+	('body' body=Body)?
+	('link' LCURLY link+=Link (COMMATA link+=Link)* RCURLY)?
+	RCURLY;
 
-BodyType returns BodyType:
+Body returns BodyType:
 	{BodyType}
-	'{'
+	LCURLY
 	('value' value=STRING)?
 	('lang' lang=LANGUAGE)?
 	('tags' tags=TAGS_TYPE)?
-	'}';
+	RCURLY;
 
-LinkType returns LinkType:
-	'{'
-	('category' category=CategoryType)?
+Link returns LinkType:
+	LCURLY
+	('category' category=CategoryLiterals)?
 	'href' href=AnyURI
 	('lang' lang=LANGUAGE)?
 	('title' title=NORMALIZED_STRING)?
-	'}';
+	RCURLY;
 
 AttributeRule returns AttributeRule:
 	(description=ML_COMMENT)?
+	('@' 'RuleID' LPAREN ruleID=ID RPAREN)?
 	'attr' name=ID
-	('ruleID' ruleID=ID)?
-	(entityRules=EntityRulesType)?
-	('def' 'constraints' ':' constraints=ConstraintsType 'end')?
-	'end';
+	('with' 'constraints' constraints=Constraints)?
+	(LCURLY entityRules=EntityRules RCURLY)?;
 
-EntityRulesType returns EntityRulesType:
-	entityRule+=EntityRule ("," entityRule+=EntityRule)*;
+EntityRules returns EntityRulesType:
+	entityRule+=EntityRule (COMMATA entityRule+=EntityRule)*;
 
 EntityRule returns EntityRule:
 	(description=ML_COMMENT)?
-	'entity' name=ID
-	('reference' references=ReferencesType)?
-	(attributeRules=AttributeRulesType)?
-	('def' 'constraints' ':' constraints=ConstraintsType 'end')?
-	('ruleID' ruleID=ID)?
-	'end';
+	('@' 'RuleID' LPAREN ruleID=ID RPAREN)?
+	'entity' name=ID LCURLY
+	('reference' references=References)?
+	(attributeRules=AttributeRules)?
+	('with' 'constraints' constraints=Constraints)?
+	RCURLY;
 
-ReferencesType:
-	'{'
+References returns ReferencesType:
+	LCURLY
 	'template' template=GenericReference
 	('prefix' idPrefix=ID)?
-	'}';
+	RCURLY;
 
-AttributeRulesType returns AttributeRulesType:
-	attributeRule+=AttributeRule ("," attributeRule+=AttributeRule)*;
+AttributeRules returns AttributeRulesType:
+	attributeRule+=AttributeRule (attributeRule+=AttributeRule)*;
 
-ConstraintsType returns ConstraintsType:
-	constraint+=ConstraintType (constraint+=ConstraintType*)?;
+Constraints returns ConstraintsType:
+	LBRACKET constraint+=Constraint (constraint+=Constraint)* RBRACKET;
 
-ConstraintType:
-	expression=STRING;
+Constraint returns ConstraintType:
+	'=>' expression=STRING ';';
 
 ModelView returns ModelView:
-	'@UUID' LPAREN uuid=UUID RPAREN
-	name=ID ':' 'ModelView' '=>'
-	'['
+	'@' 'UUID' LPAREN uuid=UUID RPAREN
+	name=ID EQUAL 'ModelView' LCURLY
 	'applicableSchema' EQUAL applicableSchema=SCHEMA_NAME
 	('author' EQUAL author=NORMALIZED_STRING)?
 	('code' EQUAL code=NORMALIZED_STRING)?
 	('copyright' EQUAL copyright=STRING)?
 	('owner' EQUAL owner=NORMALIZED_STRING)?
-	('status' EQUAL status=StatusType)?
+	('status' EQUAL status=StatusLiterals)?
 	('version' EQUAL version=NORMALIZED_STRING)?
 	('definitions' EQUAL definitions=Definitions)?
 	('baseView' EQUAL baseView=GenericReference)?
-	('exchangeRequirements' EQUAL exchangeRequirements=ExchangeRequirementsType)?
-	('roots' EQUAL => roots=RootsType)?
-	']';
+	('exchangeRequirements' EQUAL exchangeRequirements=ExchangeRequirements)?
+	('roots' EQUAL => roots=Roots)?
+	RCURLY;
 
 GenericReference returns GenericReference:
 	{GenericReference}
 	('href' href=AnyURI)?
 	('ref' ref=[ConceptTemplate|ID])?;
 
-ExchangeRequirementsType returns ExchangeRequirementsType:
-	'[' exchangeRequirement+=ExchangeRequirementType ("," exchangeRequirement+=ExchangeRequirementType)* ']';
+ExchangeRequirements returns ExchangeRequirementsType:
+	LBRACKET exchangeRequirement+=ExchangeRequirement (COMMATA exchangeRequirement+=ExchangeRequirement)* RBRACKET;
 
-RootsType returns RootsType:
-	'[' conceptRoot+=ConceptRoot ("," conceptRoot+=ConceptRoot)* ']';
+Roots returns RootsType:
+	LBRACKET conceptRoot+=ConceptRoot (COMMATA conceptRoot+=ConceptRoot)* RBRACKET;
 
-ExchangeRequirementType returns ExchangeRequirementType:
-	'@UUID' LPAREN uuid=UUID RPAREN
+ExchangeRequirement returns ExchangeRequirementType:
+	'@' 'UUID' LPAREN uuid=UUID RPAREN
 	name=ID ':' 'ExchangeRequirement' '=>'
-	'['
+	LBRACKET
 	('applicability' EQUAL applicability=Applicability)?
 	('author' EQUAL author=NORMALIZED_STRING)?
 	('code' EQUAL code=NORMALIZED_STRING)?
 	('copyright' EQUAL copyright=AnyURI)?
 	('owner' EQUAL owner=NORMALIZED_STRING)?
-	('status' EQUAL status=StatusType)?
+	('status' EQUAL status=StatusLiterals)?
 	('version' EQUAL version=NORMALIZED_STRING)?
 	('definitions' EQUAL definitions=Definitions)?
-	']';
+	RBRACKET;
 
+	/**
+ * An ConceptRoot references a specific IFC entity, e.g. IfcWall, representing a 
+ * major and individually testable model element in a MVD
+ */
 ConceptRoot returns ConceptRoot:
-	'@UUID' LPAREN uuid=UUID RPAREN
+	'@' 'UUID' LPAREN uuid=UUID RPAREN
 	name=ID ':' 'ConceptRoot' '=>'
-	'['
+	LBRACKET
 	('applicableRootEntity' EQUAL applicableRootEntity=ID)?
 	('author' EQUAL author=NORMALIZED_STRING)?
 	('code' EQUAL code=NORMALIZED_STRING)?
 	('copyright' EQUAL copyright=AnyURI)?
 	('owner' EQUAL owner=NORMALIZED_STRING)?
-	('status' EQUAL status=StatusType)?
+	('status' EQUAL status=StatusLiterals)?
 	('version' EQUAL version=NORMALIZED_STRING)?
 	('definitions' EQUAL definitions=Definitions)?
 	('applicability' EQUAL applicability=ApplicabilityType)?
-	('concepts' EQUAL concepts=ConceptsType)?
-	']';
+	('concepts' EQUAL concepts=Concepts)?
+	RBRACKET;
 
+	/**
+ * It optionally applies additional constraints on the applicable entity that needs to be 
+ * fulfilled by the entity instance before the Concepts are validated.
+ */
 ApplicabilityType returns ApplicabilityType:
 	'Applicability'
-	'{'
+	LCURLY
 	('definitions' definitions=Definitions)?
 	'template' template=GenericReference
 	'templateRules' templateRules=TemplateRules
-	'}';
+	RCURLY;
 
-ConceptsType returns ConceptsType:
-	'[' concept+=Concept ("," concept+=Concept)* ']';
+Concepts returns ConceptsType:
+	LBRACKET concept+=Concept (COMMATA concept+=Concept)* RBRACKET;
 
 TemplateRules returns TemplateRules:
 	{TemplateRules}
-	'TemplateRules'
-	'{'
+	'<=>' LCURLY
 	('description' description=STRING)?
-	('operator' operator=OperatorType)? // recursive definition of TemplateRules
-	('templateRules' '[' templateRules+=TemplateRules (',' templateRules+=TemplateRules)* ']')?
-	('templateRule' '[' templateRule+=TemplateRuleType (',' templateRule+=TemplateRuleType)* ']')?
-	'}';
+	(operator=OperatorLiterals)? // recursive definition of TemplateRules
+	(LBRACKET templateRules+=TemplateRules (COMMATA templateRules+=TemplateRules)* RBRACKET)?
+	(templateRule+=TemplateRule (COMMATA templateRule+=TemplateRule)*)?
+	RCURLY;
 
-TemplateRuleType returns TemplateRuleType:
-	'TemplateRule' '{'
+TemplateRule returns TemplateRuleType:
+	EQUAL LCURLY
 	('description' description=STRING)?
-	'parameters' parameters=STRING
-	'}';
+	'check' parameters=STRING
+	RCURLY;
 
+	/**
+ * describe template rules for common subsets of information (e.g. material usage) 
+ * within the context of the particular concept root
+ */
 Concept returns Concept:
-	'@UUID' LPAREN uuid=UUID RPAREN
+	'@' 'UUID' LPAREN uuid=UUID RPAREN
 	name=ID ':' 'Concept' '=>'
-	'['
+	LBRACKET
 	('author' EQUAL author=NORMALIZED_STRING)?
 	('baseConcept' EQUAL baseConcept=UUID)?
 	('code' EQUAL code=NORMALIZED_STRING)?
 	('copyright' EQUAL copyright=AnyURI)?
 	('override' EQUAL override=Boolean)?
 	('owner' EQUAL owner=NORMALIZED_STRING)?
-	('status' EQUAL status=StatusType)?
+	('status' EQUAL status=StatusLiterals)?
 	('version' EQUAL version=NORMALIZED_STRING)?
 	('definitions' EQUAL definitions=Definitions)?
 	'template' EQUAL template=GenericReference
 	('requirements' EQUAL requirements=Requirements)?
 	'templateRules' EQUAL templateRules=TemplateRules
-	']';
+	RBRACKET;
 
 Requirements returns Requirements:
-	'[' requirement+=Requirement ("," requirement+=Requirement)* ']';
+	LBRACKET requirement+=Requirement (COMMATA requirement+=Requirement)* RBRACKET;
 
 Requirement returns Requirement:
-	requirement=RequirementType 'Requirement'
-	'{'
+	requirement=RequirementLiterals 'Requirement'
+	LCURLY
 	('value' value=STRING)?
 	('applicability' applicability=Applicability)?
 	'exchangeRequirement' => exchangeRequirement=[ExchangeRequirementType|ID]
-	'}';
+	RCURLY;
 
 enum Applicability returns Applicability:
 	export='export' | ^import='import' | both='both';
 
-enum RequirementType returns RequirementType:
+enum RequirementLiterals returns RequirementType:
 	mandatory='mandatory' | recommended='recommended' | notRelevant='notRelevant' | notRecommended='notRecommended' |
 	excluded='excluded' | optional='optional';
 
-enum OperatorType returns OperatorType:
+enum OperatorLiterals returns OperatorType:
 	and='and' | or='or' | not='not' | nand='nand' | nor='nor' | xor='xor' | nxor='nxor';
 
-enum CategoryType returns CategoryType:
+enum CategoryLiterals returns CategoryType:
 	definition='definition' | agreement='agreement' | diagram='diagram' | instantiation='instantiation' |
 	example='example';
 
-enum StatusType returns StatusType:
+enum StatusLiterals returns StatusType:
 	sample='sample' | proposal='proposal' | draft='draft' | candidate='candidate' | final='final' |
 	deprecated='deprecated' | noStatus='noStatus';
 
@@ -267,23 +279,38 @@ SCHEMA_NAME returns SchemaName:
 terminal UUID:
 	HEX_OCTED_4 "-" HEX_OCTED_2 "-" HEX_OCTED_2 "-" HEX_OCTED HEX_OCTED "-" HEX_OCTED_6;
 
-terminal HEX_OCTED_6:
+terminal fragment HEX_OCTED_6:
 	HEX_OCTED HEX_OCTED HEX_OCTED HEX_OCTED HEX_OCTED HEX_OCTED;
 
-terminal HEX_OCTED_2:
+terminal fragment HEX_OCTED_2:
 	HEX_OCTED HEX_OCTED;
 
-terminal HEX_OCTED_4:
+terminal fragment HEX_OCTED_4:
 	HEX_OCTED HEX_OCTED HEX_OCTED HEX_OCTED;
 
-terminal HEX_OCTED:
+terminal fragment HEX_OCTED:
 	HEX_DIGIT HEX_DIGIT;
 
-terminal HEX_DIGIT:
+terminal fragment HEX_DIGIT:
 	('0'..'9' | 'a'..'f' | 'A'..'F');
 
 terminal EQUAL:
 	'=';
+
+terminal LBRACKET:
+	'[';
+
+terminal RBRACKET:
+	']';
+
+terminal COMMATA:
+	',';
+
+terminal LCURLY:
+	'{';
+
+terminal RCURLY:
+	'}';
 
 terminal LPAREN:
 	'(';

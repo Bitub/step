@@ -6,16 +6,29 @@ package org.buildingsmart.mvd.tmvd.validation
 import org.eclipse.xtext.validation.Check
 import org.buildingsmart.mvd.mvdxml.MvdXmlPackage
 import org.buildingsmart.mvd.mvdxml.ConceptTemplate
+import org.buildingsmart.ifc4.Ifc4Package
+import org.eclipse.emf.ecore.EClass
+import org.buildingsmart.mvd.mvdxml.AttributeRule
+import org.buildingsmart.mvd.mvdxml.RulesType
+import org.buildingsmart.mvd.mvdxml.ReferencesType
+import org.buildingsmart.mvd.mvdxml.EntityRule
+import org.buildingsmart.mvd.mvdxml.Concept
+import org.eclipse.xtext.EcoreUtil2
+import org.buildingsmart.mvd.mvdxml.ConceptRoot
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class TextualMVDValidator extends AbstractTextualMVDValidator {
 
 	public static val INVALID_NAME = 'invalidName'
 	public static val NO_UUID = 'noUuid'
+	public static val NO_SCHEMA_ENTITY = 'noSchemaEntity'
+	public static val NO_PARTIAL_CONCEPT_TEMPLATE = 'noPartialConceptTemplate'
+	public static val INVALID_ENTITY_TYPE_REFERENCE = 'invalidEntityTypeReference'
 
 	@Check
 	def checkConceptTemplateNameStartsWithCapitalLetter(ConceptTemplate conceptTemplate) {
@@ -26,10 +39,83 @@ class TextualMVDValidator extends AbstractTextualMVDValidator {
 	}
 
 	@Check
+	def checkReferencedApplicableEntityEqualsToEntityRuleType(ReferencesType reference) {
+
+		var entityName = (reference.eContainer as EntityRule).name
+
+		if (!entityName.equalsIgnoreCase(reference.template?.ref.applicableEntity)) {
+			warning('Applicable entity type of referenced ConceptTemplate "' + reference.template.ref.name +
+				'" is not equal to defined defined entity type.', MvdXmlPackage::eINSTANCE.referencesType_Template,
+				INVALID_ENTITY_TYPE_REFERENCE)
+		}
+	}
+
+	@Check
+	def checkApplicableRootEntityOfConceptRootIsSupertypeOfConceptTemplateReferencedApplicableEntity(Concept concept) {
+
+		var conceptTemplate = concept.template.ref
+		var applicableEntityName = conceptTemplate.applicableEntity
+		var applicableEntity = Ifc4Package.eINSTANCE.getEClassifier(applicableEntityName) as EClass
+
+		var rootConcept = EcoreUtil2.getContainerOfType(concept, ConceptRoot)
+		var applicableRootEntityName = rootConcept.applicableRootEntity
+		var applicableRootEntity = Ifc4Package.eINSTANCE.getEClassifier(applicableRootEntityName) as EClass
+
+		if (!applicableEntity.isSuperTypeOf(applicableRootEntity)) {
+			warning(
+				'Applicable root entity in ConceptRoot is not sub-type of applicable entity in referenced ConceptTemplate.',
+				MvdXmlPackage::eINSTANCE.concept_Template, INVALID_ENTITY_TYPE_REFERENCE)
+		}
+	}
+
+	@Check
+	def checkThatReferencedConceptTemplateIsPartial(ReferencesType reference) {
+
+		if (!reference.template?.ref.isIsPartial) {
+			warning('Referenced ConceptTemplate "' + reference.template.ref.name + '" is not a partial template.',
+				MvdXmlPackage::eINSTANCE.referencesType_Template, NO_PARTIAL_CONCEPT_TEMPLATE)
+		}
+	}
+
+	@Check
 	def checkConceptLetterHasUUID(ConceptTemplate conceptTemplate) {
 		if (conceptTemplate.uuid == null) {
 			warning('ConceptTemplate should have UUID defined', MvdXmlPackage::eINSTANCE.conceptTemplate_Uuid,
 				conceptTemplate.uuid, NO_UUID)
+		}
+	}
+
+	@Check
+	def checkAttributesAreInApplicableEntity(ConceptTemplate conceptTemplate) {
+
+		val applicableEntityName = conceptTemplate.applicableEntity
+		var applicableEntity = Ifc4Package.eINSTANCE.getEClassifier(applicableEntityName) as EClass
+
+		if (applicableEntityName != null) {
+			if (applicableEntity == null) {
+				warning('Applicable entity is not in schema', MvdXmlPackage::eINSTANCE.conceptTemplate_ApplicableEntity,
+					conceptTemplate.applicableEntity, NO_SCHEMA_ENTITY)
+
+			}
+		}
+	}
+
+	@Check
+	def checkAttributesAreInApplicableEntity(AttributeRule attrRule) {
+
+		var parent = attrRule.eContainer
+		if (parent instanceof RulesType) {
+			if (parent.eContainer instanceof ConceptTemplate) {
+
+				var applicableEntityName = (parent.eContainer as ConceptTemplate).applicableEntity
+				var applicableEntity = Ifc4Package.eINSTANCE.getEClassifier(applicableEntityName) as EClass
+
+				if (applicableEntity.getEStructuralFeature(attrRule.name.toFirstLower) == null) {
+					warning('Attribute is not in applicable Entity ' + applicableEntityName,
+						MvdXmlPackage::eINSTANCE.attributeRule_Name, attrRule.name, NO_SCHEMA_ENTITY)
+				}
+			}
+
 		}
 	}
 }

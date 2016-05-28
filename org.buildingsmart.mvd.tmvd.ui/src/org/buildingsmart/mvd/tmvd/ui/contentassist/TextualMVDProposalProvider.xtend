@@ -4,14 +4,20 @@
 package org.buildingsmart.mvd.tmvd.ui.contentassist
 
 import java.util.UUID
+import org.buildingsmart.ifc4.Ifc4Package
+import org.buildingsmart.mvd.mvdxml.AttributeRule
+import org.buildingsmart.mvd.mvdxml.AttributeRulesType
+import org.buildingsmart.mvd.mvdxml.Concept
 import org.buildingsmart.mvd.mvdxml.ConceptTemplate
+import org.buildingsmart.mvd.mvdxml.EntityRule
+import org.buildingsmart.mvd.mvdxml.RulesType
+import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.Assignment
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.RuleCall
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
-import org.buildingsmart.mvd.mvdxml.Concept
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -24,6 +30,68 @@ class TextualMVDProposalProvider extends AbstractTextualMVDProposalProvider {
 
 		val uuid = UUID.randomUUID.toString
 		acceptor.accept(createCompletionProposal(uuid, "new UUID", null, context))
+	}
+
+	override completeAttributeRule_Name(EObject model, Assignment assignment, ContentAssistContext context,
+		ICompletionProposalAcceptor acceptor) {
+
+		var rule = model as AttributeRule
+		var parent = rule.eContainer
+		switch (parent) {
+			RulesType case parent.eContainer instanceof ConceptTemplate: {
+				val applicableEntityName = (parent.eContainer as ConceptTemplate).applicableEntity
+				var applicableEntity = Ifc4Package.eINSTANCE.getEClassifier(applicableEntityName) as EClass
+
+				applicableEntity.EAllStructuralFeatures.forEach [
+					acceptor.accept(
+						createCompletionProposal(it.name.toFirstUpper,
+							String.format("[%s] %s", applicableEntityName, it.name.toFirstUpper), null, context))
+				]
+			}
+			AttributeRulesType case parent.eContainer instanceof EntityRule: {
+
+				val entityName = (parent.eContainer as EntityRule).name
+				var entity = Ifc4Package.eINSTANCE.getEClassifier(entityName) as EClass
+
+				entity.EAllStructuralFeatures.forEach [
+					acceptor.accept(
+						createCompletionProposal(it.name.toFirstUpper,
+							String.format("[%s] %s", entityName, it.name.toFirstUpper), null, context))
+				]
+			}
+		}
+	}
+
+	override completeEntityRule_Name(EObject model, Assignment assignment, ContentAssistContext context,
+		ICompletionProposalAcceptor acceptor) {
+
+		var entityListContainer = model.eContainer.eContainer
+		if (entityListContainer instanceof AttributeRule) {
+			var attributeListContainer = entityListContainer.eContainer.eContainer
+
+			// find parents entity name
+			var parentEntityName = switch (attributeListContainer) {
+				EntityRule: {
+					attributeListContainer.name
+				}
+				ConceptTemplate: {
+					attributeListContainer.applicableEntity
+				}
+			}
+
+			var parentEntity = Ifc4Package.eINSTANCE.getEClassifier(parentEntityName) as EClass
+			var parentEntityAttr = parentEntity.getEStructuralFeature(entityListContainer.name.toFirstLower)
+
+			// propose valid attribute
+			if (parentEntityAttr != null) {
+				var attributeProposal = parentEntityAttr.EType.name
+
+				acceptor.accept(
+					createCompletionProposal(attributeProposal,
+						String.format("%s.%s ~> [Attr] %s", parentEntity.name, parentEntityAttr.name,
+							attributeProposal), null, context))
+			}
+		}
 	}
 
 	/**
@@ -49,8 +117,7 @@ class TextualMVDProposalProvider extends AbstractTextualMVDProposalProvider {
 		val root = EcoreUtil2.getRootContainer(model)
 		EcoreUtil2.eAllOfType(root, Concept).filter[it === model].forEach [
 			acceptor.accept(
-				createCompletionProposal(it.uuid, String.format("[Concept] %s : %s", it.name, it.uuid), null,
-					context))
+				createCompletionProposal(it.uuid, String.format("[Concept] %s : %s", it.name, it.uuid), null, context))
 		];
 	}
 

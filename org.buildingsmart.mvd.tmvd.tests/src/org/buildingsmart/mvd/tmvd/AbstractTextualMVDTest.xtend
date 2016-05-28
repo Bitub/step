@@ -1,4 +1,4 @@
-package org.buildingsmart.mvd.tmvd.tests
+package org.buildingsmart.mvd.tmvd
 
 import com.google.inject.Inject
 import org.buildingsmart.mvd.tmvd.TextualMVDInjectorProvider

@@ -1,4 +1,4 @@
-package org.buildingsmart.mvd.tmvd.tests
+package org.buildingsmart.mvd.tmvd.scoping
 
 import com.google.inject.Inject
 import org.buildingsmart.mvd.mvdxml.MvdXML
@@ -11,10 +11,11 @@ import org.eclipse.xtext.junit4.XtextRunner
 import org.eclipse.xtext.scoping.IScopeProvider
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.buildingsmart.mvd.tmvd.AbstractTextualMVDTest
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(TextualMVDInjectorProvider))
-class TextualMVDIndexTest extends AbstractTextualMVDTest {
+class TextualMVDScopeProviderTest extends AbstractTextualMVDTest {
 
 	@Inject extension IScopeProvider
 
