@@ -226,7 +226,7 @@
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
-        id="p2.org.eclipse.xtext.luna"
+        id="p2.org.eclipse.xcore.mars"
         label="Xcore"
         licenseConfirmationDisabled="true">
       <requirement
@@ -238,8 +238,8 @@
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
-        id="p2.org.eclipse.xtext.luna"
-        label="Xtext &amp; Xtend &amp; Xcore &amp; MWE2"
+        id="p2.org.eclipse.xtext.mars"
+        label="Xtext &amp; Xtend &amp; MWE2"
         licenseConfirmationDisabled="true">
       <requirement
           name="org.eclipse.xtext.sdk.feature.group"
@@ -252,7 +252,7 @@
           versionRange="[2.8.3,2.8.4)"/>
       <repository
           url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
-      <description>Xtext &amp; Xtend &amp; Xcore</description>
+      <description>Xtext &amp; Xtend</description>
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
@@ -401,6 +401,14 @@
           url="http://dl.bintray.com/jknack/antlr4ide/"/>
       <description>ANTLR4 IDE</description>
     </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
+        label="OCL SDK">
+      <requirement
+          name="org.eclipse.ocl.master.feature.group"/>
+      <repository
+          url="http://www.eclipse.org/modeling/updates/"/>
+    </setupTask>
   </setupTask>
   <setupTask
       xsi:type="setup:CompoundTask"
@@ -502,6 +510,8 @@
           name="org.openifctools.stringconverter.f.feature.group"/>
       <requirement
           name="de.bitub.step.ifc4.f.feature.group"/>
+      <requirement
+          name="org.eclipse.ocl.master.feature.group"/>
       <sourceLocator
           rootFolder="${installation.location/git/}${git.clone.step.remoteURI|gitRepository}"/>
       <repositoryList
@@ -522,6 +532,8 @@
             url="https://bitub.github.io/step-ifc4"/>
         <repository
             url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
+        <repository
+            url="http://www.eclipse.org/modeling/updates/"/>
       </repositoryList>
     </targlet>
   </setupTask>
@@ -536,7 +548,7 @@
       name="Mylyn Github Issues">
     <setupTask
         xsi:type="mylyn:MylynQueriesTask"
-        id=""
+        id="github.issues"
         connectorKind="github"
         repositoryURL="https://github.com/bitub/step"
         userID="${github.user.id}"
@@ -552,7 +564,7 @@
   </setupTask>
   <setupTask
       xsi:type="setup.workingsets:WorkingSetTask"
-      id="">
+      id="workingsets">
     <workingSet
         name="P21 parser">
       <predicate
