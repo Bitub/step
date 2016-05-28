@@ -1,13 +1,11 @@
 package de.bitub.step.express.tests.xcoregen
 
-import bitub.base.graph.EdgeTypeEnum
-import bitub.base.graph.GraphFactory
-import bitub.base.graph.NodeTypeEnum
-import de.bitub.riemi.graph.main.GraphConstructionTest
+import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.Entity
 import de.bitub.step.express.Schema
 import de.bitub.step.generator.util.EXPRESSSchemaBundler
+import de.bitub.step.util.EXPRESSExtension
 import java.util.Collection
 import java.util.function.Function
 import java.util.stream.Collectors
@@ -16,8 +14,6 @@ import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import com.google.inject.Inject
-import de.bitub.step.util.EXPRESSExtension
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
