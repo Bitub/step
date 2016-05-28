@@ -22,7 +22,7 @@ ComparisonTerm returns BooleanTerm:
 	param=Parameter op=ComparisonOperator value=Value;
 
 Parameter:
-	name=ID (metric=Metric)?;
+	name=SIMPLEID (metric=Metric)?;
 
 EqualityOperator:
 	EQUAL | NOT_EQUAL;
@@ -45,8 +45,17 @@ RealLiteral returns ecore::EDouble:
 Sign:
 	'+' | '-';
 
+terminal SIMPLEID:
+	'^'? LETTER | (LETTER | DIGIT | UNDERSCORE)*;
+
+terminal LETTER:
+	'a'..'z' | 'A'..'Z';
+
 terminal DIGIT:
 	'0'..'9';
+
+terminal UNDERSCORE:
+	'_';
 
 terminal AND:
 	'AND';
