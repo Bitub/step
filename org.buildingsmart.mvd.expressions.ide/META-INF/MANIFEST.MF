@@ -9,3 +9,6 @@ Require-Bundle: org.buildingsmart.mvd.expressions,
  org.eclipse.xtext.ide,
  org.eclipse.xtext.xbase.ide
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: org.buildingsmart.mvd.expressions.ide.contentassist.antlr.internal,
+ org.buildingsmart.mvd.expressions.ide.contentassist.antlr
+

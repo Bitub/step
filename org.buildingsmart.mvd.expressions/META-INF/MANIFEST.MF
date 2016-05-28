@@ -7,5 +7,23 @@ Bundle-SymbolicName: org.buildingsmart.mvd.expressions; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext,
  org.eclipse.xtext.xbase,
- org.eclipse.equinox.common;bundle-version="3.5.0"
+ org.eclipse.equinox.common;bundle-version="3.5.0",
+ org.eclipse.emf.ecore,
+ org.eclipse.xtext.xbase.lib,
+ org.antlr.runtime,
+ org.eclipse.xtext.util,
+ org.eclipse.xtend.lib,
+ org.eclipse.emf.common
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: org.buildingsmart.mvd.expressions.parser.antlr,
+ org.buildingsmart.mvd.expressions.serializer,
+ org.buildingsmart.mvd.expressions.scoping,
+ org.buildingsmart.mvd.expressions.expressionStrings,
+ org.buildingsmart.mvd.expressions.expressionStrings.util,
+ org.buildingsmart.mvd.expressions.validation,
+ org.buildingsmart.mvd.expressions,
+ org.buildingsmart.mvd.expressions.parser.antlr.internal,
+ org.buildingsmart.mvd.expressions.generator,
+ org.buildingsmart.mvd.expressions.expressionStrings.impl,
+ org.buildingsmart.mvd.expressions.services
+Import-Package: org.apache.log4j
