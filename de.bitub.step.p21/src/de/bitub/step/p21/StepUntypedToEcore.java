@@ -230,7 +230,7 @@ public class StepUntypedToEcore
     try {
       ECollections.setEList(list, entities);
     }
-    catch (ArrayIndexOutOfBoundsException e) {
+    catch (ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
       e.printStackTrace();
     }
   }

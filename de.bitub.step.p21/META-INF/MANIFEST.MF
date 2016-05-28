@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Step P21 IO
-Bundle-SymbolicName: de.bitub.step.p21
+Bundle-SymbolicName: de.bitub.step.p21;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: bitub.de
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -30,3 +30,4 @@ Export-Package: de.bitub.step.p21;uses:="org.eclipse.emf.ecore,org.eclipse.emf.c
    org.eclipse.emf.ecore.resource.impl,
    org.eclipse.emf.ecore.resource",
  de.bitub.step.p21.util;uses:="org.eclipse.emf.ecore,org.eclipse.emf.common.util"
+Bundle-ActivationPolicy: lazy
