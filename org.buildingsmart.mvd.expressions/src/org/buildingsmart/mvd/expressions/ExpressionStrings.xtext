@@ -1,0 +1,9 @@
+grammar org.buildingsmart.mvd.expressions.ExpressionStrings with org.eclipse.xtext.common.Terminals
+
+generate expressionStrings "http://www.buildingsmart.org/mvd/expressions/ExpressionStrings"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
