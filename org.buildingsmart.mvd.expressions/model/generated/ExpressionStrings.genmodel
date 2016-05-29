@@ -35,6 +35,22 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//And/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//And/right"/>
     </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Xor">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Xor/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Xor/right"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Nand">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Nand/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Nand/right"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Nor">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Nor/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Nor/right"/>
+    </genClasses>
+    <genClasses ecoreClass="ExpressionStrings.ecore#//Nxor">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Nxor/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ExpressionStrings.ecore#//Nxor/right"/>
+    </genClasses>
     <genClasses ecoreClass="ExpressionStrings.ecore#//RealLiteral">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ExpressionStrings.ecore#//RealLiteral/value"/>
     </genClasses>

@@ -10,7 +10,19 @@ OrExpression returns Expression:
 	AndExpression ({Or.left=current} OR right=AndExpression)*;
 
 AndExpression returns Expression:
-	BooleanTerm ({And.left=current} AND right=BooleanTerm)*;
+	XorExpression ({And.left=current} AND right=XorExpression)*;
+
+XorExpression returns Expression:
+	NandExpression ({Xor.left=current} XOR right=NandExpression)*;
+
+NandExpression returns Expression:
+	NorExpression ({Nand.left=current} NAND right=NorExpression)*;
+
+NorExpression returns Expression:
+	NxorExpression ({Nor.left=current} NOR right=NxorExpression)*;
+
+NxorExpression returns Expression:
+	BooleanTerm ({Nxor.left=current} NXOR right=BooleanTerm)*;
 
 BooleanTerm returns Expression:
 	LPAREN Expression RPAREN | EqualityTerm | ComparisonTerm;
@@ -40,22 +52,10 @@ LogicalLiteral:
 	value=LOGICAL;
 
 RealLiteral returns ecore::EDouble:
-	(Sign)? (DIGIT | INT) ('.')? (DIGIT | INT)? ('e' (Sign)? (DIGIT | INT))?;
+	(Sign)? INT ('.')? INT? ('e' (Sign)? INT)?;
 
 Sign:
 	'+' | '-';
-
-terminal SIMPLEID:
-	'^'? LETTER | (LETTER | DIGIT | UNDERSCORE)*;
-
-terminal LETTER:
-	'a'..'z' | 'A'..'Z';
-
-terminal DIGIT:
-	'0'..'9';
-
-terminal UNDERSCORE:
-	'_';
 
 terminal AND:
 	'AND';
@@ -75,27 +75,6 @@ terminal NOR:
 terminal NXOR:
 	'NXOR';
 
-terminal EQUAL:
-	'=';
-
-terminal NOT_EQUAL:
-	'!=';
-
-terminal GREATER_THAN:
-	'>';
-
-terminal GREATER_THAN_OR_EQUAL:
-	'>=';
-
-terminal LESS_THAN:
-	'<';
-
-terminal LESS_THAN_OR_EQUAL:
-	'<=';
-
-terminal LOGICAL returns ecore::EBoolean:
-	FALSE | TRUE | UNKNOWN;
-
 terminal FALSE:
 	'false';
 
@@ -105,8 +84,45 @@ terminal TRUE:
 terminal UNKNOWN:
 	'unknown';
 
+terminal LOGICAL returns ecore::EBoolean:
+	FALSE | TRUE | UNKNOWN;
+
+terminal EQUAL:
+	'=';
+
+terminal NOT_EQUAL:
+	'!=';
+
+terminal GREATER_THAN:
+	GREATER;
+
+terminal GREATER_THAN_OR_EQUAL:
+	GREATER EQUAL;
+
+terminal fragment GREATER:
+	'>';
+
+terminal LESS_THAN:
+	'<';
+
+terminal LESS_THAN_OR_EQUAL:
+	'<=';
+
 terminal LPAREN:
 	'(';
 
 terminal RPAREN:
 	')';
+
+terminal fragment LETTER:
+	'a'..'z' | 'A'..'Z';
+
+terminal fragment DIGIT:
+	'0'..'9';
+
+terminal fragment UNDERSCORE:
+	'_';
+
+terminal SIMPLEID:
+	'^'? (LETTER) (LETTER | UNDERSCORE | DIGIT)*;
+
