@@ -1,29 +1,26 @@
 package org.buildingsmart.mvd.tmvd.interpreter
 
 import org.buildingsmart.mvd.mvdxml.ConceptRoot
-import org.buildingsmart.mvd.mvdxml.MvdXML
 import org.buildingsmart.mvd.mvdxml.OperatorType
 import org.buildingsmart.mvd.mvdxml.TemplateRuleType
 import org.buildingsmart.mvd.mvdxml.TemplateRules
-import org.eclipse.ocl.expressions.ExpressionsFactory
 
 class TextualMVDInterpreter {
 
-	def dispatch interpret(ConceptRoot conceptRoot) {
+	def void validate(ConceptRoot conceptRoot) {
 
 		// get all instances of applicable root entity for checking
 		var rootEntityType = conceptRoot.applicableRootEntity
 
 		// filter instances further by applying applicability constraints
-		var applicability = conceptRoot.applicability
+		var applicability = conceptRoot.applicability // TODO reduce amount of instances applicable
+		conceptRoot.concepts.concept.forEach [
 
-	}
-
-	def setupOCLExpression(MvdXML mvd) {
-		val expr = ExpressionsFactory.eINSTANCE.createIteratorExp
-	}
-
-	def filterApplicableInstances() {
+			// referenced concept template 
+			var referencedConceptTemplate = it.template.ref
+			it.templateRules.interpret
+		]
+	
 	}
 
 	def dispatch interpret(TemplateRules rules) {
@@ -46,6 +43,8 @@ class TextualMVDInterpreter {
 	def dispatch interpret(TemplateRuleType rule) {
 
 		var expression = rule.parameters
+		
+		
 	}
 
 }

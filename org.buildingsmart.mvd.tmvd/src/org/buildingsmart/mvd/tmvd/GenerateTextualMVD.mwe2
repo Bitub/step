@@ -17,6 +17,9 @@ Workflow {
 		platformUri = "${runtimeProject}/.."
 		registerGeneratedEPackage = "org.buildingsmart.mvd.mvdxml.MvdXmlPackage"
 		registerGenModelFile = "platform:/resource/org.buildingsmart.mvd/model/mvdXML.genmodel"
+		
+		registerGeneratedEPackage = "org.buildingsmart.mvd.expressions.expressionStrings.ExpressionStringsPackage"
+		registerGenModelFile = "platform:/resource/org.buildingsmart.mvd.expressions/model/generated/ExpressionStrings.genmodel"
 	}
 
 	component = DirectoryCleaner {

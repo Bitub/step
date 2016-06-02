@@ -25,13 +25,17 @@ NxorExpression returns Expression:
 	BooleanTerm ({Nxor.left=current} NXOR right=BooleanTerm)*;
 
 BooleanTerm returns Expression:
-	LPAREN Expression RPAREN | EqualityTerm | ComparisonTerm;
+	LPAREN Expression RPAREN | EqualityTerm | ComparisonTerm | SimpleTerm;
 
 EqualityTerm returns BooleanTerm:
 	param=Parameter op=EqualityOperator value=Value;
 
 ComparisonTerm returns BooleanTerm:
 	param=Parameter op=ComparisonOperator value=Value;
+
+	// mvd 1.0 expression
+SimpleTerm:
+	param=SIMPLEID op=EQUAL value=Value;
 
 Parameter:
 	name=SIMPLEID (metric=Metric)?;
