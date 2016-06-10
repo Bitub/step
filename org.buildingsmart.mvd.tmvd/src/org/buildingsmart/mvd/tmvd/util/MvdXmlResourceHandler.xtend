@@ -32,7 +32,6 @@ class MvdXmlResourceHandler extends BasicResourceHandler implements ResourceHand
 			val codeFeature = next.eClass.getEStructuralFeature("code")
 			if (null != codeFeature) {
 				var code = next.eGet(codeFeature) as String
-				System::out.println(code + " ->" + next.eIsSet(codeFeature))
 
 				if (null == code || code.isEmpty) {
 					next.eUnset(codeFeature)
