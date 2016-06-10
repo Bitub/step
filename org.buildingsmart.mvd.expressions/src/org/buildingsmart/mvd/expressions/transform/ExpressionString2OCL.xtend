@@ -6,32 +6,41 @@ import org.buildingsmart.mvd.expressions.expressionStrings.BooleanTerm
 import org.buildingsmart.mvd.expressions.expressionStrings.Or
 import org.buildingsmart.mvd.expressions.util.IOUtil
 import org.buildingsmart.mvd.expressions.expressionStrings.Value
-import org.eclipse.xtext.xtext.generator.parser.antlr.splitting.simpleExpressions.BooleanLiteral
 import org.buildingsmart.mvd.expressions.expressionStrings.StringLiteral
 import org.buildingsmart.mvd.expressions.expressionStrings.RealLiteral
+import java.util.function.Function
+import org.buildingsmart.mvd.expressions.expressionStrings.LogicalLiteral
+import java.util.function.Consumer
 
 class ExpressionString2OCL {
 
 	@Inject extension IOUtil io
 
-	def transformToOCL(String parameters) {
-		io.parse(parameters).compile
+	def transformToOCL(String parameters, Consumer<String> fn) {
+		io.parse(parameters).compile(fn)
 	}
 
-	def dispatch compile(And and) {
-		'''«and.left.compile» and «and.right.compile»'''
+	def parse(String parameters) {
+		io.parse(parameters)
 	}
 
-	def dispatch compile(Or or) {
-		'''«or.left.compile» or «or.right.compile»'''
+	def dispatch CharSequence compile(And and, Consumer<String> fn) {
+		'''«and.left.compile(fn)» and «and.right.compile(fn)»'''
 	}
 
-	def dispatch compile(BooleanTerm term) {
+	def dispatch CharSequence compile(Or or, Function<String, CharSequence> fn) {
+		'''«or.left.compile(fn)» or «or.right.compile(fn)»'''
+	}
+
+	def dispatch CharSequence compile(BooleanTerm term, Consumer<String> fn) {
 
 		val id = term.param.name
 		val metric = term.param.metric
 
-		switch (metric) {
+		// inform caller about occurence of id
+		fn.accept(id)
+
+		return '''«id» -> forAll(i | i''' + switch (metric) {
 			case EXISTS: {
 				'''«id».oclIsUndefined()'''
 			}
@@ -42,16 +51,16 @@ class ExpressionString2OCL {
 			case UNIQUE: {
 			}
 			case VALUE: {
-				'''«id»«term.op»''' + term.value.compile
+				'''«term.op»«term.value.compile»'''
 			}
-		}
+		} + ''')'''
 
 	}
 
-	def dispatch compile(Value value) {
+	def CharSequence compile(Value value) {
 
 		return switch (value) {
-			BooleanLiteral: '''«value.isValue»'''
+			LogicalLiteral: '''«value.isValue»'''
 			StringLiteral:
 				"'" + value.value + "'"
 			RealLiteral: '''«value.value»'''

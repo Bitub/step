@@ -26,7 +26,7 @@ class ExpressionString2OCLTest {
 		var oclExpr = '''
 			O_PsetName [Value] = 'Pset_WallCommon' AND  O_PName [Value] = 'Thermal Transmittance' AND O_PSingleValue [Exists] = true
 		'''.parse.
-			compile
+			compile([])
 
 		var expected = "O_PsetName='Pset_WallCommon' and O_PName='Thermal Transmittance' and O_PSingleValue.oclIsUndefined()"
 		var actual = oclExpr.toString
@@ -37,7 +37,7 @@ class ExpressionString2OCLTest {
 	def void parseSingleBooleanTermExpr() {
 		var oclExpr = '''
 			O_PsetName [Value] = 'Pset_WallCommon'
-		'''.parse.compile
+		'''.parse.compile([])
 
 		var expected = "O_PsetName='Pset_WallCommon'"
 		var actual = oclExpr.toString
@@ -48,7 +48,7 @@ class ExpressionString2OCLTest {
 	def void parseAndExpr() {
 		var oclExpr = '''
 			O_PName [Value] = 'Thermal Transmittance' AND O_PSingleValue [Exists] = true
-		'''.parse.compile
+		'''.parse.compile([])
 
 		var expected = "O_PName='Thermal Transmittance' and O_PSingleValue.oclIsUndefined()"
 		var actual = oclExpr.toString
