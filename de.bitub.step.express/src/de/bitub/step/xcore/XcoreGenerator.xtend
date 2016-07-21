@@ -509,6 +509,8 @@ class XcoreGenerator implements IGenerator {
 					default:
 						throw new IllegalArgumentException
 				}
+				
+				«t.name.toFirstLower» = s
 			}
 			
 			op Object getValue() {
