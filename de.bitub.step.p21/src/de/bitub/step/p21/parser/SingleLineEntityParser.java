@@ -70,7 +70,12 @@ public class SingleLineEntityParser
     //
     if (Objects.nonNull(tree)) {
       ParseTreeWalker walker = new ParseTreeWalker();
-      walker.walk(listener, tree);
+      try {
+        walker.walk(listener, tree);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
     } else {
 
       // TODO report unhandled lines
