@@ -5,11 +5,14 @@ import de.bitub.step.p21.util.IOHelper
 import org.buildingsmart.ifc4.IFC4
 import org.buildingsmart.ifc4.Ifc4Factory
 import org.buildingsmart.ifc4.Ifc4Package
+import org.buildingsmart.ifc4.IfcProject
 import org.buildingsmart.ifc4.IfcPropertySet
 import org.buildingsmart.ifc4.IfcPropertySingleValue
+import org.buildingsmart.ifc4.IfcSite
 import org.buildingsmart.mvd.mvdxml.MvdXML
 import org.buildingsmart.mvd.tmvd.TextualMVDInjectorProvider
 import org.buildingsmart.mvd.tmvd.analyzing.MVDModelInfo
+import org.buildingsmart.mvd.tmvd.generator.ConceptTemplateTree2OCL
 import org.buildingsmart.mvd.tmvd.generator.MVD2OCLGenerator
 import org.eclipse.emf.common.util.URI
 import org.eclipse.ocl.OCL
@@ -22,7 +25,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
-import org.buildingsmart.mvd.tmvd.generator.ConceptTemplateTree2OCL
 
 @RunWith(XtextRunner)
 @InjectWith(TextualMVDInjectorProvider)
@@ -133,6 +135,29 @@ class MVD2OCLGeneratorTest {
 				println(it.name)
 			]
 
+		]
+	}
+
+	def ProjectHaveTerrainObject(IfcProject project) {
+		newArrayList(project).map [
+			isDecomposedBy
+		].flatten.map [
+			relatedObjects
+		].flatten.toList
+	}
+
+	@Test
+	def void testEcoreUtil() {
+
+		var ifc4 = IOHelper.load(URI.createFileURI("ifc-files/WallWithOpeningAndWindow.ifc"),
+			Ifc4Package.eINSTANCE) as IFC4
+
+		ifc4.ifcProject.forEach[
+			it.ProjectHaveTerrainObject.forall[
+				println(it)
+				
+				(it instanceof IfcSite)
+			]
 		]
 	}
 
