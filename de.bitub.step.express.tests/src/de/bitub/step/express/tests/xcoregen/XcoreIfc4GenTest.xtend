@@ -51,6 +51,15 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 		
 		info.printInfoFor(ifc4)
 	}
+	
+	@Test
+	def void testRunInfoForIfc4Add2() {
+
+		val ifc4 = generateEXPRESS(readExpressSchema("IFC4_ADD2"))
+		val info = interpreter.process(ifc4)
+		
+		info.printInfoFor(ifc4)
+	}
 
 	@Test
 	def void testRunIfc4Conversion() {
@@ -64,6 +73,11 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 		generateXCore(readExpressSchema("IFC4_ADD1"))
 	}
 	
+	@Test
+	def void testRunIfc4Add2Conversion() {
+		generatedXcoreFilename = "ifc4_add2.exp.xcore"
+		generateXCore(readExpressSchema("IFC4_ADD2"))
+	}
 	
 	@Before
 	def void setup() {
