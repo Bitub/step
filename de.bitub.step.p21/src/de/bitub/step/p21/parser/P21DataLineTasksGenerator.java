@@ -52,7 +52,10 @@ public class P21DataLineTasksGenerator
         if (isDataSection) {
 
           P21EntityListener listener = parserFactory.createWith(ePackage);
-          taskList.add(new P21DataLineTask(listener, line));
+          // no empty lines or comments
+          if (!line.isEmpty() && !line.startsWith("/*")) {
+            taskList.add(new P21DataLineTask(listener, line));
+          }
         }
 
         if (line.equalsIgnoreCase("DATA;")) {
