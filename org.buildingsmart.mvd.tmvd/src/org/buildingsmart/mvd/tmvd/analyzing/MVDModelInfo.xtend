@@ -7,6 +7,10 @@ import org.buildingsmart.mvd.mvdxml.MvdXML
 import org.buildingsmart.mvd.mvdxml.ReferencesType
 import org.eclipse.emf.ecore.EObject
 import java.util.Map
+import org.eclipse.xtext.EcoreUtil2
+import org.buildingsmart.mvd.mvdxml.Concept
+import org.buildingsmart.mvd.mvdxml.ConceptRoot
+import org.buildingsmart.mvd.mvdxml.ConceptTemplate
 
 class MVDModelInfo {
 
@@ -20,6 +24,34 @@ class MVDModelInfo {
 
 	new(MvdXML mvd) {
 		this.mvd = mvd
+	}
+	
+	def dispatch getConstraintsFrom(AttributeRule rule){
+		rule.constraints.constraint
+	}
+	
+	def dispatch getConstraintsFrom(EntityRule rule){
+		rule.constraints.constraint
+	}
+	
+	def getConceptRoots(){
+		EcoreUtil2::getAllContentsOfType(mvd.views, ConceptRoot);
+	}
+	
+	def getConecptTemplates(){ // TODO: Also filter subtemplates here ?
+		EcoreUtil2::getAllContentsOfType(mvd, ConceptTemplate).filter[
+			!it.isIsPartial
+		];
+	}
+
+	def getMVDConstraints() {
+		val allConcepts = EcoreUtil2::getAllContentsOfType(mvd, Concept);
+
+		return allConcepts.map [
+			val root = EcoreUtil2::getContainerOfType(it, ConceptRoot)
+			val template = it.template.ref
+			new MVDConstraint(root, it, template)
+		]
 	}
 
 	def getRuleIds() {
