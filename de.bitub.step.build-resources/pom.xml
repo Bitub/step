@@ -13,8 +13,8 @@
 		<tycho-version>0.25.0</tycho-version>
 		<tycho-extras-version>0.25.0</tycho-extras-version>
 		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>	
-		<xtext.version>2.9.1</xtext.version>	
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<xtext.version>2.9.1</xtext.version>
 		<bitub.updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</bitub.updatesiteLocal>
 	</properties>
 
@@ -24,65 +24,65 @@
 
 	<!-- Profiles, default "platform-luna" -->
 	<profiles>
-		  
-	  <profile>
-		  <id>platform-luna</id>
-		  <activation>
-			<activeByDefault>true</activeByDefault>
-			<property>
-			  <name>platform-name</name>
-			  <value>luna</value>
-			</property>			
-		  </activation>
-		  <properties>
-			<targetPlatform>luna</targetPlatform>
-			<platformUsUrl>http://download.eclipse.org/releases/luna</platformUsUrl>
-		  </properties>
-      </profile>	
 
-	  <profile>
-		  <id>platform-mars</id>
-		  <activation>
-			<activeByDefault>true</activeByDefault>
-			<property>
-			  <name>platform-name</name>
-			  <value>mars</value>
-			</property>			
-		  </activation>
-		  <properties>
-			<targetPlatform>mars</targetPlatform>
-			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
-		  </properties>
-      </profile>
-      
-      <profile>
-		  <id>platform-test</id>
-		  <activation>
-			<activeByDefault>true</activeByDefault>
-			<property>
-			  <name>platform-name</name>
-			  <value>test</value>
-			</property>			
-		  </activation>
-		  <properties>
-			<targetPlatform>test</targetPlatform>
-			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
-		  </properties>
-      </profile>	
-	  	  
-    </profiles>
-	
+		<profile>
+			<id>platform-luna</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>platform-name</name>
+					<value>luna</value>
+				</property>
+			</activation>
+			<properties>
+				<targetPlatform>luna</targetPlatform>
+				<platformUsUrl>http://download.eclipse.org/releases/luna</platformUsUrl>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>platform-mars</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>platform-name</name>
+					<value>mars</value>
+				</property>
+			</activation>
+			<properties>
+				<targetPlatform>mars</targetPlatform>
+				<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>platform-test</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>platform-name</name>
+					<value>test</value>
+				</property>
+			</activation>
+			<properties>
+				<targetPlatform>test</targetPlatform>
+				<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
+			</properties>
+		</profile>
+
+	</profiles>
+
 	<modules>
 		<module>../de.bitub.step.express</module>
 		<module>../de.bitub.step.express.ui</module>
-		<module>../de.bitub.step.express.sdk-feature</module> 
-		
+		<module>../de.bitub.step.express.sdk-feature</module>
+
 		<module>../de.bitub.step.p21</module>
 		<module>../de.bitub.step.p21.antlr</module>
 		<module>../de.bitub.step.p21.f</module>
 
 		<module>../de.bitub.step-updatesite</module>
-		 
+
 	</modules>
 
 	<repositories>
@@ -92,7 +92,6 @@
 			<url>${platformUsUrl}</url>
 			<layout>p2</layout>
 		</repository>
-
 	</repositories>
 
 
@@ -280,6 +279,20 @@
 				<artifactId>tycho-maven-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<extensions>true</extensions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr4-maven-plugin</artifactId>
+				<version>4.3</version>
+				<executions>
+					<execution>
+						<id>antlr</id>
+						<goals>
+							<goal>antlr4</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 		</plugins>
