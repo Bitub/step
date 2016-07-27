@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<mvdXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" uuid="00000000-0000-0000-0000-000000000000"
+	name="" xmlns="http://buildingsmart-tech.org/mvdXML/mvdXML1-1">
+	<Templates>
+		<ConceptTemplate uuid="d2e09dca-991e-47b5-bf54-f0e5a97bf1aa"
+			name="Aggregation" applicableSchema="IFC4" applicableEntity="IfcObjectDefinition">
+			<Rules>
+				<AttributeRule AttributeName="IsDecomposedBy">
+					<EntityRules>
+						<EntityRule EntityName="IfcRelAggregates">
+							<AttributeRules>
+								<AttributeRule RuleID="AggergationType"	AttributeName="RelatedObjects">
+									<EntityRules>
+										<EntityRule EntityName="IfcObject"/>
+										<AttributeRules>
+											<AttributeRule RuleID="Name" AttributeName="Name">
+											</AttributeRule>
+										</AttributeRules>
+									</EntityRules>
+								</AttributeRule>
+							</AttributeRules>
+						</EntityRule>
+					</EntityRules>
+				</AttributeRule>
+			</Rules>
+		</ConceptTemplate>
+	</Templates>
+	<Views>
+		<ModelView uuid="dce6f5c2-cd73-4c6d-9a13-690be9adf597" name="Rgd"
+			applicableSchema="IFC4">
+			<ExchangeRequirements>
+				<ExchangeRequirement uuid="7d3dd1bf-37b0-4c50-bf6e-7ec4d7a6e52f"
+					name="Rgd standard" applicability="both" />
+			</ExchangeRequirements>
+			<Roots>
+				<ConceptRoot uuid="9f8e6ffb-6c08-4ace-89d1-c7a33dbdfead"
+					name="" applicableRootEntity="IfcProject">
+					<Concepts>
+						<Concept uuid="a464615f-4764-45d0-80a9-d81c75c6250a" name="Aggregation"
+							override="false">
+							<Definitions>
+								<Definition>
+									<Body lang="en"><![CDATA[<p>This concept requires that the project should have one Terrain Object(IfcSite). 
+									RGD Norm 2.2.7.2 Terrain
+									Relationships: the project contains at most one terrain object.</p>]]>
+									</Body>
+								</Definition>
+							</Definitions>
+							<Template ref="d2e09dca-991e-47b5-bf54-f0e5a97bf1aa" />
+							<Requirements />
+							<Rules>
+								<TemplateRule Parameters="AggergationType[Type]='IfcSite'" />
+							</Rules>
+							</Concept>
+					</Concepts>
+				</ConceptRoot>
+			</Roots>
+		</ModelView>
+	</Views>
+</mvdXML>
