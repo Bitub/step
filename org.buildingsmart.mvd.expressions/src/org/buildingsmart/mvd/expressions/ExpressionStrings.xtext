@@ -25,26 +25,20 @@ NxorExpression returns Expression:
 	BooleanTerm ({Nxor.left=current} NXOR right=BooleanTerm)*;
 
 BooleanTerm returns Expression:
-	LPAREN Expression RPAREN | EqualityTerm | ComparisonTerm | SimpleTerm;
+	LPAREN Expression RPAREN | EqualityTerm | ComparisonTerm;// | SimpleTerm;
 
 EqualityTerm returns BooleanTerm:
-	param=Parameter op=EqualityOperator value=Value;
+	param=Parameter op=(EQUAL | NOT_EQUAL) value=Value;
 
 ComparisonTerm returns BooleanTerm:
-	param=Parameter op=ComparisonOperator value=Value;
+	param=Parameter op=(GREATER_THAN | GREATER_THAN_OR_EQUAL | LESS_THAN | LESS_THAN_OR_EQUAL) value=Value;
 
 	// mvd 1.0 expression
-SimpleTerm:
-	param=SIMPLEID op=EQUAL value=Value;
+//SimpleTerm:
+//	param=SIMPLEID op=EQUAL value=Value;
 
 Parameter:
 	name=SIMPLEID (metric=Metric)?;
-
-EqualityOperator:
-	EQUAL | NOT_EQUAL;
-
-ComparisonOperator:
-	GREATER_THAN | GREATER_THAN_OR_EQUAL | LESS_THAN | LESS_THAN_OR_EQUAL;
 
 enum Metric:
 	VALUE='[Value]' | SIZE='[Size]' | TYPE='[Type]' | UNIQUE='Unique' | EXISTS='[Exists]';
@@ -56,10 +50,7 @@ LogicalLiteral:
 	value=LOGICAL;
 
 RealLiteral returns ecore::EDouble:
-	(Sign)? INT ('.')? INT? ('e' (Sign)? INT)?;
-
-Sign:
-	'+' | '-';
+	('+' | '-')? INT ('.')? INT? ('e' ('+' | '-')? INT)?;
 
 terminal AND:
 	'AND';
