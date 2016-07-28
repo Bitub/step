@@ -4,7 +4,7 @@
     editorDirectory="/de.bitub.step.express.editor/src" modelPluginID="de.bitub.step.express"
     forceOverwrite="true" modelName="EXPRESS" updateClasspath="false" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
     complianceLevel="6.0" copyrightFields="false" editPluginID="de.bitub.step.express.edit"
-    editorPluginID="de.bitub.step.express.editor" runtimeVersion="2.11">
+    editorPluginID="de.bitub.step.express.editor" runtimeVersion="2.12">
   <genPackages prefix="Express" basePackage="de.bitub.step" disposableProviderFactory="true"
       fileExtensions="exp" ecorePackage="EXPRESS.ecore#/">
     <genClasses ecoreClass="EXPRESS.ecore#//Schema">
