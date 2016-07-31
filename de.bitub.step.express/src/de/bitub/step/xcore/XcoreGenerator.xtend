@@ -9,6 +9,8 @@
  *  Bernold Kraft - initial implementation and initial documentation
  */
 
+// TODO Refactoring compile/generate/assemble
+
 package de.bitub.step.xcore
 
 import com.google.inject.Inject
@@ -27,13 +29,19 @@ import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
+import de.bitub.step.xcore.XcoreInfo.Delegate
 import java.util.Date
 import java.util.Map
+import java.util.Optional
+import java.util.function.BiFunction
 import org.apache.log4j.Logger
+import org.eclipse.emf.ecore.EClass
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.eclipse.xtext.naming.QualifiedName
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
 import static extension de.bitub.step.xcore.XcoreConstants.*
@@ -43,6 +51,16 @@ import static extension de.bitub.step.xcore.XcoreConstants.*
  */
 class XcoreGenerator implements IGenerator {
 	
+	static val Logger LOGGER = Logger.getLogger(XcoreGenerator)
+	
+	/**
+	 * Options of generation process.
+	 */
+	val public Map<Options, Object> options = newHashMap  
+	
+	/**
+	 * Available options to the generation process.
+	 */
 	enum Options {
 		
 		SEPARATE_TYPEPACKAGE, 
@@ -53,44 +71,211 @@ class XcoreGenerator implements IGenerator {
 		PACKAGE, 
 		SOURCE_FOLDER, 
 		FORCE_UNIQUE_DELEGATES,
-		UPDATE_CLASSPATH	
+		UPDATE_CLASSPATH,
+		ROOT_CONTAINER_NAME	
 	}
-		
-	static Logger LOGGER = Logger.getLogger(XcoreGenerator)
 		
 		
 	@Inject extension IQualifiedNameProvider nameProvider	
 	
-	extension EXPRESSModelInfo modelInfo
-	extension XcoreInfo xcoreInfo
+	// The current EXPRESS info aggregation
+	var extension EXPRESSModelInfo modelInfo
+	// The current xcore info aggregation
+	var extension XcoreInfo xcoreInfo
+	// The current Xcore package to fill
+	var extension XcorePackage activePackage 
 	
 	@Inject EXPRESSInterpreter interpreter
 	@Inject FunctionGenerator functionGenerator
 
-
-	static val PREFIX_DELEGATE = "Delegate"		
-
-	// Second stage cache (any additional concept needed beside first stage)
-	//
+	// Temporary second stage cache (any additional concept needed beside first stage)
 	var secondStageCache = ''''''
 	
-
-	/**
-	 * Options of generation process.
-	 */
-	val public Map<Options, Object> options = newHashMap  
+	// The partitioning delegate
+	var BiFunction<ExpressConcept, QualifiedName, Optional<XcorePackageDescriptor>> partitioningDelegate = new XcoreDefaultPartitionDelegate
 
 	val escapeKeywords = <String>newHashSet("id", "contains", "opposite", "refers", "unique", "unordered")
 
+	// The nsURI to package cache
+	val packageCache = <String, XcorePackage>newHashMap		
+
+	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;
 		
-		LOGGER.info("Generating XCore representation of "+schema.name)
+		LOGGER.info('''Start generation of schema "«schema.name»".''')
 		
-		fsa.generateFile(schema.name+".xcore", schema.compileSchema)		
+		schema.generateSchema
+		fsa.generateXcorePackages		
 	}
 	
+	/**
+	 * Sets the partitioning delegate. The delegate is basically a mapping of a given STEP ecore class and a qualified name in context. It 
+	 * returns a descriptor of an assigned xcore package. Whenever the descriptor is not present, the default package (under the QN of
+	 * the current schema) is taken.
+	 */
+	def void setPartitioningHelper(BiFunction<ExpressConcept, QualifiedName,Optional<XcorePackageDescriptor>> delegate) {
+		
+		this.partitioningDelegate = delegate
+		packageCache.clear
+		activePackage = null
+		secondStageCache = ''''''
+	}
+	
+	
+	def getPartitioningDelegate() {
+		
+		partitioningDelegate
+	}
+		
+	/**
+	 * Gets or creates the proper package cache and resets to the new package.
+	 */
+	def private partitionXCorePackage(ExpressConcept c) {
+		
+		partitionXCorePackage(c, c.fullyQualifiedName)
+	}
+	
+	def private getXCorePackage(ExpressConcept c) {
+		
+		getXCorePackage(c, c.fullyQualifiedName)
+	}
+	
+	def private getXCorePackage(ExpressConcept c, QualifiedName qn) {
+		
+		var dscp = partitioningDelegate.apply(c, qn)
+		var pkg = if(dscp.isPresent) 
+				packageCache.get(dscp.get().nsURI) // get by URI 
+			else
+				packageCache.get("") // get default
+				
+		pkg
+	}
+	
+	
+	def private createXCorePackage(XcorePackageDescriptor dscp) {
+		
+		var XcorePackage pkg
+		// Generate new package
+		packageCache.put(dscp.nsURI, pkg = new XcorePackage(
+			modelInfo,
+			activePackage.baseSchema,
+			dscp.name, dscp.basePackage, dscp.nsURI
+		))		
+		
+		pkg
+	}
+	
+	
+	/**
+	 * Gets or creates the proper package cache and resets to the new package. Additionally a qualified name
+	 * is provided by call.
+	 */
+	def private partitionXCorePackage(ExpressConcept c, QualifiedName qn) {
+		
+		var dscp = partitioningDelegate.apply(c, qn)
+		var pkg = if(dscp.isPresent) 
+				packageCache.get(dscp.get().nsURI) // get by URI 
+			else
+				packageCache.get("") // get default
+				 
+		if(null==pkg) {
+						
+			// Generate new package
+			pkg = createXCorePackage(dscp.get)
+		}	
+		
+		// Append secondary cache
+		activePackage.textModel += secondStageCache
+		
+		// Switch and clean
+		secondStageCache = ''''''
+		activePackage = pkg
+	}
+	
+	
+	def private getXcoreQualifiedName(ExpressConcept c) {
+		
+		activePackage.packageQN.append(c.name.toFirstUpper)
+	}
+	
+	
+	def private <T extends DataType> refersImport(T c) {
+		
+		switch(c) {
+			
+			BuiltInType: {
+				
+				if(c.compileBuiltin.length > 0) {
+					
+					// If implemented, register for import
+					activePackage.importRegistry += packageCache.get("").packageQN.append(XcoreConstants.qualifiedBuiltInName(c))
+				}										
+			}
+			
+			// TODO Delegate ?
+		}
+		
+		c		
+	}
+	
+	def private CharSequence refersClassImport(Class<?> c) {
+		
+		val qn = QualifiedName.create(c.name.split("\\."))
+		activePackage.importRegistry += qn
+		 
+		qn.lastSegment
+	}
+	
+	
+	/**
+	 * Checks given concept whether it is a cross-reference to another package. Pure builtin  
+	 * don't have any class implementation. 
+	 */
+	def private <T extends ExpressConcept> refersImport(T c) {
+		
+		// Builtin are hosted everywhere
+		if(!c.builtinAlias) {
+		
+			var dscp = partitioningDelegate.apply(c, c.fullyQualifiedName)
+			var pkg = if(dscp.isPresent) 
+				 	packageCache.get(dscp.get().nsURI) // get by URI 
+				else
+					packageCache.get("") // get default
+					
+			if(null==pkg) {
+				pkg = createXCorePackage(dscp.get)
+			}
+					
+			if(pkg != activePackage) {
+				// Append import request
+				activePackage.importRegistry += pkg.packageQN.append(c.name.toFirstUpper)			
+			}			
+		} else {
+			
+			// If no nested aggregation, check whether a compile statement exists in default package
+			val builtIn = (c as Type).refersDatatype as BuiltInType
+			
+			if(builtIn.compileBuiltin.length > 0) {
+				// If so, register for import
+				activePackage.importRegistry += packageCache.get("").packageQN.append(XcoreConstants.qualifiedBuiltInName(builtIn))
+			}			
+		}
+		
+		c
+	}
+
+	/**
+	 * Checks given concept whether it is a cross-reference to another package.
+	 */	
+	def private <T extends Iterable<? extends ExpressConcept>> refersImports(T concepts) {
+		
+		for(ExpressConcept c : concepts) {
+			c.refersImport
+		}
+		concepts
+	}
 	
 	def getInfo() {
 		
@@ -99,12 +284,29 @@ class XcoreGenerator implements IGenerator {
 	
 	
 	/**
-	 * Compiles Xcore from given EXPRESS resource.
+	 * Compiles a complete set of partial textual Xcore models from resource with a Scheme root object.
 	 */
-	def compile(Resource resource) {
+	def Map<String, CharSequence> compile(Resource resource) {
 				
 		val schema = resource.allContents.findFirst[e | e instanceof Schema] as Schema;		
-		schema.compileSchema
+		
+		schema.compile
+	}
+	
+
+	/**
+	 * Compiles a complete set of partial textual Xcore models from a Scheme root object.
+	 */	
+	def Map<String, CharSequence> compile(Schema schema) {
+
+		schema.generateSchema
+		var modelMap = <String, CharSequence>newHashMap
+		for(XcorePackage p : packageCache.values) {
+			
+			modelMap.put(p.packageQN.toString, p.compileXcorePackage)
+		}
+		
+		modelMap		
 	}
 	
 	
@@ -122,11 +324,11 @@ class XcoreGenerator implements IGenerator {
 		
 		if(options.containsKey(o)) options.get(o).toString as String else ""
 	}
+	
+	def private getSourceFolder(Schema s){
 		
-	def private assembleXcoreHeader(Schema s) {
-				
 		val uri = s.eResource.URI
-		var genFolder = "src-gen"
+		var String genFolder 
 		switch(uri) {
 			case uri.scheme == "platform": {
 				
@@ -134,20 +336,29 @@ class XcoreGenerator implements IGenerator {
 			}
 			default : {
 				
-				// Nothing here
+				genFolder = "src-gen"
 			}
 		}
-		assembleXcoreHeader(
-			if(Options.NS_PREFIX.option) Options.NS_PREFIX.optionText else s.name,
-			if(Options.NS_URI.option) Options.NS_URI.optionText else s.name,
-			if(Options.SOURCE_FOLDER.option) Options.SOURCE_FOLDER.optionText else genFolder
-		)		
+		
+		genFolder
 	}
+	
+	
+	
+	def private compileXcoreHeader(XcorePackage p) {
+		
+		compileXcoreHeader(
+			p.packageName,
+			p.packageNsURI,
+			if(Options.SOURCE_FOLDER.option) Options.SOURCE_FOLDER.optionText else p.baseSchema.sourceFolder
+		)
+	}
+	
 		
 	/**
 	 * Assembles the header / annotation information on top of the Xcore file.
 	 */
-	def private assembleXcoreHeader(String nsPrefix, String nsURI, String folder) { 
+	def private compileXcoreHeader(String nsPrefix, String nsURI, String folder) { 
 		'''
 		@Ecore(nsPrefix="«nsPrefix»",nsURI="«nsURI»")
 		@Import(ecore="http://www.eclipse.org/emf/2002/Ecore")
@@ -172,31 +383,40 @@ class XcoreGenerator implements IGenerator {
 		'''
 	}
 	
-	def private assembleXcorePackage(Schema s) {
-	
-		assembleXcorePackage(
-			if(Options.PACKAGE.option) Options.PACKAGE.optionText else s.name
-		)
-	}
 	
 	/**
-	 * Assembles the package information.
+	 * TODO Assembles the package information.
 	 */
-	def private assembleXcorePackage(String name) {
+	def private compileXcorePackage(XcorePackage p) {
+
+		if(activePackage == p) {
+			
+			activePackage.textModel += secondStageCache
+			secondStageCache = ''''''
+		}
 
 		'''		
-		package «name.toLowerCase»
+		«p.compileXcoreHeader»
+		
+		@GenModel(documentation="Generated EXPRESS model of schema «p.packageName»")
+		@XpressModel(name="«p.packageName.toLowerCase»",rootContainerClassRef="«xcoreInfo.rootContainerClass»")				
+		package «p.packageQN»
 
-		import org.eclipse.emf.ecore.EObject
+		«FOR qn:p.importRegistry
+		»import «qn»
+		«ENDFOR»
 						
 		annotation "http://www.eclipse.org/OCL/Import" as Import
 		annotation "http://www.bitub.de/express/XpressModel" as XpressModel
 		annotation "http://www.bitub.de/express/P21" as P21
-				
+
+		«p.textModel»
 		'''		
 	}
 	
-	
+	/**
+	 * Escape key words of Xcore language by preceding "^".
+	 */
 	def private String escapeKeyword(String v) {
 		
 		if(escapeKeywords.contains(v)) "^"+v else v
@@ -228,24 +448,27 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence compileAnnotation(DataType t) {
 		
-		if(t instanceof ReferenceType) {	
+		switch(t) {
 			
-			val concept = (t as ReferenceType).instance
-			if(concept instanceof Type) {
+			ReferenceType: {
 				
-				if((concept as Type).datatype.hasDelegate) {
+				val concept = t.instance
+				if(concept instanceof Type) {
 					
-					return '''@XpressModel(pattern="nested") '''
-				
+					if((concept as Type).datatype.hasNestedCollector) {
+						
+						'''@XpressModel(pattern="nested") '''					
+					}
+				}					
+			}
+			
+			CollectionType: {
+
+				if(t.hasNestedCollector) {
+					
+					'''@XpressModel(pattern="nested") '''				
 				}
-			}	
-		}
-			
-		if(t instanceof CollectionType) {
-			
-			if((t as CollectionType).hasDelegate) {
 				
-				return '''@XpressModel(pattern="nested") '''				
 			}
 		}
 	}
@@ -259,8 +482,10 @@ class XcoreGenerator implements IGenerator {
 	def dispatch CharSequence compileAnnotation(Attribute a) {
 		
 		var annotations = newArrayList
-		if(a.hasDelegate || (a.type.hasDelegate)) {
+		if(a.hasDelegate) {
 			annotations += '''pattern="delegate"''' 
+		} else if(a.type.hasNestedCollector) {
+			annotations += '''pattern="nested"'''
 		}
 		if(a.select) {
 			annotations += '''select="«(a.refersDatatype.eContainer as Type).name.toFirstUpper»"'''
@@ -283,7 +508,7 @@ class XcoreGenerator implements IGenerator {
 			}
 			ReferenceType: {
 			
-				'''@XpressModel(name="«t.name»", kind="mapped" «IF t.datatype.hasDelegate», pattern="nested"«ENDIF»)
+				'''@XpressModel(name="«t.name»", kind="mapped" «IF t.hasNestedCollector», pattern="nested"«ENDIF»)
 				'''
 			}
 			GenericType: {
@@ -297,28 +522,67 @@ class XcoreGenerator implements IGenerator {
 		}		 
 	} 
 
+	def private createDefaultPackage(Schema s) {
+		
+		new XcorePackage(
+			modelInfo,
+			s,
+			if(Options.NS_PREFIX.option) Options.NS_PREFIX.optionText else s.name, // prefix
+			if(Options.PACKAGE.option) QualifiedName.create(Options.PACKAGE.optionText) else QualifiedName.create(s.name.toLowerCase), // package name
+			if(Options.NS_URI.option) Options.NS_URI.optionText else s.name // URI
+		)
+	}
+		
+	def private CharSequence compileBuiltins(EClass ... types) {
+		
+		var String text = ''''''
+		for(EClass c : types) {
+			
+			text += XcoreConstants.compileBuiltin(c)			
+		}
+		
+		text
+	}
 
+	
+	def private void generateXcorePackages(IFileSystemAccess fsa) {
+		
+		for(XcorePackage p : packageCache.values) {
+			
+			val fileName = p.packageName + ".xcore"
+			LOGGER.info('''Generating model of "«p.packageName»" into file «fileName».''')
+					
+			fsa.generateFile(fileName, p.compileXcorePackage)
+		}
+	}
+
+	
 	/**
 	 * Transforms a schema into a package definition.
 	 */
-	def compileSchema(Schema s) {
-		
+	def private void generateSchema(Schema s) {
+
 		// process schema for structural information
 		//		
 		modelInfo = interpreter.process(s);
-		xcoreInfo = new XcoreInfo(modelInfo)
+		
+		// Create default package
+		activePackage =  s.createDefaultPackage
+		packageCache.put(activePackage.packageNsURI, activePackage)
+		packageCache.put("", activePackage) // Fall back insurance 
+		
+		val rootContainerClass = if(Options.ROOT_CONTAINER_NAME.option) 
+			Options.ROOT_CONTAINER_NAME.optionText else s.name.toFirstUpper
+		xcoreInfo = new XcoreInfo(modelInfo, activePackage.packageQN.append(rootContainerClass))
 			 
-		'''	
-		«s.assembleXcoreHeader»
-		
-		
-		@GenModel(documentation="Generated EXPRESS model of schema «s.name»")
-		@XpressModel(name="«s.name»",rootContainerClassRef="«s.name»")		
-		«s.assembleXcorePackage» 
-		
-		«ExpressPackage.Literals.BINARY_TYPE.compileBuiltin»
-		
-		«ExpressPackage.Literals.LOGICAL_TYPE.compileBuiltin»
+		activePackage.textModel = '''	
+
+		// Default root package		
+		«compileBuiltins(
+			ExpressPackage.Literals.BINARY_TYPE, 
+			ExpressPackage.Literals.LOGICAL_TYPE
+		)»
+				
 				
 		// Base container of «s.name»
 		@GenModel(documentation="Generated container class of «s.name»")
@@ -329,46 +593,38 @@ class XcoreGenerator implements IGenerator {
 		«ENDFOR»
 				
 		}
+		'''
 		
-		// --- ENUMERATIONS ----------------------------------
+		// Compile enums		
+		s.type.filter[datatype instanceof EnumType].forEach[compileConcept]
 		
-		«FOR t:s.type.filter[datatype instanceof EnumType]»«t.compileConcept»«ENDFOR»
+		// Nested collections
+		s.type.filter[aggregation].forEach[compileConcept]
 		
-		// --- TYPED NESTED COLLECTIONS ----------------------
+		// Referenced selects
+		modelInfo.reducedSelectsMap.keySet.forEach[compileConcept]
 		
-		«FOR t:s.type.filter[aggregation]»«t.compileConcept»«ENDFOR»
-		
-		// --- REFERENCED SELECTS ----------------------------
-		
-		«FOR t:modelInfo.reducedSelectsMap.keySet»«t.compileConcept»«ENDFOR»
-		
-		// --- ENTITY DEFINITIONS ----------------------------
-		
-		«FOR e:s.entity»«e.compileConcept»«ENDFOR»
-			
-		// --- ADDITIONALLY GENERATED ------------------------
-		
-		«//functionGenerator.compileFunction(s)
-		»
-		
-		«secondStageCache»
-			
-		// --- END OF «s.name» ---
-		'''		
+		// Finally entity definitions
+		s.entity.forEach[compileConcept]					
 	}
 	
 	
 	/**
 	 * Transforms an entity into a class definition. 
 	 */	
-	def dispatch compileConcept(Entity e) {
+	def dispatch void compileConcept(Entity e) {
 		
 		// TODO Enable derived attributes
-		'''
+		
+		// Partition package
+		var pckg = e.partitionXCorePackage
+		
+		// Compile Xcore model
+		pckg.textModel += '''
 		
 		@GenModel(documentation="Class definition of «e.name»")
 		«e.compileAnnotation»
-		«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.empty»extends «e.supertype.map[name].join(', ')» «ENDIF»{
+		«IF e.abstract»abstract «ENDIF»class «e.name.toFirstUpper» «IF !e.supertype.refersImports.empty»extends «e.supertype.map[it.name].join(', ')» «ENDIF»{
 		
 		  «FOR a : e.attribute
 		  	»«IF !a.derivedAttribute»
@@ -384,13 +640,16 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Transforms a type into a class / type definition.
 	 */
-	def dispatch compileConcept(Type t) {
+	def dispatch void compileConcept(Type t) {
 		
-		switch(t.datatype) {
+		var pckg = t.partitionXCorePackage
+		val innerType = t.datatype
+		
+		switch(innerType) {
 			
 			GenericType: {
 				// Wraps String						
-				'''
+				pckg.textModel += '''
 				
 				@XpressModel(name="«t.name»",kind="mapped")
 				type «t.name.toFirstUpper» wraps String
@@ -398,34 +657,34 @@ class XcoreGenerator implements IGenerator {
 			}
 			EnumType: {
 				// Compile enum
-				t.datatype.compileDatatype
+				pckg.textModel += innerType.compileDatatype
 			}
 			SelectType: {
 				
 				// Compile select
-				t.datatype.compileDatatype	
+				pckg.textModel += innerType.compileDatatype	
 			}
 			
 			CollectionType: {
 				
 				// If entity reference
-				val compiled = t.datatype.compileDatatype // Has to be done first
-				'''
+				val compiled = innerType.compileDatatype // Has to be done first
+				pckg.textModel += '''
 				
 				@GenModel(documentation="Type wrapper for «t.name»")
 				@XpressModel(name="«t.name»", kind="generated")
 				class «t.name» {
 				
-					«t.datatype.compileAnnotation
-					»«IF t.datatype.hasDelegate || (t.datatype.referable && t.refersConcept.referencedSelect)»contains «ELSEIF t.datatype.referable»refers «ENDIF
-					»«compiled» a«(t.datatype as CollectionType).fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»	
+					«innerType.compileAnnotation
+					»«IF activePackage.hasNestedCollector(innerType) || (innerType.referable && t.refersConcept.referencedSelect)»contains «ELSEIF innerType.referable»refers «ENDIF
+					»«compiled» a«innerType.fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»	
 				}
 				'''					
 			}			
 			
 			default: {
 				
-				'''// FIXME «t.name»
+				pckg.textModel += '''// FIXME «t.name»
 				'''				
 			}	
 		}		
@@ -449,13 +708,13 @@ class XcoreGenerator implements IGenerator {
 				
 				Type:
 					if(c.builtinAlias && !c.aggregation) {						
-						qualifiedNameMap.put(c, ( i -> c.refersDatatype.qualifiedName.toString))						
+						qualifiedNameMap.put(c.refersImport, ( i -> c.refersDatatype.qualifiedName.toString))						
 					} else {						
-						qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
+						qualifiedNameMap.put(c.refersImport, (i -> c.name.toFirstUpper))
 					}
 					
 				Entity:
-					qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
+					qualifiedNameMap.put(c.refersImport, (i -> c.name.toFirstUpper))
 			}
 			
 			i++ 
@@ -487,7 +746,7 @@ class XcoreGenerator implements IGenerator {
 			// Principal select value
 			
 		«FOR c : rList.map[concept].sortBy[name]
-		»	«IF c.hasDelegate || c.aggregation»contains «ELSEIF c.referable»refers «ENDIF
+		»	«IF c.hasNestedCollector || c.aggregation»contains «ELSEIF c.referable»refers «ENDIF
 			»«qualifiedNameMap.get(c).value» «qualifiedNameMap.get(c).value.toFirstLower
 			»«IF c.builtinAlias && !(c as Type).datatype.aggregation»Value«ENDIF»
 		«ENDFOR»
@@ -531,13 +790,13 @@ class XcoreGenerator implements IGenerator {
 	
 	def dispatch CharSequence qualifiedName(EnumType t) { 
 		
-		'''«(t.eContainer as Type).name.toFirstUpper»'''
+		'''«(t.eContainer as Type).refersImport.name.toFirstUpper»''' 
 	
 	}
 	
 	def dispatch CharSequence qualifiedName(SelectType t) {
 		
-		'''«(t.eContainer as Type).name.toFirstUpper»'''
+		'''«(t.eContainer as Type).refersImport.name.toFirstUpper»''' 
 	}
 	
 	/**
@@ -554,17 +813,21 @@ class XcoreGenerator implements IGenerator {
 		if(null!=attribute){
 			
 			// Hosted in relationship definition
-			'''«IF !r.builtinAlias»
-					«IF attribute.nonUniqueRelation || Options.FORCE_UNIQUE_DELEGATES.option
-						»«attribute.createDelegateQN
+			'''«IF !r.refersDatatype.builtinAlias» 
+					«IF attribute.inverseManyToManyRelation || attribute.nonUniqueRelation 
+						»«attribute.refersRelationDelegate
 					»«ELSE
-						»«r.instance.name.toFirstUpper
+						»«IF attribute.inverseRelation // Use declaring inverse entity (avoid super type)
+							»«attribute.oppositeAttribute.hostEntity.name
+						»«ELSE
+							»«r.instance.refersImport.name.toFirstUpper
+						»«ENDIF
 					»«ENDIF
 				»«ELSE
 					»«IF r.instance.aggregation
-						»«(r.instance as Type).datatype.qualifiedName 
+						»«(r.instance as Type).refersImport.datatype.qualifiedName
 					»«ELSE
-						»«(r.instance as Type).refersDatatype.qualifiedName
+						»«(r.instance as Type).refersImport.refersDatatype.qualifiedName
 					»«ENDIF
 				»«ENDIF»'''				
 		} else {
@@ -572,22 +835,22 @@ class XcoreGenerator implements IGenerator {
 			// Hosted reference in type definition
 			switch(r.instance) {
 				Entity:
-					'''«r.instance.name.toFirstUpper»'''
+					'''«r.instance.refersImport.name.toFirstUpper»'''
 				Type:
-					'''«(r.instance as Type).datatype.qualifiedName»'''
+					'''«(r.instance as Type).refersImport.datatype.qualifiedName»''' 
 			}
 		}
 	}
 	
 	def dispatch CharSequence qualifiedName(BuiltInType b) { 
 		
-		'''«b.qualifiedBuiltInName»'''
+		'''«b.refersImport.qualifiedBuiltInName»''' 
 	
 	}
 	
 	def dispatch CharSequence qualifiedName(GenericType g) { 
 		
-		'''«(g.eContainer as ExpressConcept).name.toFirstUpper»'''
+		'''«(g.eContainer as Type).refersImport.name.toFirstUpper»'''
 	
 	}
 	
@@ -595,177 +858,171 @@ class XcoreGenerator implements IGenerator {
 	def dispatch CharSequence qualifiedName(CollectionType c) {
 		
 		// Generate nested class
-		if(c.hasDelegate) {
+		if(c.nestedAggregation) {
+								
+			var String nestedCollectorClass
+			if(!activePackage.hasNestedCollector(c)) {
 			
-			return c.delegateQN+'''[]'''
-		}
-		
-		var CharSequence referredType
-		 			 
-//		if(c.typeAggregation) {
-//		
-//			referredType = generateTypeAggregationWrapper(c)
-//							
-//		} else 
-		if(c.nestedAggregation){
+				nestedCollectorClass = activePackage.createNestedCollector(c)	
+				secondStageCache += generateDelegateNestedCollector(c)				
+			} else {
+				
+				nestedCollectorClass = activePackage.getNestedCollector(c)
+			}
 			
-			referredType = generateDelegateNestedCollector(c)+'''[]'''
+			nestedCollectorClass + '''[]'''
 			
 		} else {
 			
-			referredType = c.type.qualifiedName+'''[]'''
+			c.type.qualifiedName + '''[]'''
 		}
-		
-		referredType
 	}
 	
 	
-//	def private String generateTypeAggregationWrapper(CollectionType c) {
-//		
-//		var typeWrapperName = c.createNestedDelegate
-//		
-//		secondStageCache +=
-//			'''
-//			
-//			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
-//			type «typeWrapperName» wraps «c.qualifiedReference.segments.join»
-//			'''			
-//		
-//		typeWrapperName
-//	}
-
-		
-	def private String generateDelegateNestedCollector(CollectionType c) {
-		
-		val nestedCollectorName = c.createNestedDelegate
-		val compiled = c.type.compileDatatype // Has to be done first
-		secondStageCache +=
-			'''
-					
-			
-			@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
-			class «nestedCollectorName» {
+	/**
+	 * Generates a nested collector type.
+	 */	
+	def private CharSequence generateDelegateNestedCollector(CollectionType c) {
 				
-				«c.type.compileAnnotation
-					»«IF c.type.nestedAggregation»contains «ELSE»«IF !c.builtinAlias»«IF !c.uniqueReference»@Ecore(^unique="false") «ENDIF»refers «ELSE»«ENDIF»«ENDIF
-					»«compiled» a«c.type.fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»
-			}
-			'''			
-								
-		nestedCollectorName
+		val compiled = c.type.compileDatatype // Has to be done first
+		
+		'''
+				
+		
+		@XpressModel(kind="«IF c.eContainer instanceof Type»generated«ELSE»new«ENDIF»", pattern="nested")
+		class «activePackage.getNestedCollector(c)» {
+			
+			«c.type.compileAnnotation
+				»«IF c.type.nestedAggregation»contains «ELSE»«IF !c.type.builtinAlias»«IF !c.uniqueReference»@Ecore(^unique="false") «ENDIF»refers «ELSE»«ENDIF»«ENDIF
+				»«compiled» a«c.type.fullyQualifiedName.lastSegment.toLowerCase.toFirstUpper»
+		}
+		'''			
 	}
 
-	
 	
 	/**
 	 * Generates a single delegate class for an inverse relation name.
 	 */
-	def private String generateDelegate(Attribute declaring, Attribute inverse, String delegateInterface) {
+	def private CharSequence generateRelationDelegate(Delegate typeDelegate, Delegate interfaceDelegate) {
 		
-		val declaringEntity = declaring.eContainer as ExpressConcept		
-		val inverseEntity = declaring.opposite.eContainer as ExpressConcept
+		val declaringEntity = typeDelegate.originAttribute.hostEntity	
+		val inverseEntity = typeDelegate.targetAttribute.hostEntity
+				
+		// Register import of select delegate
+		val pckg = inverseEntity.XCorePackage
+		if(activePackage != pckg) {
 		
-		// Generate proxy name as "ProxyEntityFromEntityTo"
-		val delegateName = PREFIX_DELEGATE + declaringEntity.name.toFirstUpper + inverseEntity.name.toFirstUpper
-		val hasInterface = !delegateInterface.trim.empty
+			if(null!=interfaceDelegate) {	
+				activePackage.importRegistry += pckg.packageQN.append(interfaceDelegate.qualifiedName)				
+			}
+			activePackage.importRegistry += pckg.packageQN.append(inverseEntity.name.toFirstUpper)
+		}
 		
-		secondStageCache +=
 		'''
 		
 		@GenModel(documentation="Inverse delegation helper between «declaringEntity.name» and «inverseEntity.name»")
-		@XpressModel(kind="new", pattern="delegate"«IF hasInterface && inverse.select»,select="«declaringEntity.name»"«ENDIF»)
-		class «delegateName» «IF hasInterface»extends «delegateInterface»«ENDIF» {
-			«IF !hasInterface»
+		@XpressModel(kind="new", pattern="delegate"«IF null!=interfaceDelegate && typeDelegate.targetAttribute.select»,select="«declaringEntity.name»"«ENDIF»)
+		class «typeDelegate.qualifiedName» «IF null!=interfaceDelegate»extends «interfaceDelegate.qualifiedName»«ENDIF» {
+			«IF null==interfaceDelegate»
 			// Reference to «inverseEntity.name»
 			«inverseEntity.compileAnnotation
-			»refers «inverseEntity.refersAlias.name.toFirstUpper» «declaring.name.toFirstLower» opposite «inverse.name.toFirstLower»
+			»refers «inverseEntity.refersAlias.name.toFirstUpper» «typeDelegate.originAttribute.name.toFirstLower» opposite «typeDelegate.targetAttribute.name.toFirstLower»
 			«ENDIF»
 			// Containment on declaring side of «declaringEntity.name»
-			container «declaringEntity.refersAlias.name.toFirstUpper» «inverse.name.toFirstLower» opposite «declaring.name.toFirstLower»	
+			container «declaringEntity.refersAlias.name.toFirstUpper» «typeDelegate.targetAttribute.name.toFirstLower» opposite «typeDelegate.originAttribute.name.toFirstLower»	
 		}
 		'''
-		return delegateName
 	}
 	
 	
 	/**
 	 * Compiles a non-unique relationship by adding delegates.
 	 */
-	def private generateDelegateNonUniqueRelation(Attribute a) {
+	def private CharSequence generateRelationDelegateSelect(Delegate relationDelegate) {
 		
-		val declaringInverse = if (a.declaringInverseAttribute) a else a.oppositeAttribute		
-				
-		val inverseConcept = declaringInverse.opposite.eContainer as ExpressConcept
-		val inverseAttribute = declaringInverse.opposite
-		val declaringInverseSet = inverseAttribute.allOppositeAttributes
+		val inverseConcept = relationDelegate.originAttribute.hostEntity
+		val inverseAttribute = relationDelegate.originAttribute
 						
-		// Generate proxy interface name as "ProxyEntityToSelect"
 		val targetConcept = inverseAttribute.type.refersConcept
-		val delegateInterfaceName = PREFIX_DELEGATE + inverseConcept.name.toFirstUpper + targetConcept.name.toFirstUpper
-
-		// Map QN of inverse attribute
-		xcoreInfo.createDelegate(inverseAttribute, delegateInterfaceName, null)
-
-		// Write to second stage cache				
-		secondStageCache +=
 		
 		'''
 		
 		@XpressModel(kind="new", pattern="delegate")
-		@GenModel(documentation="Delegation select of «targetConcept.name»")
-		interface «delegateInterfaceName» {						
+		@GenModel(documentation="Delegation select of «inverseConcept.name»")
+		interface «relationDelegate.qualifiedName» {						
 			«IF inverseAttribute.supertypeOppositeDirectedRelation»
 				// Inverse super type
 				op «targetConcept.name.toFirstUpper» get«inverseAttribute.name.toFirstUpper»()«
 			ELSE»
 				// Inverse select branch
-				op EObject get«inverseAttribute.name.toFirstUpper»()«
+				op «typeof(EObject).refersClassImport» get«inverseAttribute.name.toFirstUpper»()«
 			ENDIF»
 			// Non-unique counter part, using concept QN as reference name
 			refers «inverseConcept.refersAlias.name.toFirstUpper» «inverseConcept.name.toFirstLower» opposite «inverseAttribute.name.toFirstLower»
 		}
 		'''
-
-		// Generate proxies for all 
-		for(Attribute ia : declaringInverseSet) {
-								
-			val delegateClass = generateDelegate(ia, inverseAttribute, delegateInterfaceName)
-			xcoreInfo.createDelegate(ia, delegateClass, inverseAttribute)
+	}
+	
+	def boolean hasDelegate(Attribute a) {
+		
+		if(a.hasRelationDelegate) {
+			// Anyway, has been decided before
+			true
+			
+		} else {
+						
+			if(Options.FORCE_UNIQUE_DELEGATES.option && a.isInverseManyToManyRelation) {
+				// Force even unique n-m relations to have a delegate	
+				a.createRelationDelegate
+				
+			} else if(a.nonUniqueRelation) {
+				// Otherwise, only if non-unique inverse relation
+				a.createRelationDelegate
+				
+			} else {
+				// Otherwise, no delegate is needed
+				false
+			}
 		}
 	}
 	
-	/**
-	 * Generates a simple delegate.
-	 */
-	def private generateDelegateUniqueRelation(Attribute a) {
 		
-		val declaringInverse = if (a.declaringInverseAttribute) a else a.oppositeAttribute
-		
-		// Generate delegate without interface
-		val qnClassRef = generateDelegate(declaringInverse, declaringInverse.opposite, "")
-		xcoreInfo.createDelegate(declaringInverse, qnClassRef, declaringInverse.opposite)
-	}
-	
-	
 	/**
 	 * Generates a relation delegate and returns class reference.
 	 */
-	def protected String getCreateDelegateQN(Attribute a) { 
+	def protected String refersRelationDelegate(Attribute a) { 
+								
+		// Test whether a delegate exists (if N-to-M or inverse select)		
+		if(a.hasDelegate) {
 				
-		// Get existing QN of delegate
-		if(!a.hasDelegate) {
-			
-			if(a.nonUniqueRelation) {
-			
-				generateDelegateNonUniqueRelation(a)
-				
-			} else if(a.isInverseManyToManyRelation && Options.FORCE_UNIQUE_DELEGATES.option) {
-				// Create delegates for unique relations only if forced
-				generateDelegateUniqueRelation(a)
+			val delegateSet = a.relationDelegates // Real instance delegates		
+			val delegateSelect = if(a.declaringInverseAttribute) 
+					a.opposite.relationDelegates.findFirst[targetAttribute==null] // Opposite
+				else
+					delegateSet.findFirst[targetAttribute==null] // Select interface
+					
+			// Generate only if active package matches the origin attribute entity
+			for(Delegate delegate : delegateSet.filter[
+				a == originAttribute && activePackage == originAttribute.hostEntity.XCorePackage
+			]) {
+				// If got select, enforce special handling
+				if(delegate == delegateSelect) {
+					
+					secondStageCache += generateRelationDelegateSelect(delegate)
+				} else {
+					
+					secondStageCache += generateRelationDelegate(delegate, delegateSelect)						
+				}
 			}
+							
+			// Delegation reference
+			a.relationDelegateQN
+											
+		} else {
+			
+			// Direct reference 
+			a.refersConcept?.refersImport.name.toFirstUpper
 		}
-		
-		a.delegateQN
 	}
 	
 		
@@ -816,26 +1073,29 @@ class XcoreGenerator implements IGenerator {
 	}
 
 	// Whether to use containment or not
-	def isContainementReference(Attribute a) {
+	def isContainmentReference(Attribute a) {
 		
-		if(a.hasDelegate)
+		if(a.hasDelegate) {
+			
 			a.declaringInverseAttribute 
-		else
-			a.type.hasDelegate || a.refersConcept.isReferencedSelect			
+		} else {
+			
+			activePackage.hasNestedCollector(a.type) || a.refersConcept.isReferencedSelect
+		}			
 	}
 	
 	// Whether to use an EClass reference
 	def isReferable(Attribute a) {
 		
-		a.type.referable || a.type.hasDelegate
+		a.type.referable || a.hasDelegate || activePackage.hasNestedCollector(a.type)
 	}
 
-	def compileAttribute(Attribute a) { 
+	def private compileAttribute(Attribute a) { 
 		
 		val compiled = a.type.compileDatatype
 		'''«a.compileAnnotation
 			»«IF a.referable
-				»«IF a.containementReference»contains «
+				»«IF a.containmentReference»contains «
 				ELSE
 					»«IF !a.type.uniqueReference && !a.inverseRelation»@Ecore(^unique="false") «ENDIF»refers «
 				ENDIF

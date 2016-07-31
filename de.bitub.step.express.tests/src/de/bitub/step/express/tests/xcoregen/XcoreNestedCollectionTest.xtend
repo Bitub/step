@@ -63,7 +63,6 @@ class XcoreNestedCollectionTest extends AbstractXcoreGeneratorTest {
     def void testInfoNestedCollection() {
     	
     	val model = generateEXPRESS(schema)
-    	val xcore = generator.compileSchema(model)
     	val info = testInterpreter.process(model)
     	
     	val list1D = model.type.findFirst[name == "EntityList1D"]
@@ -78,10 +77,7 @@ class XcoreNestedCollectionTest extends AbstractXcoreGeneratorTest {
     	
     	assertTrue((list2D.datatype as CollectionType).nestedAggregation)
     	assertEquals("EntityB[][]",  info.getQualifiedReference(list2Dcol).segments.join);
-    	
-    	val qn = generator.qualifiedName(list2Dcol)
-    	//assertEquals("", qn)
-    	
+    	    	
     	assertTrue((list3D.datatype as CollectionType).nestedAggregation)
     	assertEquals("EntityB[][][]",  info.getQualifiedReference(list3Dcol).segments.join);
     }

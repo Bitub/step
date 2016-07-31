@@ -8,7 +8,7 @@
  * Contributors:
  *  Bernold Kraft - initial implementation and initial documentation
  */
-package de.bitub.step.express.tests.xcoregen
+package de.bitub.step.express.tests.xcoregen.ifc
 
 import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
@@ -19,6 +19,7 @@ import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import de.bitub.step.express.tests.xcoregen.AbstractXcoreGeneratorTest
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
@@ -54,13 +55,13 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 
 	@Test
 	def void testRunIfc4Conversion() {
-		generatedXcoreFilename = "ifc4.exp.xcore"
+		//generatedXcoreFilename = "ifc4.exp.xcore"
 		generateXCore(readExpressSchema("IFC4"))
 	}
 			
 	@Test
 	def void testRunIfc4Add1Conversion() {
-		generatedXcoreFilename = "ifc4_add1.exp.xcore"
+		//generatedXcoreFilename = "ifc4_add1.exp.xcore"
 		generateXCore(readExpressSchema("IFC4_ADD1"))
 	}
 	

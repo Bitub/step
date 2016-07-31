@@ -13,11 +13,8 @@ package de.bitub.step.xcore
 
 import de.bitub.step.analyzing.EXPRESSModelInfo
 import de.bitub.step.express.Attribute
-import de.bitub.step.express.CollectionType
-import de.bitub.step.express.DataType
 import de.bitub.step.express.Entity
-import de.bitub.step.express.ReferenceType
-import de.bitub.step.express.Type
+import de.bitub.step.express.ExpressConcept
 import java.util.Set
 import org.eclipse.xtext.naming.QualifiedName
 
@@ -25,8 +22,12 @@ import static extension de.bitub.step.util.EXPRESSExtension.*
 
 class XcoreInfo {
 
+	val static PREFIX_DELEGATE = "Delegate"	
+
 	val private extension EXPRESSModelInfo modelInfo
 		
+	val public QualifiedName rootContainerClass;
+	
 	/**
 	 * A delegate reference.
 	 */
@@ -49,116 +50,82 @@ class XcoreInfo {
 	 * inverse attribute to <Class name of delegates, name of opposite Xcore attribute>.
 	 */
 	val public qualifiedNameDelegateMap = <Attribute, Set<Delegate>>newHashMap
-
-	/**
-	 * Nested aggregation as qualified name to Xcore class name.
-	 */
-	val public qualifiedNameAggregationMap = <QualifiedName, String>newHashMap
 	
 	
-	new (EXPRESSModelInfo info) {
+	new (EXPRESSModelInfo info, QualifiedName rootContainer) {
 		this.modelInfo = info
+		this.rootContainerClass = rootContainer;
 	}
 	
 	def int getCountOfDelegate() {
 		
-		countOfAggregationDelegate + countOfRelationDelegate
+		countOfRelationDelegate
 	}
 	
 	def int getCountOfRelationDelegate() {
 		
 		qualifiedNameDelegateMap.values.flatten.map[qualifiedName].toSet.size
 	}
-	
-	def int getCountOfAggregationDelegate() {
 		
-		qualifiedNameAggregationMap.size
-	}
-	
-		
-	def String getDelegateQN(CollectionType c) {
-				
-		// Inline aggregation
-		qualifiedNameAggregationMap.get(c.qualifiedReference)
-	}
-	
-	def Set<Delegate> getDelegates(Attribute a) {
+	def Set<Delegate> getRelationDelegates(Attribute a) {
 	
 		qualifiedNameDelegateMap.get(a)	
 	}
 	
-	def String getDelegateQN(Attribute a, Attribute b) {
+	def String getRelationDelegateQN(Attribute a, Attribute b) {
 		
 		qualifiedNameDelegateMap.get(a)?.findFirst[targetAttribute == b].qualifiedName
 	}
 	
-	def dispatch boolean hasDelegate(Entity o) {
+	/**
+	 * Registers (if needed) a bundle of delegates on an attribute a. Returns true, if any delegate 
+	 * has been created. 
+	 */	
+	def createRelationDelegate(Attribute a) {
 		
-		false
-	}
-
-	def dispatch boolean hasDelegate(DataType o) {
+		val declaringInverse = if (a.declaringInverseAttribute) a else a.oppositeAttribute	
 		
-		false
-	}
-	
-	
-	def dispatch boolean hasDelegate(ReferenceType r) {
+		// If no inverse or no inverse as many-to-many => reject delegate need
+		if(null==declaringInverse) {
+			
+			false
+			
+		} else {	
 				
-		switch(r.instance) {
-			
-			Type: {
-			
-				val type = r.instance as Type
-				type.aggregation &&	type.datatype.hasDelegate				
+			val inverseConcept = declaringInverse.opposite.eContainer as ExpressConcept
+			val inverseAttribute = declaringInverse.opposite
+			val declaringInverseSet = inverseAttribute.allOppositeAttributes
+							
+			// Add select interface if non-unique on left sides
+			if(declaringInverseSet.size > 1) {
+				
+				val targetConcept = inverseAttribute.type.refersConcept
+				val delegateInterfaceName = PREFIX_DELEGATE + inverseConcept.name.toFirstUpper + targetConcept.name.toFirstUpper
+				
+				createRelationDelegate(inverseAttribute, delegateInterfaceName, null)		
 			}
 			
-			default:
-				false
+			// Generate delegates for all declaring attributes
+			for(Attribute origin : declaringInverseSet) {
+												
+				val delegateName = PREFIX_DELEGATE + origin.hostEntity.name.toFirstUpper + inverseConcept.name.toFirstUpper		
+				createRelationDelegate(origin, delegateName, inverseAttribute)
+			}
+					
+			true
 		}
 	}
 	
-	def dispatch boolean hasDelegate(CollectionType c) {
+	/**
+	 * Returns true, if a delegate (bundle) exists already.
+	 */
+	def boolean hasRelationDelegate(Attribute a) {
 		
-		// Inline aggregation
-		qualifiedNameAggregationMap.containsKey(c.qualifiedReference)
-	}
-	
-	def dispatch boolean hasDelegate(Attribute a) {
-		
-		qualifiedNameDelegateMap.containsKey(a)
-	}
-	
-	def dispatch boolean hasDelegate(Type a) {
-		
-		a.datatype.hasDelegate
-	}
-	
-	def String createNestedDelegate(CollectionType c) {
-	
-		var QualifiedName qn = c.qualifiedReference
-		
-		if(qualifiedNameAggregationMap.containsKey(qn)) {
-			
-			return qualifiedNameAggregationMap.get(qn)
-		}
-		
-		var String nestedQN
-//		if(c.typeAggregation) {
-//					
-//			nestedQN = qn.segments.join.toFirstUpper.replace('''[]''','''Array''')
-//		} else {
-			
-			nestedQN = qn.skipLast(1).segments.join.toFirstUpper.replace('''[]''','''InList''')			
-//		}
-		
-		qualifiedNameAggregationMap.put( qn, nestedQN )
-		
-		nestedQN			
+		qualifiedNameDelegateMap.containsKey(a)		
 	}
 	
 	
-	def Delegate createDelegate(Attribute origin, String qualifiedName, Attribute target) {
+	def private Delegate createRelationDelegate(Attribute origin, String qualifiedName, Attribute target) {
 		
 		var set = qualifiedNameDelegateMap.get(origin)
  		if(null==set) {
@@ -177,7 +144,8 @@ class XcoreInfo {
 	 			qualifiedNameDelegateMap.put( target, (set = newHashSet) )
 	 		}
  			
- 			set += new Delegate(qualifiedName, target, origin)
+ 			// Add inverse
+ 			set += delegate
  		}
  		
  		delegate
@@ -188,41 +156,41 @@ class XcoreInfo {
 	 */
 	def String getOppositeQN(Attribute a) {
 
-		if (a.hasDelegate) {
+		var String oppositeQualifiedName = a.oppositeAttribute?.name
+
+		// Check whether there is a delegate
+		if (a.hasRelationDelegate) {
 
 			if(a.declaringInverseAttribute) {
-			
-				a.opposite.name	
+				// If declaring, opposite is known
+				oppositeQualifiedName = a.opposite.name	
 				
 			} else {
 				
- 				val delegate = qualifiedNameDelegateMap.get(a).findFirst[targetAttribute==null]
- 				if(null!=delegate) {
- 					// Non-unique => opposite is named as invers concept
- 					(a.eContainer as Entity).name
- 				} else {
- 					// Unique
- 					a.oppositeAttribute?.name
- 				}				
+				// Otherwise check whether a delegate exists (n-m relationships or non-unique)
+ 				if(a.relationDelegates.exists[targetAttribute==null]) {
+ 					// Non-unique => opposite attribute in select interface is named by select hosting concept
+ 					oppositeQualifiedName = (a.eContainer as Entity).name
+ 				} 			
 			}
-
-		} else {
-
-			a.oppositeAttribute?.name
-		}
+		} 
+		
+		oppositeQualifiedName
 	}
 	
 	/**
 	 * Gets the references (delegate) type.
 	 */
-	def String getDelegateQN(Attribute a) {
+	def String getRelationDelegateQN(Attribute a) {
 		
-		if(a.hasDelegate) {
+		if(a.hasRelationDelegate) {
 			
 			if(a.declaringInverseAttribute) {
+				
 				// If declaring => get delegate
-				getDelegateQN(a, a.opposite)
+				getRelationDelegateQN(a, a.opposite)
 			} else {
+				
  				// If inverse => get interface delegate
  				val delegate = qualifiedNameDelegateMap.get(a).findFirst[targetAttribute==null]
  				if(null!=delegate) {

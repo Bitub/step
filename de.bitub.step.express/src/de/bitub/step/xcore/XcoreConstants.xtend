@@ -12,6 +12,7 @@ package de.bitub.step.xcore
 
 import de.bitub.step.express.BuiltInType
 import de.bitub.step.express.ExpressPackage
+import java.util.List
 import org.eclipse.emf.ecore.EClass
 
 class XcoreConstants {
@@ -48,6 +49,16 @@ class XcoreConstants {
 		builtinObjectMappings.get(c.eClass)
 	}
 	
+	def static CharSequence compileBuiltin(BuiltInType c) {
+		
+		compileBuiltin(c.eClass)
+	}
+	
+	def static List<EClass> getImplementedBuiltins() {
+		
+		return builtinMappings.keySet.filter[compileBuiltin.length>0].toList
+	}
+	
 	def static CharSequence compileBuiltin(EClass c) {
 		
 		
@@ -56,6 +67,7 @@ class XcoreConstants {
 			case ExpressPackage.Literals.LOGICAL_TYPE : 
 				'''
 				
+				// Logical implementation
 				enum Logical {
 					
 					TRUE = 0, FALSE = 1, UNKNOWN = 2 
@@ -64,6 +76,7 @@ class XcoreConstants {
 			case ExpressPackage.Literals.BINARY_TYPE :
 				'''
 				
+				// Binaray implementation
 				type Binary wraps java.util.BitSet
 				'''
 				

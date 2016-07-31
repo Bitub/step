@@ -31,47 +31,98 @@ class XcoreMultiInverseLeftNonUniqueRelationshipTest extends AbstractXcoreGenera
 	 * Inverse non-unique left hand relations with multiple cardinalities (here lists). The branch on right hand is modeled by
 	 * a SELECT construction of two left hand entities.
 	 */
-	val schema = 
+	val schema_noSuper = 
     		'''
-			SCHEMA XCoreMultiInverseLeftNonUniqueRelationshipTest;
+			SCHEMA XCoreSelectRelationTestNoSuper;
 			
-			TYPE RightHandMultiBranch = SELECT
-				(EntityMultiA
-				,EntityMultiB);
+			TYPE SelectAB = SELECT
+				(EntityA
+				,EntityB);
 			END_TYPE;
-
-
-			ENTITY EntityMultiA;
+			
+			ENTITY EntityA;
 			INVERSE
-			  RelationA : LIST [0:?] OF EntityMultiC FOR RelationC;
+			  RelationA : LIST [0:?] OF EntityC FOR RelationC;
 			END_ENTITY;
 			
-			ENTITY EntityMultiB;
+			ENTITY EntityB;
 			INVERSE
-			  RelationB : LIST [0:?] OF EntityMultiC FOR RelationC;
+			  RelationB : LIST [0:?] OF EntityC FOR RelationC;
 			END_ENTITY;
 			
-			ENTITY EntityMultiC;
-			  RelationC : LIST [0:?] OF RightHandMultiBranch;
+			ENTITY EntityC;
+			  RelationC : LIST [0:?] OF SelectAB;
 			END_ENTITY;
 			
 			END_SCHEMA;
     		'''
+    		
+	val schema_hasSuper = 
+    		'''
+			SCHEMA XCoreSelectRelationTestWithSuper;
+			
+			TYPE SelectAB = SELECT
+				(EntityA
+				,EntityB);
+			END_TYPE;
+			
+			ENTITY EntitySuperAB
+				SUPERTYPE OF (ONEOF (EntityA,EntityB));
+			END_ENTITY;
+
+
+			ENTITY EntityA
+				SUBTYPE OF (EntitySuperAB);
+			INVERSE
+			  RelationA : LIST [0:?] OF EntityC FOR RelationC;
+			END_ENTITY;
+			
+			ENTITY EntityB
+				SUBTYPE OF (EntitySuperAB);
+			INVERSE
+			  RelationB : LIST [0:?] OF EntityC FOR RelationC;
+			END_ENTITY;
+			
+			ENTITY EntityC;
+			  RelationC : LIST [0:?] OF SelectAB;
+			END_ENTITY;
+			
+			END_SCHEMA;
+    		'''
+    		
 	@Test
-    def void testInfoMultiInverseLeftNonUniqueRelationship() {
+    def void testInfo_XCoreSelectRelationTestNoSuper() {
     	
-		val model = generateEXPRESS(schema)
+		val model = generateEXPRESS(schema_noSuper)
 		val info = test.process(model)
 		
-		assertEquals(1, info.countInverseNMReferences)
+		assertEquals(2, info.countInverseNMReferences)
+		assertEquals(1, info.countNonUniqueReferences)	    	
+    }
+
+	@Test
+    def void testInfo_XCoreSelectRelationTestHasSuper() {
+    	
+		val model = generateEXPRESS(schema_hasSuper)
+		val info = test.process(model)
+		
+		assertEquals(2, info.countInverseNMReferences)
 		assertEquals(1, info.countNonUniqueReferences)	    	
     }
 	
 	
     @Test
-    def void testMultiInverseLeftNonUniqueRelationship() {
+    def void testGenerate_XCoreSelectRelationTestNoSuper() {
     	    		
-		val xcore = generateXCore(schema)
+		val xcore = generateXCore(schema_noSuper)
+		validateXCore(xcore)    		
+    }
+    
+    @Test
+    def void testGenerate_XCoreSelectRelationTestHasSuper() {
+    	    		
+		val xcore = generateXCore(schema_hasSuper)
 		validateXCore(xcore)    		
     } 
+     
 }

@@ -36,23 +36,23 @@ class XcoreInverseLeftNonUniqueRelationshipTest extends AbstractXcoreGeneratorTe
 			SCHEMA XCoreInverseLeftNonUniqueRelationshipTest;
 			
 
-			TYPE RightHandSingleBranch = SELECT
+			TYPE SelectOfAB = SELECT
 				(EntitySingleA
 				,EntitySingleB);
 			END_TYPE;
 
 			ENTITY EntitySingleA;
 			INVERSE
-			  RelationA : EntitySingleC FOR RelationC;
+			  RelationAToC : EntitySingleC FOR RelationToSelect;
 			END_ENTITY;
 			
 			ENTITY EntitySingleB;
 			INVERSE
-			  RelationB : EntitySingleC FOR RelationC;
+			  RelationBToC : EntitySingleC FOR RelationToSelect;
 			END_ENTITY;
 			
 			ENTITY EntitySingleC;
-			  RelationC : RightHandSingleBranch;
+			  RelationToSelect : SelectOfAB;
 			END_ENTITY;			
 
 			END_SCHEMA;

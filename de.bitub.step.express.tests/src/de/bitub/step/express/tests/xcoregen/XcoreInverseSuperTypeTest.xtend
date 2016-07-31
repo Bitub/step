@@ -42,11 +42,11 @@ class XcoreInverseSuperTypeTest extends AbstractXcoreGeneratorTest {
     		ENTITY EntityB
     			SUBTYPE OF (EntityA);
     		INVERSE
-    		  RelationB : EntityC FOR RelationC;
+    		  RelationToC : EntityC FOR RelationToA;
     		END_ENTITY;
 
     		ENTITY EntityC;
-    		  RelationC : EntityA;
+    		  RelationToA : EntityA;
     		END_ENTITY;
     		
     		END_SCHEMA;
@@ -59,7 +59,8 @@ class XcoreInverseSuperTypeTest extends AbstractXcoreGeneratorTest {
 		val info = test.process(model)
 				
 		assertEquals(0, info.countInverseNMReferences)
-		assertEquals(1, info.countNonUniqueReferences)
+		assertEquals(0, info.countNonUniqueReferences)
+		assertEquals(1, info.countSuperTypeInverseReferences)
 		
 		val a = model.entity.findFirst[name == "EntityA"]
 		val b = model.entity.findFirst[name == "EntityB"]

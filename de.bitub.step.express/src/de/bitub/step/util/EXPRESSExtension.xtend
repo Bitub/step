@@ -262,7 +262,7 @@ class EXPRESSExtension {
 	
 
 	/**
-	 * Whether a datatype is referable (non-datatype in Java terms).
+	 * Whether a datatype is referable (non-datatype in Xcore terms).
 	 */
 	def static isReferable(DataType t) {
 
@@ -278,6 +278,7 @@ class EXPRESSExtension {
 				false			
 		}
 	}
+	
 	
 	def static isSelect(Attribute a) {
 		
@@ -308,7 +309,8 @@ class EXPRESSExtension {
 		switch(c) {
 			
 			Type: 
-				(c as Type).datatype.refersConcept
+				c.datatype.refersConcept
+				
 			default: 
 				c
 		} 		
@@ -326,16 +328,13 @@ class EXPRESSExtension {
 				
 			CollectionType: 
 				dataType.type.refersConcept
+				
+			EnumType, SelectType:
+				dataType.eContainer as ExpressConcept
 			
 			default: 
 				
-				if(dataType.eContainer instanceof Type) {
-					
-					dataType.eContainer as Type
-				} else {
-					
-					null
-				}
+				null
 		}
 	}
 
@@ -413,8 +412,10 @@ class EXPRESSExtension {
 	def static dispatch boolean isBuiltinAlias(ExpressConcept e) {
 
 		switch e {
+			
 			Type: 
 				e.datatype.builtinAlias
+				
 			default: 
 				false
 		}
@@ -426,17 +427,21 @@ class EXPRESSExtension {
 	def static dispatch boolean isBuiltinAlias(DataType t) {
 
 		switch t {
+			
 			CollectionType: 
-				t.type.builtinAlias
+				t.type instanceof BuiltInType
+				
 			ReferenceType: 
 				t.instance.builtinAlias
+				
 			BuiltInType: 
 				true
+				
 			default: 
 				false
 		}
 	}
-	
+		
 	/**
 	 * Determines the flat set of EXPRESS concepts represented by given Select statement.
 	 */
