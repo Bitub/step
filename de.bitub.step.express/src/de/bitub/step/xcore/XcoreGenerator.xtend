@@ -9,8 +9,6 @@
  *  Bernold Kraft - initial implementation and initial documentation
  */
 
-// TODO Refactoring compile/generate/assemble
-
 package de.bitub.step.xcore
 
 import com.google.inject.Inject
@@ -63,7 +61,6 @@ class XcoreGenerator implements IGenerator {
 	 */
 	enum Options {
 		
-		SEPARATE_TYPEPACKAGE, 
 		COPYRIGHT_NOTICE, 
 		NS_URI, 
 		NS_PREFIX, 
@@ -482,6 +479,9 @@ class XcoreGenerator implements IGenerator {
 	def dispatch CharSequence compileAnnotation(Attribute a) {
 		
 		var annotations = newArrayList
+		if(a.optional) {
+			annotations += '''optional="true"'''			
+		}
 		if(a.hasDelegate) {
 			annotations += '''pattern="delegate"''' 
 		} else if(a.type.hasNestedCollector) {
@@ -492,7 +492,7 @@ class XcoreGenerator implements IGenerator {
 		}
 			
 		'''«IF !annotations.empty»@XpressModel(«annotations.join(',')») «
-			ENDIF»«IF !a.declaringInverseAttribute»@P21 «ENDIF»'''
+			ENDIF»«IF a.inverseRelation && !a.declaringInverseAttribute»@P21 «ENDIF»'''
 	}
 	
 	def dispatch CharSequence compileAnnotation(Type t) {
