@@ -16,62 +16,45 @@ import de.bitub.step.express.ExpressPackage
 import de.bitub.step.express.Type
 import java.util.Map
 import java.util.Optional
-import java.util.function.BiFunction
+import java.util.function.Function
+import org.eclipse.emf.ecore.EClass
 import org.eclipse.xtext.naming.QualifiedName
 
 /**
- * 
+ * A multi partitioning delegate which uses a map of class versus package descriptors.
  */
-class XcoreMultiPartitionDelegate implements BiFunction<ExpressConcept, QualifiedName, Optional<XcorePackageDescriptor>> {
+class XcoreMultiPartitionDelegate implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
 		
-	val QualifiedName packageRoot
-	val String packageName
-	val String packageUri
-		
-	val defaultPackage = new XcorePackageDescriptor() {
-				
-		override getNsURI() {
-			packageUri
-		}
-		
-		override getName() {
-			packageName
-		}
-		
-		override getBasePackage() {
-			packageRoot
-		}
-		
-		
-	}
-		
-	var Map<Object, XcorePackageDescriptor> descriptorMap 
+	val XcorePackageDescriptor defaultPackage		
+	val public Map<EClass, XcorePackageDescriptor> descriptorMap 
 	
 	new(String packageName, QualifiedName packageRoot, String packageUri) {
 		
-		this.packageName = packageName
-		this.packageRoot = packageRoot	
-		this.packageUri = packageUri
-		
-		applyTypeMaping("enums", "selects", "")
+		this.defaultPackage = new XcorePackageDescriptor() {
+				
+			override getNsURI() {
+				packageUri
+			}
+			
+			override getName() {
+				packageName
+			}
+			
+			override getBasePackage() {
+				packageRoot
+			}		
+		}	
+			
+		descriptorMap = newHashMap( 
+			(ExpressPackage.Literals.ENUM_TYPE -> new XcoreGenericSubPackageDescriptor(defaultPackage, "enums")),
+			(ExpressPackage.Literals.SELECT_TYPE -> new XcoreGenericSubPackageDescriptor(defaultPackage, "selects") ),
+			(ExpressPackage.Literals.ENTITY -> defaultPackage ) 
+		)
 	}
 	
-	def applyTypeMaping(String enumsPackage, String selectsPackage, String entityPackage) {
-		
-		descriptorMap = <Object, XcorePackageDescriptor>newHashMap(
-		
-			ExpressPackage.Literals.ENUM_TYPE
-			 -> new XcoreGenericSubPackageDescriptor(packageName, enumsPackage, packageRoot, packageUri),
-		
-			ExpressPackage.Literals.SELECT_TYPE
-			-> new XcoreGenericSubPackageDescriptor(packageName, selectsPackage, packageRoot, packageUri),
-
-			ExpressPackage.Literals.ENTITY
-			-> new XcoreGenericSubPackageDescriptor(packageName, entityPackage, packageRoot, packageUri)		
-		)			
-	}
 	
-	override apply(ExpressConcept t, QualifiedName u) {
+	
+	override apply(ExpressConcept t) {
 		
 		switch(t) {
 			

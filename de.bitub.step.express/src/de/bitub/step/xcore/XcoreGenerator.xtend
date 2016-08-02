@@ -43,6 +43,7 @@ import org.eclipse.xtext.naming.QualifiedName
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
 import static extension de.bitub.step.xcore.XcoreConstants.*
+import java.util.function.Function
 
 /**
  * Generates Xcore specifications from EXPRESS models.
@@ -89,7 +90,7 @@ class XcoreGenerator implements IGenerator {
 	var secondStageCache = ''''''
 	
 	// The partitioning delegate
-	var BiFunction<ExpressConcept, QualifiedName, Optional<XcorePackageDescriptor>> partitioningDelegate = new XcoreDefaultPartitionDelegate
+	var Function<ExpressConcept, Optional<XcorePackageDescriptor>> partitioningDelegate = new XcoreDefaultPartitionDelegate
 
 	val escapeKeywords = <String>newHashSet("id", "contains", "opposite", "refers", "unique", "unordered")
 
@@ -112,7 +113,7 @@ class XcoreGenerator implements IGenerator {
 	 * returns a descriptor of an assigned xcore package. Whenever the descriptor is not present, the default package (under the QN of
 	 * the current schema) is taken.
 	 */
-	def void setPartitioningHelper(BiFunction<ExpressConcept, QualifiedName,Optional<XcorePackageDescriptor>> delegate) {
+	def void setPartitioningHelper(Function<ExpressConcept, Optional<XcorePackageDescriptor>> delegate) {
 		
 		this.partitioningDelegate = delegate
 		packageCache.clear
@@ -126,22 +127,10 @@ class XcoreGenerator implements IGenerator {
 		partitioningDelegate
 	}
 		
-	/**
-	 * Gets or creates the proper package cache and resets to the new package.
-	 */
-	def private partitionXCorePackage(ExpressConcept c) {
-		
-		partitionXCorePackage(c, c.fullyQualifiedName)
-	}
 	
 	def private getXCorePackage(ExpressConcept c) {
 		
-		getXCorePackage(c, c.fullyQualifiedName)
-	}
-	
-	def private getXCorePackage(ExpressConcept c, QualifiedName qn) {
-		
-		var dscp = partitioningDelegate.apply(c, qn)
+		var dscp = partitioningDelegate.apply(c)
 		var pkg = if(dscp.isPresent) 
 				packageCache.get(dscp.get().nsURI) // get by URI 
 			else
@@ -169,9 +158,9 @@ class XcoreGenerator implements IGenerator {
 	 * Gets or creates the proper package cache and resets to the new package. Additionally a qualified name
 	 * is provided by call.
 	 */
-	def private partitionXCorePackage(ExpressConcept c, QualifiedName qn) {
+	def private partitionXCorePackage(ExpressConcept c) {
 		
-		var dscp = partitioningDelegate.apply(c, qn)
+		var dscp = partitioningDelegate.apply(c)
 		var pkg = if(dscp.isPresent) 
 				packageCache.get(dscp.get().nsURI) // get by URI 
 			else
@@ -235,7 +224,7 @@ class XcoreGenerator implements IGenerator {
 		// Builtin are hosted everywhere
 		if(!c.builtinAlias) {
 		
-			var dscp = partitioningDelegate.apply(c, c.fullyQualifiedName)
+			var dscp = partitioningDelegate.apply(c)
 			var pkg = if(dscp.isPresent) 
 				 	packageCache.get(dscp.get().nsURI) // get by URI 
 				else

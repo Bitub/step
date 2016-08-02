@@ -1,49 +1,42 @@
 package de.bitub.step.xcore
 
-import org.eclipse.xtext.naming.QualifiedName
-
 class XcoreGenericSubPackageDescriptor implements XcorePackageDescriptor {
 	
-	val String subNamespace
-	
-	val QualifiedName packageRoot
 	val String packageName
-	val String packageUri
 	
+	val XcorePackageDescriptor base;	
 	
-	new(String packageName, String subNamespace, QualifiedName packageRoot, String packageUri) {
+	new(XcorePackageDescriptor baseDescriptor, String packageName) {
 		
-		this.subNamespace = subNamespace
 		this.packageName = packageName
-		this.packageRoot = packageRoot	
-		this.packageUri = packageUri	
+		this.base = baseDescriptor	
 	}	
 	
 	
 	override getNsURI() {
 	
-		if(subNamespace.trim.length > 0) {
-			packageUri +"/"+ subNamespace.toFirstLower
+		if(packageName.trim.length > 0) {
+			base.nsURI +"/"+ packageName.toFirstLower
 		} else {
-			packageUri
+			base.nsURI
 		}			
 	}
 	
 	override getName() {
 		
-		if(subNamespace.trim.length > 0) {
-			packageName + subNamespace.toFirstUpper
+		if(packageName.trim.length > 0) {
+			base.name + packageName.toFirstUpper
 		} else {
-			packageName
+			base.name
 		}
 	}
 	
 	override getBasePackage() {
 		
-		if(subNamespace.trim.length > 0) {
-			packageRoot.append(subNamespace.toLowerCase)
+		if(packageName.trim.length > 0) {
+			base.basePackage.append(packageName.toLowerCase)
 		} else {
-			packageRoot
+			base.basePackage
 		}
 	}
 	
