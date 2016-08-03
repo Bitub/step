@@ -8,7 +8,7 @@ import org.eclipse.xtext.naming.QualifiedName
 
 class IfcPartitioningDelegate extends XcoreDefaultPartitionDelegate {
 	
-	override apply(ExpressConcept t, QualifiedName u) {
+	override apply(ExpressConcept t) {
 		
 		Optional.<XcorePackageDescriptor>empty		
 	}
