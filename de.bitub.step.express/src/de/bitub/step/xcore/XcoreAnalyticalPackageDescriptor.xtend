@@ -22,10 +22,15 @@ import java.util.function.BiFunction
 import java.util.function.Function
 import java.util.function.Predicate
 import java.util.regex.Pattern
+import java.util.Collections
 
+/**
+ * A
+ */
 class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
 	
-	
+	val List<ProceduralDescriptor> proceduralDescriptors = newArrayList
+	var isOrdered = false
 	
 	static class ProceduralDescriptor {
 		
@@ -52,6 +57,11 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 			this.predicate = [c | true]
 			this.function = [p, c | baseDescriptor]
 			this.parent = null
+		}
+		
+		def int getStage() {
+			
+			parent?.stage + 1
 		}
 		
 		def setParent(ProceduralDescriptor pd) {
@@ -87,8 +97,8 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 							cLevel++
 							mLevel = Math.max(cLevel, mLevel)
 														
-							val superType = iterator.next
-							stack.push(superType.supertype.iterator)
+							val entity = iterator.next
+							stack.push(entity.supertype.iterator)
 							
 						} else {
 							
@@ -105,9 +115,9 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 		/**
 		 * Filters for entities above given level.
 		 */
-		def static ProceduralDescriptor isAboveInheritanceLevel(int superEntities, String packageName) {
+		def static ProceduralDescriptor isLeastInheritanceLevel(ProceduralDescriptor parent, int superEntities, String packageName) {
 			
-			new ProceduralDescriptor(null,
+			new ProceduralDescriptor(parent,
 					[ ExpressConcept c | c.maxSuperTypeLevel>=superEntities ],
 					[ p, c | {
 						new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)
@@ -119,11 +129,11 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 		 * A descriptor which will generate a sub package by level between [0..n]. If no fragments are given,
 		 * the level itself will be taken as argument to the template (i.e. holding an "%d" expression).
 		 */
-		def static ProceduralDescriptor isAtInheritanceLevel(String packageNameTemplate, String ... fragments) {
+		def static ProceduralDescriptor isAtInheritanceLevel(ProceduralDescriptor parent, String packageNameTemplate, String ... fragments) {
 			
 			if(fragments.empty) {
 				
-				new ProceduralDescriptor(null,
+				new ProceduralDescriptor(parent,
 					[ ExpressConcept c | true ],
 					[ p, c | {
 						new XcoreGenericSubPackageDescriptor(p.parent.apply(c), String.format(packageNameTemplate, c.maxSuperTypeLevel))
@@ -131,7 +141,7 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 				)							
 			} else {
 				
-				new ProceduralDescriptor(null,
+				new ProceduralDescriptor(parent,
 					[ ExpressConcept c | true ],
 					[ p, c | {
 						
@@ -144,26 +154,31 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 			}
 		}
 		
-		def static ProceduralDescriptor isNamedLike(String regularExpr, String packageName) {
+		def static ProceduralDescriptor isNamedLike(ProceduralDescriptor parent, String regularExpr, String packageName) {
 
 			val Pattern pattern = Pattern.compile(regularExpr)
-			new ProceduralDescriptor(null,
+			new ProceduralDescriptor(parent,
 				[ ExpressConcept c | pattern.matcher(c.name).find ],
 				[ p, c | new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)]
 			)			
 		}
 		
-		def static ProceduralDescriptor isTypeOf(Class<?> type, String packageName) {
+		def static ProceduralDescriptor isTypeOf(ProceduralDescriptor parent, Class<?> type, String packageName) {
 			
-			new ProceduralDescriptor(null,
+			new ProceduralDescriptor(parent,
 				[ ExpressConcept c | type == c.class],
 				[ p, c | new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)]
 			)
 		}		
 
 		def static ProceduralDescriptor isKindOf(Class<?> superType, String packageName) {
+			
+			isKindOf(null, superType, packageName)
+		}
+		
+		def static ProceduralDescriptor isKindOf(ProceduralDescriptor parent, Class<?> superType, String packageName) {
 
-			new ProceduralDescriptor(null,
+			new ProceduralDescriptor(parent,
 				[ ExpressConcept c | superType.isAssignableFrom(c.class)],
 				[ p, c | new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)]
 			)			
@@ -176,20 +191,13 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 		
 		def XcorePackageDescriptor apply(ExpressConcept c) {
 			
-			if(predicate.test(c)) {
-				
-				function.apply(this,c)
-			} else {
-
-				null				
-			}
+			function.apply(this,c)
 		}
 	}
 	
-	val List<ProceduralDescriptor> proceduralDescriptors = newArrayList
 	
 	new(XcorePackageDescriptor baseDescriptor) {
-		
+	
 		proceduralDescriptors += new ProceduralDescriptor(baseDescriptor)
 	}
 	
@@ -198,9 +206,27 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 		proceduralDescriptors += pd
 	}
 	
+	def void append(ProceduralDescriptor pd) {
+		
+		proceduralDescriptors += pd
+		isOrdered = false
+	}
+	
+	def private void doSortByStage() {
+		
+		if(!isOrdered) {
+			// Sort descending by stage
+			Collections.sort(proceduralDescriptors, [a, b | b.stage - a.stage]);
+			isOrdered = true
+		}
+	}
+	
 	override apply(ExpressConcept t) {
 		
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+		doSortByStage
+		
+		var pd = proceduralDescriptors.findFirst[ p | p.predicate.test(t)]
+		Optional.ofNullable(pd?.apply(t))
 	}
 	
 	

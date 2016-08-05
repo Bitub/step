@@ -10,19 +10,36 @@
  */
 package de.bitub.step.xcore
 
+import java.util.function.Function
 import de.bitub.step.express.ExpressConcept
 import java.util.Optional
-import java.util.function.Function
+import org.eclipse.xtext.naming.QualifiedName
 
-/**
- * This partition delegate will add all concepts into a single (default) namespace.
- */
-class XcoreDefaultPartitionDelegate implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
+class XcoreBasePartitionDelegate implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
+
+	val XcorePackageDescriptor baseDescriptor
 	
+	new(String declaredName, QualifiedName packageQn, String namespaceUri) {
+		
+		baseDescriptor = new XcorePackageDescriptor() {
+			
+			override getNsURI() {
+				namespaceUri
+			}
+			
+			override getName() {
+				declaredName
+			}
+			
+			override getBasePackage() {
+				packageQn
+			}
+		}
+	}
+
 	
 	override apply(ExpressConcept t) {
 		
-		Optional.<XcorePackageDescriptor>empty		
+		Optional.of(baseDescriptor)
 	}
-	
 }
