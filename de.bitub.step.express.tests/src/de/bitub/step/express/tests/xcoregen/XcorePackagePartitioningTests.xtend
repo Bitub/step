@@ -93,7 +93,7 @@ class XcorePackagePartitioningTests extends AbstractXcoreGeneratorTest {
 		generator.options.put(XcoreGenerator.Options.PACKAGE, packageQN)
 		generator.options.put(XcoreGenerator.Options.NS_URI, packageQN)
 		generator.options.put(XcoreGenerator.Options.NS_PREFIX, packageQN)
-		generator.partitioningHelper = new XcoreMultiPartitionDelegate(packageQN, QualifiedName.create(packageQN), packageQN)
+		generator.partitioningDelegate = new XcoreMultiPartitionDelegate(packageQN, QualifiedName.create(packageQN), packageQN)
 	}
 
 }

@@ -12,8 +12,8 @@ package de.bitub.step.express.tests.xcoregen
 
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.EnumType
-import de.bitub.step.xcore.XcoreAnalyticalPackageDescriptor
-import de.bitub.step.xcore.XcoreAnalyticalPackageDescriptor.ProceduralDescriptor
+import de.bitub.step.xcore.XcoreAnalyticalPartitioningDelegate
+import de.bitub.step.xcore.XcoreAnalyticalPartitioningDelegate.ProceduralDescriptor
 import de.bitub.step.xcore.XcorePackageDescriptor
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
@@ -21,31 +21,18 @@ import org.eclipse.xtext.naming.QualifiedName
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import static org.junit.Assert.*
+
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
-class XcoreAnalyticalDescriptorTest extends AbstractXcoreGeneratorTest {
+class XcoreAnalyticalPartitioningDelegateTest extends AbstractXcoreGeneratorTest {
 	
    	val scheme = 
     		'''
 			SCHEMA XcoreSuperTypeTest;
 			
-			ENTITY EntityA
-			  SUPERTYPE OF (ONEOF (EntityB));
-			END_ENTITY;
-			
-			ENTITY EntityBA
-			  SUBTYPE OF (EntityA);
-			END_ENTITY;
-			
-			ENTITY EntityCBA
-			  SUBTYPE OF (EntityB);
-			END_ENTITY;
-			
-			ENTITY SpecialEntityC;
-			END_ENTITY;
-			
-			TYPE EnumType = ENUMERATION OF
-			(BRACE
+			TYPE EnumExample = ENUMERATION OF (
+			    BRACE
 				,CHORD
 				,COLLAR
 				,MEMBER
@@ -61,6 +48,22 @@ class XcoreAnalyticalDescriptorTest extends AbstractXcoreGeneratorTest {
 				,NOTDEFINED);
 			END_TYPE;
 			
+			ENTITY EntityA
+			  SUPERTYPE OF (ONEOF (EntityBA));
+			END_ENTITY;
+			
+			ENTITY EntityBA
+			  SUPERTYPE OF (ONEOF (EntityCBA))
+			  SUBTYPE OF (EntityA);
+			END_ENTITY;
+			
+			ENTITY EntityCBA
+			  SUBTYPE OF (EntityBA);
+			END_ENTITY;
+			
+			ENTITY SpecialEntityC;
+			END_ENTITY;
+
 			END_SCHEMA;
     		'''
 	    
@@ -82,21 +85,28 @@ class XcoreAnalyticalDescriptorTest extends AbstractXcoreGeneratorTest {
 							QualifiedName.create("base","testpackage");
 						}						
 		})   	
-    	val apd = new XcoreAnalyticalPackageDescriptor(root)
+    	val apd = new XcoreAnalyticalPartitioningDelegate(root)
     	
-    	apd.append( ProceduralDescriptor.isKindOf(root, typeof(EnumType), "enums") )
+    	apd.append( ProceduralDescriptor.isDataKindOf(root, typeof(EnumType), "enums") )
+    	apd.append( ProceduralDescriptor.isAtInheritanceLevel(root, "at%d") )
     	apd.append( ProceduralDescriptor.isLeastInheritanceLevel(root, 2, "level2") )
     	apd.append( ProceduralDescriptor.isNamedLike(root, "^Special", "specials") )
     	
-    	val result = 
-    	'''«FOR c : model.entity»
-    		«c.name» => «apd.apply(c).get.basePackage
-    	   »«ENDFOR»
-    	   «FOR e : model.type»
-    	    «e.name» => «apd.apply(e).get.basePackage»
-    	   «ENDFOR»
-    	'''
-    	
-    	println(result)
+    	val map = newHashMap
+		for(c : model.entity) {
+			
+			map.put(c.name, apd.apply(c).get.basePackage.toString)
+		}    	
+
+		for(c : model.type) {
+			
+			map.put(c.name, apd.apply(c).get.basePackage.toString)
+		}    	
+		
+		assertEquals("base.testpackage.at0", map.get("EntityA"))
+		assertEquals("base.testpackage.at1", map.get("EntityBA"))
+		assertEquals("base.testpackage.level2.at2", map.get("EntityCBA"))
+		assertEquals("base.testpackage.specials.at0", map.get("SpecialEntityC"))
+		assertEquals("base.testpackage.at0.enums", map.get("EnumExample"))
     } 
 }
