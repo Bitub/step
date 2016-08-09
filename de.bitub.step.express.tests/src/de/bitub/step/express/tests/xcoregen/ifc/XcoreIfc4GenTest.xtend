@@ -20,6 +20,9 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import de.bitub.step.express.tests.xcoregen.AbstractXcoreGeneratorTest
+import de.bitub.step.xcore.XcoreDefaultPartitionDelegate
+import de.bitub.step.xcore.XcorePackageDescriptor
+import org.eclipse.xtext.naming.QualifiedName
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
@@ -76,8 +79,25 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 			\nwhich accompanies this distribution, and is available at
 			\n\nhttp://www.eclipse.org/legal/epl-v10.html
 			\n\nInitial contributors:\n\n - Bernold Kraft,Sebastian Riemschüssel,Torsten Krämer''')
+			
 		generator.options.put(XcoreGenerator.Options.NS_URI, "http://www.bitub.de/IFC4")
 		generator.options.put(XcoreGenerator.Options.PACKAGE, "org.buildingsmart.ifc4")
 		generator.options.put(XcoreGenerator.Options.SOURCE_FOLDER, "/org.buildingsmart.ifc4/src-gen")
+		
+		generator.partitioningDelegate = new IfcPartitioningDelegate(new XcorePackageDescriptor() {
+			
+			override getNsURI() {
+				"http://www.bitub.de/IFC4"
+			}
+			
+			override getName() {
+				"ifc4"
+			}
+			
+			override getBasePackage() {
+				QualifiedName.create("org.buildingsmart.ifc4".split("\\."))
+			}
+			
+		})
 	}
 }
