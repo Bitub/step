@@ -246,13 +246,14 @@ class EXPRESSModelInfo {
 		} else {
 		
 			// Terminates with either builtin or concept reference
-			if(c.builtinAlias) {
+			val nestedConcept = c.refersConcept
+			if(null==nestedConcept) {
 								
 				qn = c.refersDatatype.qualifiedReference
 									
 			} else {
 				
-				qn = QualifiedName.create(c.refersConcept.name)
+				qn = QualifiedName.create(nestedConcept.name)
 			}	
 		}	
 		

@@ -31,7 +31,7 @@ import de.bitub.step.xcore.XcoreInfo.Delegate
 import java.util.Date
 import java.util.Map
 import java.util.Optional
-import java.util.function.BiFunction
+import java.util.function.Function
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EObject
@@ -43,7 +43,6 @@ import org.eclipse.xtext.naming.QualifiedName
 
 import static extension de.bitub.step.util.EXPRESSExtension.*
 import static extension de.bitub.step.xcore.XcoreConstants.*
-import java.util.function.Function
 
 /**
  * Generates Xcore specifications from EXPRESS models.
@@ -113,7 +112,7 @@ class XcoreGenerator implements IGenerator {
 	 * returns a descriptor of an assigned xcore package. Whenever the descriptor is not present, the default package (under the QN of
 	 * the current schema) is taken.
 	 */
-	def void setPartitioningHelper(Function<ExpressConcept, Optional<XcorePackageDescriptor>> delegate) {
+	def void setPartitioningDelegate(Function<ExpressConcept, Optional<XcorePackageDescriptor>> delegate) {
 		
 		this.partitioningDelegate = delegate
 		packageCache.clear
@@ -135,8 +134,12 @@ class XcoreGenerator implements IGenerator {
 				packageCache.get(dscp.get().nsURI) // get by URI 
 			else
 				packageCache.get("") // get default
-				
-		pkg
+			
+		if(null==pkg) {
+			pkg = createXCorePackage(dscp.get)			
+		}
+		
+		pkg 
 	}
 	
 	
@@ -807,7 +810,7 @@ class XcoreGenerator implements IGenerator {
 						»«attribute.refersRelationDelegate
 					»«ELSE
 						»«IF attribute.inverseRelation // Use declaring inverse entity (avoid super type)
-							»«attribute.oppositeAttribute.hostEntity.name
+							»«attribute.oppositeAttribute.hostEntity.refersImport.name
 						»«ELSE
 							»«r.instance.refersImport.name.toFirstUpper
 						»«ENDIF

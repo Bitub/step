@@ -25,17 +25,28 @@ import java.util.regex.Pattern
 import java.util.Collections
 
 /**
- * A
+ * An analytical & procedural package partitioning delegate.
+ * 
+ * <p>
+ * Procedural descriptors form up a tree where each path represents a qualified package descriptor chain. 
+ * If multiple descriptors match the given concept, path candidates are merged by levels in order of input sequence when appending new
+ * descriptors. Later added descriptors will placed as super packages while the earliest added represents the tail.
+ * </p>
  */
-class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
+class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
 	
 	val List<ProceduralDescriptor> proceduralDescriptors = newArrayList
-	var isOrdered = false
 	
+	/**
+	 * A procedural package descriptor which relies on functional descriptions.
+	 */
 	static class ProceduralDescriptor {
 		
+		// A predicate which indicates to apply this descriptor
 		val Predicate<ExpressConcept> predicate
+		// A function of parent descriptor & current concept which returns a package descriptor 
 		val BiFunction<ProceduralDescriptor,ExpressConcept, XcorePackageDescriptor> function
+		// The parent
 		var ProceduralDescriptor parent
 		
 		new(ProceduralDescriptor parent, Predicate<ExpressConcept> predicate, BiFunction<ProceduralDescriptor, ExpressConcept, XcorePackageDescriptor> packageFunction) {
@@ -61,19 +72,10 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 		
 		def int getStage() {
 			
-			parent?.stage + 1
+			if(null==parent) 0 else parent.stage + 1
 		}
 		
-		def setParent(ProceduralDescriptor pd) {
-			
-			parent = pd
-		}
-		
-		def concat(ProceduralDescriptor ... pd) {
-			
-			pd.forEach[ parent = this ]
-		}
-		
+				
 		def static private getMaxSuperTypeLevel(ExpressConcept c) {
 						
 			switch(c) {
@@ -120,7 +122,7 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 			new ProceduralDescriptor(parent,
 					[ ExpressConcept c | c.maxSuperTypeLevel>=superEntities ],
 					[ p, c | {
-						new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)
+						new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)
 					}]
 			)										
 		}
@@ -136,7 +138,7 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 				new ProceduralDescriptor(parent,
 					[ ExpressConcept c | true ],
 					[ p, c | {
-						new XcoreGenericSubPackageDescriptor(p.parent.apply(c), String.format(packageNameTemplate, c.maxSuperTypeLevel))
+						new XcoreGenericSubPackageDescriptor(p.apply(c), String.format(packageNameTemplate, c.maxSuperTypeLevel))
 					}]
 				)							
 			} else {
@@ -159,30 +161,39 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 			val Pattern pattern = Pattern.compile(regularExpr)
 			new ProceduralDescriptor(parent,
 				[ ExpressConcept c | pattern.matcher(c.name).find ],
-				[ p, c | new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)]
+				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
 			)			
 		}
 		
-		def static ProceduralDescriptor isTypeOf(ProceduralDescriptor parent, Class<?> type, String packageName) {
+		def static ProceduralDescriptor isDataTypeOf(ProceduralDescriptor parent, Class<?> type, String packageName) {
 			
 			new ProceduralDescriptor(parent,
-				[ ExpressConcept c | type == c.class],
-				[ p, c | new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)]
+				[ ExpressConcept c | if(c instanceof Type) type == (c as Type).datatype.class else false],
+				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
 			)
 		}		
 
-		def static ProceduralDescriptor isKindOf(Class<?> superType, String packageName) {
+		def static ProceduralDescriptor isDataKindOf(Class<?> superType, String packageName) {
 			
-			isKindOf(null, superType, packageName)
+			isDataKindOf(null, superType, packageName)
 		}
 		
-		def static ProceduralDescriptor isKindOf(ProceduralDescriptor parent, Class<?> superType, String packageName) {
+		def static ProceduralDescriptor isDataKindOf(ProceduralDescriptor parent, Class<?> superType, String packageName) {
 
 			new ProceduralDescriptor(parent,
-				[ ExpressConcept c | superType.isAssignableFrom(c.class)],
-				[ p, c | new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName)]
+				[ ExpressConcept c | if(c instanceof Type) superType.isAssignableFrom((c as Type).datatype.class) else false],
+				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
 			)			
-		}		
+		}
+		
+		def static ProceduralDescriptor isTrue(ProceduralDescriptor parent, Predicate<ExpressConcept> predicate, String packageName) {
+
+			new ProceduralDescriptor(parent,
+				predicate,
+				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
+			)			
+		}
+				
 		
 		def boolean isApplicable(ExpressConcept c) {
 			
@@ -191,8 +202,19 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 		
 		def XcorePackageDescriptor apply(ExpressConcept c) {
 			
-			function.apply(this,c)
+			function.apply(parent,c)
 		}
+		
+		def Function<ExpressConcept, XcorePackageDescriptor> apply(ProceduralDescriptor otherParent) {
+			
+			[ c | function.apply(otherParent,c) ]
+		}
+		
+		def ProceduralDescriptor concat(ProceduralDescriptor child) {
+			
+			new ProceduralDescriptor(this, child.predicate, child.function)
+		}
+				
 	}
 	
 	
@@ -208,25 +230,53 @@ class XcoreAnalyticalPackageDescriptor implements Function<ExpressConcept, Optio
 	
 	def void append(ProceduralDescriptor pd) {
 		
-		proceduralDescriptors += pd
-		isOrdered = false
-	}
-	
-	def private void doSortByStage() {
-		
-		if(!isOrdered) {
-			// Sort descending by stage
-			Collections.sort(proceduralDescriptors, [a, b | b.stage - a.stage]);
-			isOrdered = true
+		if(!proceduralDescriptors.contains(pd)) {
+			// Add and sort descending by tree depth
+			proceduralDescriptors += pd
+			Collections.sort(proceduralDescriptors, [a, b | b.stage - a.stage]);			
 		}
 	}
 	
+	
 	override apply(ExpressConcept t) {
+				
+		val pSet = <ProceduralDescriptor>newHashSet
+		val sequence = <ProceduralDescriptor>newArrayList
+		var cStage = 0
 		
-		doSortByStage
+		for( pd : proceduralDescriptors.filter[ p | p.isApplicable(t)]) {
+			// Scan through applicable descriptors
+			
+			var d = pd
+			while( null!=d && !pSet.contains(d)) {
+
+				pSet += d
+				
+				while(cStage>0 && sequence.get(cStage-1).stage >= d.stage) {
+					// Scan backwards to find proper insertion index
+					cStage--
+				}
+			
+				// And linearize it 	
+				sequence.add(cStage, d)
+				d = d.parent
+			}
+			
+			cStage = sequence.length
+		}
 		
-		var pd = proceduralDescriptors.findFirst[ p | p.predicate.test(t)]
-		Optional.ofNullable(pd?.apply(t))
+		if(sequence.empty) {
+			
+			return Optional.empty
+		}
+		
+		var ProceduralDescriptor pHead = sequence.get(0)
+		for(var i=1; i<sequence.length; i++) {
+			
+			pHead = pHead.concat(sequence.get(i))
+		}
+		
+		Optional.ofNullable(pHead.apply(t))
 	}
 	
 	
