@@ -201,7 +201,7 @@ class EXPRESSModelInfo {
 			a.opposite
 		} else {
 			// Otherwise query registration map and return first registered opposite.
-			inverseReferenceMap.get(a)?.findFirst[true]			
+			inverseReferenceMap.get(a)?.iterator.next			
 		}
 	}
 

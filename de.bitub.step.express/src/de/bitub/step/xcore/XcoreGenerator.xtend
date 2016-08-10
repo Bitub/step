@@ -83,7 +83,6 @@ class XcoreGenerator implements IGenerator {
 	var extension XcorePackage activePackage 
 	
 	@Inject EXPRESSInterpreter interpreter
-	@Inject FunctionGenerator functionGenerator
 
 	// Temporary second stage cache (any additional concept needed beside first stage)
 	var secondStageCache = ''''''
@@ -183,13 +182,7 @@ class XcoreGenerator implements IGenerator {
 		activePackage = pkg
 	}
 	
-	
-	def private getXcoreQualifiedName(ExpressConcept c) {
 		
-		activePackage.packageQN.append(c.name.toFirstUpper)
-	}
-	
-	
 	def private <T extends DataType> refersImport(T c) {
 		
 		switch(c) {
@@ -202,12 +195,11 @@ class XcoreGenerator implements IGenerator {
 					activePackage.importRegistry += packageCache.get("").packageQN.append(XcoreConstants.qualifiedBuiltInName(c))
 				}										
 			}
-			
-			// TODO Delegate ?
 		}
 		
 		c		
 	}
+	
 	
 	def private CharSequence refersClassImport(Class<?> c) {
 		
@@ -374,7 +366,7 @@ class XcoreGenerator implements IGenerator {
 	
 	
 	/**
-	 * TODO Assembles the package information.
+	 * Assembles the package textual model.
 	 */
 	def private compileXcorePackage(XcorePackage p) {
 
@@ -807,7 +799,7 @@ class XcoreGenerator implements IGenerator {
 			// Hosted in relationship definition
 			'''«IF !r.refersDatatype.builtinAlias» 
 					«IF attribute.inverseManyToManyRelation || attribute.nonUniqueRelation 
-						»«attribute.refersRelationDelegate
+						»«attribute.refersRelationDelegateQN
 					»«ELSE
 						»«IF attribute.inverseRelation // Use declaring inverse entity (avoid super type)
 							»«attribute.oppositeAttribute.hostEntity.refersImport.name
@@ -982,7 +974,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Generates a relation delegate and returns class reference.
 	 */
-	def protected String refersRelationDelegate(Attribute a) { 
+	def protected String refersRelationDelegateQN(Attribute a) { 
 								
 		// Test whether a delegate exists (if N-to-M or inverse select)		
 		if(a.hasDelegate) {
@@ -1008,7 +1000,10 @@ class XcoreGenerator implements IGenerator {
 			}
 							
 			// Delegation reference
-			a.relationDelegateQN
+			val delegate = a.relationDelegate
+			delegate.originAttribute.hostEntity.refersImport
+			
+			delegate.qualifiedName
 											
 		} else {
 			
@@ -1085,6 +1080,9 @@ class XcoreGenerator implements IGenerator {
 	def private compileAttribute(Attribute a) { 
 		
 		val compiled = a.type.compileDatatype
+		if(null==compiled) {
+			LOGGER.warn("NULL compiled")
+		}
 		'''«a.compileAnnotation
 			»«IF a.referable
 				»«IF a.containmentReference»contains «

@@ -71,12 +71,7 @@ class XcoreInfo {
 	
 		qualifiedNameDelegateMap.get(a)	
 	}
-	
-	def String getRelationDelegateQN(Attribute a, Attribute b) {
 		
-		qualifiedNameDelegateMap.get(a)?.findFirst[targetAttribute == b].qualifiedName
-	}
-	
 	/**
 	 * Registers (if needed) a bundle of delegates on an attribute a. Returns true, if any delegate 
 	 * has been created. 
@@ -181,30 +176,32 @@ class XcoreInfo {
 	/**
 	 * Gets the references (delegate) type.
 	 */
-	def String getRelationDelegateQN(Attribute a) {
+	def Delegate getRelationDelegate(Attribute a) {
 		
 		if(a.hasRelationDelegate) {
+			
+			val delegateSet = a.relationDelegates
 			
 			if(a.declaringInverseAttribute) {
 				
 				// If declaring => get delegate
-				getRelationDelegateQN(a, a.opposite)
+				delegateSet.findFirst[targetAttribute == a.opposite]
+				
 			} else {
 				
- 				// If inverse => get interface delegate
- 				val delegate = qualifiedNameDelegateMap.get(a).findFirst[targetAttribute==null]
- 				if(null!=delegate) {
- 					// Non-unique
- 					delegate.qualifiedName
+ 				// If inverse => get interface delegate 			
+ 				val delegateSelect = delegateSet.findFirst[targetAttribute==null]
+ 				if(null!=delegateSelect) {
+ 					// Reference interface type
+ 					delegateSelect
  				} else {
  					// Unique
- 					qualifiedNameDelegateMap.get(a).findFirst[targetAttribute==a.oppositeAttribute]?.qualifiedName
+ 					delegateSet.findFirst[originAttribute==a.oppositeAttribute]
  				}
  			}
 		} else {
 			
-			// non-delegate
-			a.refersConcept?.name
+			null
 		}
 	}
 		
