@@ -108,18 +108,23 @@ public class StepUntypedToEcore
     //
     EObject select = EcoreUtil.create((EClass) selectFeature.getEType());
 
-    // set entity to correct select field
-    //
-    EStructuralFeature valueFeature = XPressModel.selectFeature(select, entity);
+    try {
 
-    // set correct value into select
-    //
-    select.eSet(valueFeature, entity);
+      // set entity to correct select field
+      //
+      EStructuralFeature valueFeature = XPressModel.selectFeature(select, entity);
 
-    // set enumeration to indicate which value was set
-    //
-    setSelectEnumValue(select, valueFeature.getEType().getName().toUpperCase());
+      // set correct value into select
+      //
+      select.eSet(valueFeature, entity);
 
+      // set enumeration to indicate which value was set
+      //
+      setSelectEnumValue(select, valueFeature.getEType().getName().toUpperCase());
+    }
+    catch (IndexOutOfBoundsException e) {
+      System.out.println("IndexOutOfBoundsException" + select + " " + XPressModel.selectFeature(select, entity));
+    }
     return select;
   }
 
@@ -209,8 +214,15 @@ public class StepUntypedToEcore
         try {
           entity.eSet(feature, resolvedEntity);
         }
-        catch (ArrayIndexOutOfBoundsException e) {
+        catch (NullPointerException | ClassCastException | ArrayIndexOutOfBoundsException e) {
           System.out.println("UNRESOLVED: " + resolvedEntity + "  " + feature);
+          if (e instanceof ClassCastException) {
+            System.out.println("ClassCastException: " + entity);
+          }
+
+          if (e instanceof NullPointerException) {
+            System.out.println("NullPointerException: " + entity + " " + feature + " " + resolvedEntity);
+          }
         }
       }
     }
@@ -230,8 +242,13 @@ public class StepUntypedToEcore
     try {
       ECollections.setEList(list, entities);
     }
-    catch (ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
+    catch (ArrayStoreException | ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
       e.printStackTrace();
+
+      if (e instanceof ArrayStoreException) {
+//        System.out.println(list);
+//        System.out.println(entities);
+      }
     }
   }
 

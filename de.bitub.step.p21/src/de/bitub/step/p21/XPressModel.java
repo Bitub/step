@@ -90,7 +90,7 @@ public class XPressModel implements XPressModelConstants
     return annotatedFeatures.get(p21Index);
   }
 
-  public static EStructuralFeature selectFeature(EObject select, Object value)
+  public static EStructuralFeature selectFeature(EObject select, Object value) throws IndexOutOfBoundsException
   {
     // TODO better solution to distinguish between UNKOWN Logical
     if (value instanceof String) {
