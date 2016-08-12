@@ -17,7 +17,7 @@
  * ${tags}
  * ${see_to_target}
  */</template><template autoinsert="false" context="filecomment_context" deleted="false" description="Comment for created Java files" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.filecomment" name="filecomment">/*
- * Copyright (c) 2014 Bernold Kraft, Sebastian Riemschüssel, Torsten Krämer (Berlin, Germany).
+ * Copyright (c) 2016 Bernold Kraft, Sebastian Riemschüssel, Torsten Krämer (Berlin, Germany).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
