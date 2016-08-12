@@ -56,12 +56,68 @@
             </visibleWhen>
          </command>
       </menuContribution>
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <menu
+               label="Validate: Choose IFC-File"
+               tooltip="Validate IFC file with mvdXML rules">
+            <dynamic
+                  class="org.buildingsmart.mvd.menu.IfcFileContributionItem"
+                  id="org.buildingsmart.mvd.editor.dynamic">
+            </dynamic>
+            <visibleWhen
+                  checkEnabled="false">
+               <iterate>
+                  <adapt
+                        type="org.eclipse.core.resources.IResource">
+                     <or>
+                        <test
+                              property="org.eclipse.core.resources.name"
+                              value="*.mvdxml">
+                        </test>
+                        <test
+                              property="org.eclipse.core.resources.name"
+                              value="*.tmvd">
+                        </test>
+                     </or>
+                  </adapt>
+               </iterate>
+            </visibleWhen>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <menu
+               label="Validate: Choose MVD-File"
+               tooltip="Validate IFC file with mvdXML rules">
+            <dynamic
+                  class="org.buildingsmart.mvd.menu.MvdFileContributionItem"
+                  id="org.buildingsmart.mvd.editor.dynamic">
+            </dynamic>
+            <visibleWhen
+                  checkEnabled="false">
+               <iterate>
+                  <adapt
+                        type="org.eclipse.core.resources.IResource">
+                     <test
+                           property="org.eclipse.core.resources.name"
+                           value="*.ifc">
+                     </test>
+                  </adapt>
+               </iterate>
+            </visibleWhen>
+         </menu>
+      </menuContribution>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
       <handler
             class="org.buildingsmart.mvd.commands.MVD2TextualMVDGenerationHandler"
             commandId="org.buildingsmart.mvd.editor.commands.tmvd2mvdxml">
+      </handler>
+      <handler
+            class="org.buildingsmart.mvd.commands.ValidateIfcFileWithMvdRules"
+            commandId="org.buildingsmart.mvd.editor.command.validateifc">
       </handler>
    </extension>
    <extension
@@ -74,6 +130,26 @@
             categoryId="org.buildingsmart.mvd.editor.category"
             id="org.buildingsmart.mvd.editor.commands.tmvd2mvdxml"
             name="Generate tMVD from mvdXML">
+      </command>
+      <command
+            categoryId="org.buildingsmart.mvd.editor.category"
+            id="org.buildingsmart.mvd.editor.command.validateifc"
+            name="Validate IFC with MVD">
+         <commandParameter
+               id="org.buildingsmart.mvd.editor.commandParameter.ifcfile"
+               name="IFC_FILE"
+               optional="false">
+         </commandParameter>
+         <commandParameter
+               id="org.buildingsmart.mvd.editor.commandParameter.mvdfile"
+               name="MVD_FILE"
+               optional="false">
+         </commandParameter>
+      </command>
+      <command
+            description="Load the MVD model from a file"
+            id="org.buildingsmart.mvd.editor.command."
+            name="Read MVD-File">
       </command>
    </extension>
 
