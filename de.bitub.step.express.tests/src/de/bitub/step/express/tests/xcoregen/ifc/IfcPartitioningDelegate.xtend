@@ -31,9 +31,13 @@ class IfcPartitioningDelegate extends XcoreAnalyticalPartitioningDelegate {
 		append(ProceduralDescriptor.isDataKindOf(ifcRootPackage, typeof(EnumType), "enums"))
 		append(ProceduralDescriptor.isDataKindOf(ifcRootPackage, typeof(SelectType), "selects"))
 		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | if(c instanceof Entity) (c as Entity).abstract else false], "model"))
+		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | 
+				if(c instanceof Entity) 
+					(c as Entity).abstract && de.bitub.step.xcore.XcoreAnalyticalPartitioningDelegate.Predicates.getTypeLevel(c) > 3
+				else false	], "lomodel"))
 		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | if(c instanceof Entity) !(c as Entity).abstract else false], "impl"))
 		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | if(c instanceof Type) (c as Type).typeAggregation else false], "aggregation"))
-		append(ProceduralDescriptor.isNamedLike(ifcRootDescriptor,"Relation", "relations")) 
+		append(ProceduralDescriptor.isNamedLike(ifcRootDescriptor,"^IfcRel|Relation", "relations"))
 	}
 	
 }
