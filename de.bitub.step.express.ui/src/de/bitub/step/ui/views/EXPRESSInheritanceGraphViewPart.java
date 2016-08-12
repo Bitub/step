@@ -19,6 +19,11 @@ import java.util.Stack;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gef4.layout.algorithms.TreeLayoutAlgorithm;
+import org.eclipse.gef4.zest.core.viewers.EntityConnectionData;
+import org.eclipse.gef4.zest.core.viewers.GraphViewer;
+import org.eclipse.gef4.zest.core.viewers.IGraphEntityContentProvider;
+import org.eclipse.gef4.zest.core.widgets.ZestStyles;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -33,11 +38,6 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.zest.core.viewers.EntityConnectionData;
-import org.eclipse.zest.core.viewers.GraphViewer;
-import org.eclipse.zest.core.viewers.IGraphEntityContentProvider;
-import org.eclipse.zest.core.widgets.ZestStyles;
-import org.eclipse.zest.layouts.algorithms.TreeLayoutAlgorithm;
 
 import de.bitub.step.express.Attribute;
 import de.bitub.step.express.CollectionType;
@@ -49,10 +49,10 @@ import de.bitub.step.express.Schema;
 public class EXPRESSInheritanceGraphViewPart extends ViewPart
 {
   private GraphViewer m_zestViewer;
-  
+
   class EntityHierarchyContentProvider implements IGraphEntityContentProvider
   {
-    
+
     List<Entity> entities = new ArrayList<>();
     List<Attribute> attributes = new ArrayList<>();
 
@@ -68,80 +68,80 @@ public class EXPRESSInheritanceGraphViewPart extends ViewPart
     {
       entities.clear();
       attributes.clear();
-      
-      if(newInput instanceof Object[]) {
-        
-        List<Entity> input = getInput((Object[])newInput);
-        if(!input.isEmpty() && 2 > input.size()) {
+
+      if (newInput instanceof Object[]) {
+
+        List<Entity> input = getInput((Object[]) newInput);
+        if (!input.isEmpty() && 2 > input.size()) {
           collectSuperTypes(input.get(0), entities, attributes);
         } else {
-          
+
           entities.addAll(input);
         }
       } else {
-        
-        if(newInput != null ) {
+
+        if (newInput != null) {
           throw new IllegalArgumentException();
         }
       }
     }
-    
+
     private List<Entity> getInput(Object[] input)
     {
       List<Entity> elements = new ArrayList<>();
-      for(Object o : input) {
-    
-        if(o instanceof Entity) {
-          
-          elements.add((Entity)o);
+      for (Object o : input) {
+
+        if (o instanceof Entity) {
+
+          elements.add((Entity) o);
         }
-        
-        if(o instanceof Schema) {
-            
+
+        if (o instanceof Schema) {
+
           elements.addAll(((Schema) o).getEntity());
         }
       }
       return elements;
     }
-    
-    private void collectSuperTypes(Entity rootEntity, List<Entity> superTypeList, List<Attribute> attributeList) 
+
+    private void collectSuperTypes(Entity rootEntity, List<Entity> superTypeList, List<Attribute> attributeList)
     {
       Stack<Entity> dfsStack = new Stack<Entity>();
-      Set<Entity> doneSet = new HashSet<>(); 
+      Set<Entity> doneSet = new HashSet<>();
       dfsStack.push(rootEntity);
-      
-      while(!dfsStack.isEmpty()) {
-        
+
+      while (!dfsStack.isEmpty()) {
+
         Entity entity = dfsStack.peek();
-        if(doneSet.contains(entity)) {
-          
-          dfsStack.removeElementAt(dfsStack.size()-1);
+        if (doneSet.contains(entity)) {
+
+          dfsStack.removeElementAt(dfsStack.size() - 1);
         }
-        
+
         boolean isVisited = true;
-        for(Entity superType : entity.getSupertype()) {
-          
+        for (Entity superType : entity.getSupertype()) {
+
           // If there's an entity which has not been left
-          if(!doneSet.contains(superType)) {
+          if (!doneSet.contains(superType)) {
             dfsStack.push(superType);
             isVisited = false;
           }
         }
-        
-        if(isVisited) {
-          
-          dfsStack.removeElementAt(dfsStack.size()-1);
-          attributeList.addAll( entity.getAttribute() );
-          superTypeList.add( entity );
-          
+
+        if (isVisited) {
+
+          dfsStack.removeElementAt(dfsStack.size() - 1);
+          attributeList.addAll(entity.getAttribute());
+          superTypeList.add(entity);
+
           doneSet.add(entity);
-        }        
+        }
       }
     }
-        
+
     @Override
     public Object[] getElements(Object inputElement)
-    {      
+    {
       return entities.toArray();
     }
 
@@ -149,30 +149,29 @@ public class EXPRESSInheritanceGraphViewPart extends ViewPart
     public Object[] getConnectedTo(Object object)
     {
       List<Object> targetList = new ArrayList<>();
-      if(object instanceof Entity) {
-        
+      if (object instanceof Entity) {
+
         targetList.addAll(((Entity) object).getSupertype());
 
-        if(object.equals(entities.get(entities.size()-1))) {
-          
+        if (object.equals(entities.get(entities.size() - 1))) {
+
           targetList.addAll(attributes);
-        }               
+        }
       }
-      
-      if(object instanceof Attribute) {
-        
+
+      if (object instanceof Attribute) {
+
         targetList.add(((Attribute) object).getType());
       }
       return targetList.toArray();
-    }    
+    }
   }
-  
-  
+
   /**
-   * 
    * <!-- begin-user-doc -->
    * Label provider for entities and attributes.
    * <!-- end-user-doc -->
+   * 
    * @generated NOT
    * @author bernold - 07.12.2014
    */
@@ -181,38 +180,39 @@ public class EXPRESSInheritanceGraphViewPart extends ViewPart
     @Override
     public String getText(Object element)
     {
-      if(element instanceof Entity) {
-        
+      if (element instanceof Entity) {
+
         return ((Entity) element).getName();
       }
-      if(element instanceof Attribute) {
-        
+      if (element instanceof Attribute) {
+
         return ((Attribute) element).getName();
       }
-      
-      if(element instanceof DataType) {
-        if(element instanceof CollectionType) {
-          
+
+      if (element instanceof DataType) {
+        if (element instanceof CollectionType) {
+
           DataType refType = ((CollectionType) element).getType();
-          return ((CollectionType) element).getName() + " of " + 
-              (refType instanceof ReferenceType? ((ReferenceType)refType).getInstance().getName() : refType.eClass().getName());              
+          return ((CollectionType) element).getName() + " of " + (refType instanceof ReferenceType
+              ? ((ReferenceType) refType).getInstance().getName() : refType.eClass().getName());
         }
-        
+
         return ((DataType) element).eClass().getName();
       }
-      
-      if(element instanceof EntityConnectionData) {
-        if(((EntityConnectionData) element).dest instanceof Attribute) {
-          
-          Attribute a = (Attribute)((EntityConnectionData) element).dest;
-          return (a.getOpposite()!=null? "inverse ": "") + "host for"; //$NON-NLS-1$ //$NON-NLS-2$
-          
-        } if(((EntityConnectionData) element).source instanceof Attribute) {
-          
+
+      if (element instanceof EntityConnectionData) {
+        if (((EntityConnectionData) element).dest instanceof Attribute) {
+
+          Attribute a = (Attribute) ((EntityConnectionData) element).dest;
+          return (a.getOpposite() != null ? "inverse " : "") + "host for"; //$NON-NLS-1$ //$NON-NLS-2$
+
+        }
+        if (((EntityConnectionData) element).source instanceof Attribute) {
+
           return "as"; //$NON-NLS-1$
-          
+
         } else {
-          
+
           return "subtype of"; //$NON-NLS-1$
         }
       }
@@ -221,25 +221,25 @@ public class EXPRESSInheritanceGraphViewPart extends ViewPart
 
     @Override
     public Color getForeground(Object element)
-    { 
-      if(element instanceof Attribute) {
+    {
+      if (element instanceof Attribute) {
         return Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
       }
-      
+
       return null;
     }
 
     @Override
     public Color getBackground(Object element)
     {
-      if(element instanceof Attribute) {
+      if (element instanceof Attribute) {
         return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
-      } 
-      
+      }
+
       return null;
     }
   }
-  
+
   /**
    * The global selection listener.
    */
@@ -253,22 +253,21 @@ public class EXPRESSInheritanceGraphViewPart extends ViewPart
       }
 
       if (selection instanceof IStructuredSelection) {
-        
+
         List<EObject> list = new ArrayList<>();
-        for(Object o : ((IStructuredSelection) selection).toArray()) {
-        
-          EObject object = (EObject)Platform.getAdapterManager().getAdapter(o, EObject.class);
-          if(null!=object) {
+        for (Object o : ((IStructuredSelection) selection).toArray()) {
+
+          EObject object = Platform.getAdapterManager().getAdapter(o, EObject.class);
+          if (null != object) {
             list.add(object);
           }
         }
-        
+
         m_zestViewer.setInput(list.toArray());
       }
     }
   };
 
-  
   @Override
   public void createPartControl(Composite parent)
   {
@@ -293,11 +292,11 @@ public class EXPRESSInheritanceGraphViewPart extends ViewPart
   @Override
   public void dispose()
   {
-    if(!PlatformUI.getWorkbench().isClosing()) {
-      
-      PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(m_selectionListener);      
+    if (!PlatformUI.getWorkbench().isClosing()) {
+
+      PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(m_selectionListener);
     }
     super.dispose();
   }
-  
+
 }

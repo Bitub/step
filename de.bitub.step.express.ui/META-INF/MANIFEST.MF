@@ -17,9 +17,10 @@ Require-Bundle: de.bitub.step.express;visibility:=reexport,
  org.eclipse.xtext.common.types.ui,
  org.eclipse.xtext.ui.codetemplates.ui,
  org.eclipse.compare,
- org.eclipse.zest.core;bundle-version="1.5.100",
- org.eclipse.zest.layouts;bundle-version="1.1.100",
- org.eclipse.emf.ecore.xcore
+ org.eclipse.emf.ecore.xcore.lib,
+ org.eclipse.gef4.zest.core;bundle-version="0.1.0",
+ org.eclipse.gef4.zest.jface;bundle-version="0.1.0",
+ org.eclipse.gef4.zest.ui;bundle-version="0.1.0"
 Import-Package: de.bitub.step.xcore,
  org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
