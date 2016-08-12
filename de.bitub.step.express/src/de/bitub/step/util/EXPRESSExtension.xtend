@@ -429,7 +429,7 @@ class EXPRESSExtension {
 		switch t {
 			
 			CollectionType: 
-				t.type instanceof BuiltInType
+				t.type.isBuiltinAlias
 				
 			ReferenceType: 
 				t.instance.builtinAlias

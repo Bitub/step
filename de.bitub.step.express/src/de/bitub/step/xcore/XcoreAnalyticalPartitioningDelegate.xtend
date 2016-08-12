@@ -37,6 +37,48 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 	
 	val List<ProceduralDescriptor> proceduralDescriptors = newArrayList
 	
+	static class Predicates {
+		
+		def static getTypeLevel(ExpressConcept c) {
+						
+			switch(c) {
+				Type: {
+					
+					0					
+				}
+				Entity: {
+					
+					var mLevel = 0
+					var cLevel = 0
+					
+					val stack = new Stack<Iterator<Entity>>()
+					stack.push(c.supertype.iterator)
+					
+					while(!stack.isEmpty) {
+						
+						val iterator = stack.peek
+						if(iterator.hasNext) {
+							
+							cLevel++
+							mLevel = Math.max(cLevel, mLevel)
+														
+							val entity = iterator.next
+							stack.push(entity.supertype.iterator)
+							
+						} else {
+							
+							cLevel--
+							stack.pop
+						}
+					}
+					
+					mLevel
+				}	
+			}
+		}
+		
+	}
+	
 	/**
 	 * A procedural package descriptor which relies on functional descriptions.
 	 */
@@ -75,52 +117,13 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 			if(null==parent) 0 else parent.stage + 1
 		}
 		
-				
-		def static private getMaxSuperTypeLevel(ExpressConcept c) {
-						
-			switch(c) {
-				Type: {
-					
-					0					
-				}
-				Entity: {
-					
-					var mLevel = 0
-					var cLevel = 0
-					
-					val stack = new Stack<Iterator<Entity>>()
-					stack.push(c.supertype.iterator)
-					
-					while(!stack.isEmpty) {
-						
-						val iterator = stack.peek
-						if(iterator.hasNext) {
-							
-							cLevel++
-							mLevel = Math.max(cLevel, mLevel)
-														
-							val entity = iterator.next
-							stack.push(entity.supertype.iterator)
-							
-						} else {
-							
-							cLevel--
-							stack.pop
-						}
-					}
-					
-					mLevel
-				}	
-			}
-		}
-		
 		/**
 		 * Filters for entities above given level.
 		 */
 		def static ProceduralDescriptor isLeastInheritanceLevel(ProceduralDescriptor parent, int superEntities, String packageName) {
 			
 			new ProceduralDescriptor(parent,
-					[ ExpressConcept c | c.maxSuperTypeLevel>=superEntities ],
+					[ ExpressConcept c | Predicates.getTypeLevel(c) >= superEntities ],
 					[ p, c | {
 						new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)
 					}]
@@ -138,7 +141,7 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 				new ProceduralDescriptor(parent,
 					[ ExpressConcept c | true ],
 					[ p, c | {
-						new XcoreGenericSubPackageDescriptor(p.apply(c), String.format(packageNameTemplate, c.maxSuperTypeLevel))
+						new XcoreGenericSubPackageDescriptor(p.apply(c), String.format(packageNameTemplate, Predicates.getTypeLevel(c)))
 					}]
 				)							
 			} else {
@@ -147,7 +150,7 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 					[ ExpressConcept c | true ],
 					[ p, c | {
 						
-						val maxLevel = c.maxSuperTypeLevel						
+						val maxLevel = Predicates.getTypeLevel(c)						
 						new XcoreGenericSubPackageDescriptor(
 							p.parent.apply(c), String.format(packageNameTemplate, if(maxLevel>=fragments.length) fragments.length-1 else maxLevel) 
 						)

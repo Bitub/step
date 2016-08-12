@@ -210,29 +210,44 @@ class XcoreGenerator implements IGenerator {
 	}
 	
 	
-	/**
-	 * Checks given concept whether it is a cross-reference to another package. Pure builtin  
-	 * don't have any class implementation. 
-	 */
+	def private Delegate refersImportDelegate(Delegate delegate) {
+		
+		addReferenceOnNonBuiltin(delegate.originAttribute.hostEntity, delegate.qualifiedName)
+		delegate
+	}
+	
+	
+	def private addReferenceOnNonBuiltin(ExpressConcept c, String className) {
+		
+		var dscp = partitioningDelegate.apply(c)
+		var pkg = if(dscp.isPresent) 
+			 	packageCache.get(dscp.get().nsURI) // get by URI 
+			else
+				packageCache.get("") // get default
+				
+		if(null==pkg) {
+			pkg = createXCorePackage(dscp.get)
+		}
+				
+		if(pkg != activePackage) {
+			// Append import request
+			activePackage.importRegistry += pkg.packageQN.append(className)
+			
+			true
+						
+		} else {
+			
+			false
+		}			
+	}
+
+	
 	def private <T extends ExpressConcept> refersImport(T c) {
 		
-		// Builtin are hosted everywhere
-		if(!c.builtinAlias) {
+		if(!c.builtinAlias || c.aggregation) {
+			
+			addReferenceOnNonBuiltin(c, c.name.toFirstUpper)
 		
-			var dscp = partitioningDelegate.apply(c)
-			var pkg = if(dscp.isPresent) 
-				 	packageCache.get(dscp.get().nsURI) // get by URI 
-				else
-					packageCache.get("") // get default
-					
-			if(null==pkg) {
-				pkg = createXCorePackage(dscp.get)
-			}
-					
-			if(pkg != activePackage) {
-				// Append import request
-				activePackage.importRegistry += pkg.packageQN.append(c.name.toFirstUpper)			
-			}			
 		} else {
 			
 			// If no nested aggregation, check whether a compile statement exists in default package
@@ -383,7 +398,7 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(name="«p.packageName.toLowerCase»",rootContainerClassRef="«xcoreInfo.rootContainerClass»")				
 		package «p.packageQN»
 
-		«FOR qn:p.importRegistry
+		«FOR qn:p.importRegistry.sortBy[lastSegment]
 		»import «qn»
 		«ENDFOR»
 						
@@ -573,7 +588,7 @@ class XcoreGenerator implements IGenerator {
 		@XpressModel(kind="new", pattern="container")
 		class «s.name.toFirstUpper» {
 					
-		«FOR e:s.entity.filter[!abstract]»  contains «e.name.toFirstUpper»[] «e.name.toFirstLower»
+		«FOR e:s.entity.filter[!abstract]»  contains «e.refersImport.name.toFirstUpper»[] «e.name.toFirstLower»
 		«ENDFOR»
 				
 		}
@@ -598,7 +613,9 @@ class XcoreGenerator implements IGenerator {
 	 */	
 	def dispatch void compileConcept(Entity e) {
 		
-		// TODO Enable derived attributes
+		if("IfcRelReferencedInSpatialStructure" == e.name) {
+			LOGGER.warn("!!!")
+		}
 		
 		// Partition package
 		var pckg = e.partitionXCorePackage
@@ -692,13 +709,13 @@ class XcoreGenerator implements IGenerator {
 				
 				Type:
 					if(c.builtinAlias && !c.aggregation) {						
-						qualifiedNameMap.put(c.refersImport, ( i -> c.refersDatatype.qualifiedName.toString))						
+						qualifiedNameMap.put(c, ( i -> c.refersDatatype.qualifiedName.toString))						
 					} else {						
-						qualifiedNameMap.put(c.refersImport, (i -> c.name.toFirstUpper))
+						qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
 					}
 					
 				Entity:
-					qualifiedNameMap.put(c.refersImport, (i -> c.name.toFirstUpper))
+					qualifiedNameMap.put(c, (i -> c.name.toFirstUpper))
 			}
 			
 			i++ 
@@ -730,7 +747,7 @@ class XcoreGenerator implements IGenerator {
 			// Principal select value
 			
 		«FOR c : rList.map[concept].sortBy[name]
-		»	«IF c.hasNestedCollector || c.aggregation»contains «ELSEIF c.referable»refers «ENDIF
+		»	«IF c.refersImport.hasNestedCollector || c.aggregation»contains «ELSEIF c.referable»refers «ENDIF
 			»«qualifiedNameMap.get(c).value» «qualifiedNameMap.get(c).value.toFirstLower
 			»«IF c.builtinAlias && !(c as Type).datatype.aggregation»Value«ENDIF»
 		«ENDFOR»
@@ -744,7 +761,7 @@ class XcoreGenerator implements IGenerator {
 		»			«r.mappedConcepts.sortBy[name].map[name.toUpperCase].join(",\n			",[n|'''case «n»'''])»:
 						«qualifiedNameMap.get(r.concept).value.toFirstLower
 						»«IF r.concept.builtinAlias && !(r.concept as Type).datatype.aggregation»Value«ENDIF» = v as «IF r.concept.builtinAlias
-							»«IF r.concept.aggregation»«(r.concept as Type).name
+							»«IF r.concept.aggregation»«(r.concept as Type).refersImport.name
 							»«ELSE
 							»«(r.concept.refersDatatype as BuiltInType).qualifiedBuiltInObjectName»«ENDIF
 						»«ELSE»«r.concept.name.toFirstUpper»«ENDIF»
@@ -936,7 +953,7 @@ class XcoreGenerator implements IGenerator {
 		interface «relationDelegate.qualifiedName» {						
 			«IF inverseAttribute.supertypeOppositeDirectedRelation»
 				// Inverse super type
-				op «targetConcept.name.toFirstUpper» get«inverseAttribute.name.toFirstUpper»()«
+				op «targetConcept.refersImport.name.toFirstUpper» get«inverseAttribute.name.toFirstUpper»()«
 			ELSE»
 				// Inverse select branch
 				op «typeof(EObject).refersClassImport» get«inverseAttribute.name.toFirstUpper»()«
@@ -974,7 +991,7 @@ class XcoreGenerator implements IGenerator {
 	/**
 	 * Generates a relation delegate and returns class reference.
 	 */
-	def protected String refersRelationDelegateQN(Attribute a) { 
+	def private String refersRelationDelegateQN(Attribute a) { 
 								
 		// Test whether a delegate exists (if N-to-M or inverse select)		
 		if(a.hasDelegate) {
@@ -1000,15 +1017,13 @@ class XcoreGenerator implements IGenerator {
 			}
 							
 			// Delegation reference
-			val delegate = a.relationDelegate
-			delegate.originAttribute.hostEntity.refersImport
-			
-			delegate.qualifiedName
+			val delegate = a.relationDelegate			
+			delegate.refersImportDelegate.qualifiedName
 											
 		} else {
 			
 			// Direct reference 
-			a.refersConcept?.refersImport.name.toFirstUpper
+			a.oppositeAttribute.hostEntity.refersImport.name.toFirstUpper
 		}
 	}
 	
@@ -1080,9 +1095,6 @@ class XcoreGenerator implements IGenerator {
 	def private compileAttribute(Attribute a) { 
 		
 		val compiled = a.type.compileDatatype
-		if(null==compiled) {
-			LOGGER.warn("NULL compiled")
-		}
 		'''«a.compileAnnotation
 			»«IF a.referable
 				»«IF a.containmentReference»contains «
