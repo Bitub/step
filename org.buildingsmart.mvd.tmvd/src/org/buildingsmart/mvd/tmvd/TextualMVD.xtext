@@ -51,7 +51,7 @@ Definitions returns Definitions:
 	LBRACKET definition+=Definition (COMMATA definition+=Definition)* RBRACKET;
 
 RulesType returns RulesType:
-	LBRACKET attributeRule+=AttributeRule (attributeRule+=AttributeRule)* RBRACKET;
+	LBRACKET attributeRule+=AttributeRule (COMMATA attributeRule+=AttributeRule)* RBRACKET;
 
 SubTemplates returns SubTemplatesType:
 	LBRACKET conceptTemplate+=ConceptTemplate (COMMATA conceptTemplate+=ConceptTemplate)* RBRACKET;
@@ -200,15 +200,15 @@ Concepts returns ConceptsType:
 
 TemplateRules returns TemplateRules:
 	{TemplateRules}
-	'<=>' LCURLY
+	LCURLY
+	('operator' ':' operator=OperatorLiterals)?
 	('description' description=STRING)?
-	(operator=OperatorLiterals)? // recursive definition of TemplateRules
-	(LBRACKET templateRules+=TemplateRules (COMMATA templateRules+=TemplateRules)* RBRACKET)?
-	(templateRule+=TemplateRule (COMMATA templateRule+=TemplateRule)*)?
+	('templates' ':' LBRACKET templateRules+=TemplateRules (COMMATA templateRules+=TemplateRules)* RBRACKET)?
+	('templates2' ':' LBRACKET templateRule+=TemplateRule (COMMATA templateRule+=TemplateRule)* RBRACKET)?
 	RCURLY;
 
 TemplateRule returns TemplateRuleType:
-	EQUAL LCURLY
+	LCURLY
 	('description' description=STRING)?
 	'check' parameters=STRING
 	RCURLY;
