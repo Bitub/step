@@ -30,8 +30,6 @@ import de.bitub.step.express.Type
 import de.bitub.step.xcore.XcoreInfo.Delegate
 import java.util.Date
 import java.util.Map
-import java.util.Optional
-import java.util.function.Function
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EObject
@@ -88,7 +86,7 @@ class XcoreGenerator implements IGenerator {
 	var secondStageCache = ''''''
 	
 	// The partitioning delegate
-	var Function<ExpressConcept, Optional<XcorePackageDescriptor>> partitioningDelegate = new XcoreDefaultPartitionDelegate
+	var XcorePartitioningDelegate partitioningDelegate = new XcoreDefaultPartitionDelegate
 
 	val escapeKeywords = <String>newHashSet("id", "contains", "opposite", "refers", "unique", "unordered")
 
@@ -111,7 +109,7 @@ class XcoreGenerator implements IGenerator {
 	 * returns a descriptor of an assigned xcore package. Whenever the descriptor is not present, the default package (under the QN of
 	 * the current schema) is taken.
 	 */
-	def void setPartitioningDelegate(Function<ExpressConcept, Optional<XcorePackageDescriptor>> delegate) {
+	def void setPartitioningDelegate(XcorePartitioningDelegate delegate) {
 		
 		this.partitioningDelegate = delegate
 		packageCache.clear
@@ -563,7 +561,7 @@ class XcoreGenerator implements IGenerator {
 
 		// process schema for structural information
 		//		
-		modelInfo = interpreter.process(s);
+		modelInfo = interpreter.process(s);		
 		
 		// Create default package
 		activePackage =  s.createDefaultPackage
@@ -572,8 +570,10 @@ class XcoreGenerator implements IGenerator {
 		
 		val rootContainerClass = if(Options.ROOT_CONTAINER_NAME.option) 
 			Options.ROOT_CONTAINER_NAME.optionText else s.name.toFirstUpper
+			
 		xcoreInfo = new XcoreInfo(modelInfo, activePackage.packageQN.append(rootContainerClass))
-			 
+		partitioningDelegate.schemeInfo = xcoreInfo	
+		
 		activePackage.textModel = '''	
 
 		// Default root package		

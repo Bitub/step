@@ -14,6 +14,7 @@ package de.bitub.step.xcore
 import de.bitub.step.express.Entity
 import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.Type
+import java.util.Collections
 import java.util.Iterator
 import java.util.List
 import java.util.Optional
@@ -22,20 +23,20 @@ import java.util.function.BiFunction
 import java.util.function.Function
 import java.util.function.Predicate
 import java.util.regex.Pattern
-import java.util.Collections
 
 /**
- * An analytical & procedural package partitioning delegate.
+ * An analytical package partitioning delegate.
  * 
  * <p>
- * Procedural descriptors form up a tree where each path represents a qualified package descriptor chain. 
+ * Functional descriptors form up a tree where each path represents a qualified package descriptor chain. 
  * If multiple descriptors match the given concept, path candidates are merged by levels in order of input sequence when appending new
  * descriptors. Later added descriptors will placed as super packages while the earliest added represents the tail.
  * </p>
  */
-class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
+class XcoreFunctionalPartitioningDelegate implements XcorePartitioningDelegate {
 	
-	val List<ProceduralDescriptor> proceduralDescriptors = newArrayList
+	val List<FunctionalDescriptor> proceduralDescriptors = newArrayList
+	var XcoreInfo info
 	
 	static class Predicates {
 		
@@ -82,23 +83,23 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 	/**
 	 * A procedural package descriptor which relies on functional descriptions.
 	 */
-	static class ProceduralDescriptor {
+	static class FunctionalDescriptor {
 		
 		// A predicate which indicates to apply this descriptor
 		val Predicate<ExpressConcept> predicate
 		// A function of parent descriptor & current concept which returns a package descriptor 
-		val BiFunction<ProceduralDescriptor,ExpressConcept, XcorePackageDescriptor> function
+		val BiFunction<FunctionalDescriptor, ExpressConcept, XcorePackageDescriptor> function
 		// The parent
-		var ProceduralDescriptor parent
+		var FunctionalDescriptor parent
 		
-		new(ProceduralDescriptor parent, Predicate<ExpressConcept> predicate, BiFunction<ProceduralDescriptor, ExpressConcept, XcorePackageDescriptor> packageFunction) {
+		new(FunctionalDescriptor parent, Predicate<ExpressConcept> predicate, BiFunction<FunctionalDescriptor, ExpressConcept, XcorePackageDescriptor> packageFunction) {
 			
 			this.predicate = predicate
 			this.function = packageFunction
 			this.parent = parent
 		}
 
-		new(ProceduralDescriptor parent, Predicate<ExpressConcept> predicate, String subPackage) {
+		new(FunctionalDescriptor parent, Predicate<ExpressConcept> predicate, String subPackage) {
 			
 			this.predicate = predicate
 			this.function = [p, c| new XcoreGenericSubPackageDescriptor(p.apply(c), subPackage)]
@@ -120,9 +121,9 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 		/**
 		 * Filters for entities above given level.
 		 */
-		def static ProceduralDescriptor isLeastInheritanceLevel(ProceduralDescriptor parent, int superEntities, String packageName) {
+		def static FunctionalDescriptor isLeastInheritanceLevel(FunctionalDescriptor parent, int superEntities, String packageName) {
 			
-			new ProceduralDescriptor(parent,
+			new FunctionalDescriptor(parent,
 					[ ExpressConcept c | Predicates.getTypeLevel(c) >= superEntities ],
 					[ p, c | {
 						new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)
@@ -134,11 +135,11 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 		 * A descriptor which will generate a sub package by level between [0..n]. If no fragments are given,
 		 * the level itself will be taken as argument to the template (i.e. holding an "%d" expression).
 		 */
-		def static ProceduralDescriptor isAtInheritanceLevel(ProceduralDescriptor parent, String packageNameTemplate, String ... fragments) {
+		def static FunctionalDescriptor isAtInheritanceLevel(FunctionalDescriptor parent, String packageNameTemplate, String ... fragments) {
 			
 			if(fragments.empty) {
 				
-				new ProceduralDescriptor(parent,
+				new FunctionalDescriptor(parent,
 					[ ExpressConcept c | true ],
 					[ p, c | {
 						new XcoreGenericSubPackageDescriptor(p.apply(c), String.format(packageNameTemplate, Predicates.getTypeLevel(c)))
@@ -146,7 +147,7 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 				)							
 			} else {
 				
-				new ProceduralDescriptor(parent,
+				new FunctionalDescriptor(parent,
 					[ ExpressConcept c | true ],
 					[ p, c | {
 						
@@ -159,39 +160,39 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 			}
 		}
 		
-		def static ProceduralDescriptor isNamedLike(ProceduralDescriptor parent, String regularExpr, String packageName) {
+		def static FunctionalDescriptor isNamedLike(FunctionalDescriptor parent, String regularExpr, String packageName) {
 
 			val Pattern pattern = Pattern.compile(regularExpr)
-			new ProceduralDescriptor(parent,
+			new FunctionalDescriptor(parent,
 				[ ExpressConcept c | pattern.matcher(c.name).find ],
 				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
 			)			
 		}
 		
-		def static ProceduralDescriptor isDataTypeOf(ProceduralDescriptor parent, Class<?> type, String packageName) {
+		def static FunctionalDescriptor isDataTypeOf(FunctionalDescriptor parent, Class<?> type, String packageName) {
 			
-			new ProceduralDescriptor(parent,
+			new FunctionalDescriptor(parent,
 				[ ExpressConcept c | if(c instanceof Type) type == (c as Type).datatype.class else false],
 				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
 			)
 		}		
 
-		def static ProceduralDescriptor isDataKindOf(Class<?> superType, String packageName) {
+		def static FunctionalDescriptor isDataKindOf(Class<?> superType, String packageName) {
 			
 			isDataKindOf(null, superType, packageName)
 		}
 		
-		def static ProceduralDescriptor isDataKindOf(ProceduralDescriptor parent, Class<?> superType, String packageName) {
+		def static FunctionalDescriptor isDataKindOf(FunctionalDescriptor parent, Class<?> superType, String packageName) {
 
-			new ProceduralDescriptor(parent,
+			new FunctionalDescriptor(parent,
 				[ ExpressConcept c | if(c instanceof Type) superType.isAssignableFrom((c as Type).datatype.class) else false],
 				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
 			)			
 		}
 		
-		def static ProceduralDescriptor isTrue(ProceduralDescriptor parent, Predicate<ExpressConcept> predicate, String packageName) {
+		def static FunctionalDescriptor isTrue(FunctionalDescriptor parent, Predicate<ExpressConcept> predicate, String packageName) {
 
-			new ProceduralDescriptor(parent,
+			new FunctionalDescriptor(parent,
 				predicate,
 				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
 			)			
@@ -208,14 +209,14 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 			function.apply(parent,c)
 		}
 		
-		def Function<ExpressConcept, XcorePackageDescriptor> apply(ProceduralDescriptor otherParent) {
+		def Function<ExpressConcept, XcorePackageDescriptor> apply(FunctionalDescriptor otherParent) {
 			
 			[ c | function.apply(otherParent,c) ]
 		}
 		
-		def ProceduralDescriptor concat(ProceduralDescriptor child) {
+		def FunctionalDescriptor concat(FunctionalDescriptor child) {
 			
-			new ProceduralDescriptor(this, child.predicate, child.function)
+			new FunctionalDescriptor(this, child.predicate, child.function)
 		}
 				
 	}
@@ -223,15 +224,15 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 	
 	new(XcorePackageDescriptor baseDescriptor) {
 	
-		proceduralDescriptors += new ProceduralDescriptor(baseDescriptor)
+		proceduralDescriptors += new FunctionalDescriptor(baseDescriptor)
 	}
 	
-	new(ProceduralDescriptor pd) {
+	new(FunctionalDescriptor pd) {
 		
 		proceduralDescriptors += pd
 	}
 	
-	def void append(ProceduralDescriptor pd) {
+	def void append(FunctionalDescriptor pd) {
 		
 		if(!proceduralDescriptors.contains(pd)) {
 			// Add and sort descending by tree depth
@@ -243,8 +244,8 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 	
 	override apply(ExpressConcept t) {
 				
-		val pSet = <ProceduralDescriptor>newHashSet
-		val sequence = <ProceduralDescriptor>newArrayList
+		val pSet = <FunctionalDescriptor>newHashSet
+		val sequence = <FunctionalDescriptor>newArrayList
 		var cStage = 0
 		
 		for( pd : proceduralDescriptors.filter[ p | p.isApplicable(t)]) {
@@ -273,13 +274,18 @@ class XcoreAnalyticalPartitioningDelegate implements Function<ExpressConcept, Op
 			return Optional.empty
 		}
 		
-		var ProceduralDescriptor pHead = sequence.get(0)
+		var FunctionalDescriptor pHead = sequence.get(0)
 		for(var i=1; i<sequence.length; i++) {
 			
 			pHead = pHead.concat(sequence.get(i))
 		}
 		
 		Optional.ofNullable(pHead.apply(t))
+	}
+	
+	override setSchemeInfo(XcoreInfo info) {
+		
+		this.info = info
 	}
 	
 	

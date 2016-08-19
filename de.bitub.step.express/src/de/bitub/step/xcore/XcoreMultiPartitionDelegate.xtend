@@ -23,10 +23,12 @@ import org.eclipse.xtext.naming.QualifiedName
 /**
  * A multi partitioning delegate which uses a map of class versus package descriptors.
  */
-class XcoreMultiPartitionDelegate implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
+class XcoreMultiPartitionDelegate implements XcorePartitioningDelegate {
 		
 	val XcorePackageDescriptor defaultPackage		
 	val public Map<EClass, XcorePackageDescriptor> descriptorMap 
+	
+	var extension XcoreInfo info
 	
 	new(String packageName, QualifiedName packageRoot, String packageUri) {
 		
@@ -78,6 +80,11 @@ class XcoreMultiPartitionDelegate implements Function<ExpressConcept, Optional<X
 				Optional.of(defaultPackage)		
 		} 
 		
+	}
+	
+	override setSchemeInfo(XcoreInfo info) {
+		
+		this.info = info
 	}
 		
 }
