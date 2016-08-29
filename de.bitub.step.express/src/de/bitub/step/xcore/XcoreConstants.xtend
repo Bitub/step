@@ -54,6 +54,11 @@ class XcoreConstants {
 		compileBuiltin(c.eClass)
 	}
 	
+	def static boolean isImplemented(BuiltInType c) {
+		
+		compileBuiltin(c).length > 0
+	}
+	
 	def static List<EClass> getImplementedBuiltins() {
 		
 		return builtinMappings.keySet.filter[compileBuiltin.length>0].toList

@@ -23,6 +23,8 @@ import de.bitub.step.express.Type
 import java.util.Set
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import java.util.Stack
+import java.util.Iterator
 
 /**
  * Shorthand utility method to derive more information about model elements of EXPRESS.
@@ -81,6 +83,47 @@ class EXPRESSExtension {
 		
 		false
 	}
+
+	/**
+	 * Gets the level of inheritance. Here: always 0.
+	 */	
+	def dispatch static getSpecificationLevel(Type t) {
+		
+		0
+	}
+	
+	
+	/**
+	 * Gets the level of inheritance.
+	 */
+	def dispatch static getSpecificationLevel(Entity c) {
+					
+		var mLevel = 0
+		var cLevel = 0
+		
+		val stack = new Stack<Iterator<Entity>>()
+		stack.push(c.supertype.iterator)
+		
+		while(!stack.isEmpty) {
+			
+			val iterator = stack.peek
+			if(iterator.hasNext) {
+				
+				cLevel++
+				mLevel = Math.max(cLevel, mLevel)
+											
+				val entity = iterator.next
+				stack.push(entity.supertype.iterator)
+				
+			} else {
+				
+				cLevel--
+				stack.pop
+			}
+		}
+		
+		mLevel
+	}	
 	
 
 	/**

@@ -10,14 +10,14 @@
  */
 package de.bitub.step.xcore
 
-import java.util.function.Function
 import de.bitub.step.express.ExpressConcept
 import java.util.Optional
 import org.eclipse.xtext.naming.QualifiedName
 
-class XcoreBasePartitionDelegate implements Function<ExpressConcept, Optional<XcorePackageDescriptor>> {
+class XcoreBasePartitionDelegate implements XcorePartitioningDelegate {
 
 	val XcorePackageDescriptor baseDescriptor
+	var XcoreInfo info
 	
 	new(String declaredName, QualifiedName packageQn, String namespaceUri) {
 		
@@ -42,4 +42,10 @@ class XcoreBasePartitionDelegate implements Function<ExpressConcept, Optional<Xc
 		
 		Optional.of(baseDescriptor)
 	}
+	
+	override setSchemeInfo(XcoreInfo info) {
+		
+		this.info = info
+	}
+	
 }

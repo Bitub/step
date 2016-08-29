@@ -14,14 +14,13 @@ package de.bitub.step.xcore
 import de.bitub.step.express.Entity
 import de.bitub.step.express.ExpressConcept
 import de.bitub.step.express.Type
+import de.bitub.step.util.EXPRESSExtension
 import java.util.Collections
-import java.util.Iterator
 import java.util.List
 import java.util.Optional
-import java.util.Stack
 import java.util.function.BiFunction
+import java.util.function.BiPredicate
 import java.util.function.Function
-import java.util.function.Predicate
 import java.util.regex.Pattern
 
 /**
@@ -35,50 +34,147 @@ import java.util.regex.Pattern
  */
 class XcoreFunctionalPartitioningDelegate implements XcorePartitioningDelegate {
 	
-	val List<FunctionalDescriptor> proceduralDescriptors = newArrayList
+	val List<FunctionalDescriptor> functionalDescriptors = newArrayList
 	var XcoreInfo info
 	
-	static class Predicates {
+	static class Predicate {
 		
-		def static getTypeLevel(ExpressConcept c) {
-						
-			switch(c) {
-				Type: {
-					
-					0					
-				}
-				Entity: {
-					
-					var mLevel = 0
-					var cLevel = 0
-					
-					val stack = new Stack<Iterator<Entity>>()
-					stack.push(c.supertype.iterator)
-					
-					while(!stack.isEmpty) {
-						
-						val iterator = stack.peek
-						if(iterator.hasNext) {
-							
-							cLevel++
-							mLevel = Math.max(cLevel, mLevel)
-														
-							val entity = iterator.next
-							stack.push(entity.supertype.iterator)
-							
-						} else {
-							
-							cLevel--
-							stack.pop
-						}
-					}
-					
-					mLevel
-				}	
-			}
+		val FunctionalDescriptor dscpParent
+		var BiPredicate<XcoreInfo, ExpressConcept> dscpPredicate
+		var BiFunction<FunctionalDescriptor, ExpressConcept, XcorePackageDescriptor> dscpFunction
+		
+		new() {
+		
+			this.dscpParent = null	
+			this.dscpPredicate = [ i,c | true ]
 		}
 		
+		new(FunctionalDescriptor parent) {
+		
+			this.dscpParent = parent
+			this.dscpPredicate = [ i,c | true ]	
+		}
+		
+		def FunctionalDescriptor create() {
+			
+			new FunctionalDescriptor(
+				dscpParent, dscpPredicate, if(null==dscpFunction) [p,c | null] else dscpFunction
+			)
+		}
+		
+		def Predicate mapPackageName(String packageName) {
+			
+			dscpFunction = [ p, c | { new XcoreGenericSubPackageDescriptor(p.parent.apply(c), packageName) }]
+			
+			this
+		}
+
+		def Predicate mapSupertypeLevel(String ... fragments) {
+			
+			dscpFunction = [ p, c | {
+						
+						val maxLevel = EXPRESSExtension.getSpecificationLevel(c)
+												
+						new XcoreGenericSubPackageDescriptor(
+							p.parent.apply(c), if(maxLevel>=fragments.length) fragments.get(fragments.length-1) else fragments.get(maxLevel)
+						) 						
+					}]			
+			this
+		}
+		
+		/**
+		 * Filters for entities above given level.
+		 */
+		def Predicate gtSupertypeLevel(int superEntities) {
+			
+			dscpPredicate =	dscpPredicate.and( [ i, c | EXPRESSExtension.getSpecificationLevel(c) > superEntities ] )
+			
+			this
+		}
+				
+		/**
+		 * Filters for entities less than equal given level.
+		 */
+		def Predicate lteSupertypeLevel(int superEntities) {
+			
+			dscpPredicate =	dscpPredicate.and( [ i, c | EXPRESSExtension.getSpecificationLevel(c) <= superEntities ] )
+			
+			this
+		}
+		
+		def Predicate isNamedLike(String regularExpr) {
+
+			val Pattern pattern = Pattern.compile(regularExpr)
+			dscpPredicate = dscpPredicate.and( [ i, c | pattern.matcher(c.name).find ] )
+			
+			this
+		}
+		
+		def Predicate isDataTypeOf(Class<?> type) {
+			
+			dscpPredicate = dscpPredicate.and( [ i, c | if(c instanceof Type) type == (c as Type).datatype.class else false] )
+			
+			this
+		}		
+
+		def Predicate isDataKindOf(Class<?> superType) {
+			
+			dscpPredicate = dscpPredicate.and( [ i, c | if(c instanceof Type) superType.isAssignableFrom((c as Type).datatype.class) else false] )
+			
+			this
+		}
+
+		def Predicate isNonAbstractEntity() {
+			
+			dscpPredicate = dscpPredicate.and( [ i, c | {
+				switch(c) {
+					Entity:
+						!c.abstract
+					default:
+						false
+				}
+			}])
+			
+			this
+		}
+		
+		def Predicate isAbstractEntity() {
+			
+			dscpPredicate = dscpPredicate.and( [ i, c | {
+				switch(c) {
+					Entity:
+						c.abstract
+					default:
+						false
+				}
+			}])
+			
+			this
+		}
+		
+		def Predicate hasUnidirectionalRelation() {
+			
+			dscpPredicate = dscpPredicate.and( [ i, c | {
+				
+				switch(c) {
+					Entity:
+						c.attribute.exists[ i.isUnidirectionalRelation(it) ]
+					default:
+						false
+				}
+			}])
+			
+			this			
+		}
+
+		def Predicate isTrue(BiPredicate<XcoreInfo, ExpressConcept> predicate) {
+			
+			dscpPredicate = dscpPredicate.and(predicate)
+			
+			this
+		}				
 	}
+	
 	
 	/**
 	 * A procedural package descriptor which relies on functional descriptions.
@@ -86,20 +182,20 @@ class XcoreFunctionalPartitioningDelegate implements XcorePartitioningDelegate {
 	static class FunctionalDescriptor {
 		
 		// A predicate which indicates to apply this descriptor
-		val Predicate<ExpressConcept> predicate
+		val BiPredicate<XcoreInfo, ExpressConcept> predicate
 		// A function of parent descriptor & current concept which returns a package descriptor 
 		val BiFunction<FunctionalDescriptor, ExpressConcept, XcorePackageDescriptor> function
 		// The parent
 		var FunctionalDescriptor parent
 		
-		new(FunctionalDescriptor parent, Predicate<ExpressConcept> predicate, BiFunction<FunctionalDescriptor, ExpressConcept, XcorePackageDescriptor> packageFunction) {
+		new(FunctionalDescriptor parent, BiPredicate<XcoreInfo, ExpressConcept> predicate, BiFunction<FunctionalDescriptor, ExpressConcept, XcorePackageDescriptor> packageFunction) {
 			
 			this.predicate = predicate
 			this.function = packageFunction
 			this.parent = parent
 		}
 
-		new(FunctionalDescriptor parent, Predicate<ExpressConcept> predicate, String subPackage) {
+		new(FunctionalDescriptor parent, BiPredicate<XcoreInfo, ExpressConcept> predicate, String subPackage) {
 			
 			this.predicate = predicate
 			this.function = [p, c| new XcoreGenericSubPackageDescriptor(p.apply(c), subPackage)]
@@ -108,110 +204,32 @@ class XcoreFunctionalPartitioningDelegate implements XcorePartitioningDelegate {
 		
 		new(XcorePackageDescriptor baseDescriptor) {
 			
-			this.predicate = [c | true]
+			this.predicate = [i, c | true]
 			this.function = [p, c | baseDescriptor]
 			this.parent = null
 		}
+		
 		
 		def int getStage() {
 			
 			if(null==parent) 0 else parent.stage + 1
 		}
 		
-		/**
-		 * Filters for entities above given level.
-		 */
-		def static FunctionalDescriptor isLeastInheritanceLevel(FunctionalDescriptor parent, int superEntities, String packageName) {
-			
-			new FunctionalDescriptor(parent,
-					[ ExpressConcept c | Predicates.getTypeLevel(c) >= superEntities ],
-					[ p, c | {
-						new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)
-					}]
-			)										
-		}
-
-		/**
-		 * A descriptor which will generate a sub package by level between [0..n]. If no fragments are given,
-		 * the level itself will be taken as argument to the template (i.e. holding an "%d" expression).
-		 */
-		def static FunctionalDescriptor isAtInheritanceLevel(FunctionalDescriptor parent, String packageNameTemplate, String ... fragments) {
-			
-			if(fragments.empty) {
-				
-				new FunctionalDescriptor(parent,
-					[ ExpressConcept c | true ],
-					[ p, c | {
-						new XcoreGenericSubPackageDescriptor(p.apply(c), String.format(packageNameTemplate, Predicates.getTypeLevel(c)))
-					}]
-				)							
-			} else {
-				
-				new FunctionalDescriptor(parent,
-					[ ExpressConcept c | true ],
-					[ p, c | {
-						
-						val maxLevel = Predicates.getTypeLevel(c)						
-						new XcoreGenericSubPackageDescriptor(
-							p.parent.apply(c), String.format(packageNameTemplate, if(maxLevel>=fragments.length) fragments.length-1 else maxLevel) 
-						)
-					}]
-				)											
-			}
-		}
-		
-		def static FunctionalDescriptor isNamedLike(FunctionalDescriptor parent, String regularExpr, String packageName) {
-
-			val Pattern pattern = Pattern.compile(regularExpr)
-			new FunctionalDescriptor(parent,
-				[ ExpressConcept c | pattern.matcher(c.name).find ],
-				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
-			)			
-		}
-		
-		def static FunctionalDescriptor isDataTypeOf(FunctionalDescriptor parent, Class<?> type, String packageName) {
-			
-			new FunctionalDescriptor(parent,
-				[ ExpressConcept c | if(c instanceof Type) type == (c as Type).datatype.class else false],
-				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
-			)
-		}		
-
-		def static FunctionalDescriptor isDataKindOf(Class<?> superType, String packageName) {
-			
-			isDataKindOf(null, superType, packageName)
-		}
-		
-		def static FunctionalDescriptor isDataKindOf(FunctionalDescriptor parent, Class<?> superType, String packageName) {
-
-			new FunctionalDescriptor(parent,
-				[ ExpressConcept c | if(c instanceof Type) superType.isAssignableFrom((c as Type).datatype.class) else false],
-				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
-			)			
-		}
-		
-		def static FunctionalDescriptor isTrue(FunctionalDescriptor parent, Predicate<ExpressConcept> predicate, String packageName) {
-
-			new FunctionalDescriptor(parent,
-				predicate,
-				[ p, c | new XcoreGenericSubPackageDescriptor(p.apply(c), packageName)]
-			)			
-		}
 				
 		
-		def boolean isApplicable(ExpressConcept c) {
+		def boolean isApplicable(XcoreInfo i, ExpressConcept c) {
 			
-			predicate.test(c)
+			predicate.test(i, c)
 		}
 		
 		def XcorePackageDescriptor apply(ExpressConcept c) {
 			
-			function.apply(parent,c)
+			function.apply(this,c)
 		}
 		
-		def Function<ExpressConcept, XcorePackageDescriptor> apply(FunctionalDescriptor otherParent) {
+		def Function<ExpressConcept, XcorePackageDescriptor> apply(FunctionalDescriptor other) {
 			
-			[ c | function.apply(otherParent,c) ]
+			[ c | function.apply(other,c) ]
 		}
 		
 		def FunctionalDescriptor concat(FunctionalDescriptor child) {
@@ -224,20 +242,20 @@ class XcoreFunctionalPartitioningDelegate implements XcorePartitioningDelegate {
 	
 	new(XcorePackageDescriptor baseDescriptor) {
 	
-		proceduralDescriptors += new FunctionalDescriptor(baseDescriptor)
+		functionalDescriptors += new FunctionalDescriptor(baseDescriptor)
 	}
 	
 	new(FunctionalDescriptor pd) {
 		
-		proceduralDescriptors += pd
+		functionalDescriptors += pd
 	}
 	
 	def void append(FunctionalDescriptor pd) {
 		
-		if(!proceduralDescriptors.contains(pd)) {
+		if(!functionalDescriptors.contains(pd)) {
 			// Add and sort descending by tree depth
-			proceduralDescriptors += pd
-			Collections.sort(proceduralDescriptors, [a, b | b.stage - a.stage]);			
+			functionalDescriptors += pd
+			Collections.sort(functionalDescriptors, [a, b | b.stage - a.stage]);			
 		}
 	}
 	
@@ -248,7 +266,7 @@ class XcoreFunctionalPartitioningDelegate implements XcorePartitioningDelegate {
 		val sequence = <FunctionalDescriptor>newArrayList
 		var cStage = 0
 		
-		for( pd : proceduralDescriptors.filter[ p | p.isApplicable(t)]) {
+		for( pd : functionalDescriptors.filter[ p | p.isApplicable(info, t)]) {
 			// Scan through applicable descriptors
 			
 			var d = pd

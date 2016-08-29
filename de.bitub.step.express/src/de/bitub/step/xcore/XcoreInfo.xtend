@@ -173,6 +173,11 @@ class XcoreInfo {
 		oppositeQualifiedName
 	}
 	
+	def boolean isUnidirectionalRelation(Attribute a) {
+		
+		a.inverseRelation
+	}
+	
 	/**
 	 * Gets the references (delegate) type.
 	 */

@@ -250,10 +250,11 @@ class XcoreGenerator implements IGenerator {
 			
 			// If no nested aggregation, check whether a compile statement exists in default package
 			val builtIn = (c as Type).refersDatatype as BuiltInType
+			val pkg = packageCache.get("")
 			
-			if(builtIn.compileBuiltin.length > 0) {
-				// If so, register for import
-				activePackage.importRegistry += packageCache.get("").packageQN.append(XcoreConstants.qualifiedBuiltInName(builtIn))
+			if(builtIn.implemented && activePackage != pkg) {
+				// If implemented and default package is not active
+				activePackage.importRegistry += pkg.packageQN.append(XcoreConstants.qualifiedBuiltInName(builtIn))
 			}			
 		}
 		
@@ -393,7 +394,7 @@ class XcoreGenerator implements IGenerator {
 		«p.compileXcoreHeader»
 		
 		@GenModel(documentation="Generated EXPRESS model of schema «p.packageName»")
-		@XpressModel(name="«p.packageName.toLowerCase»",rootContainerClassRef="«xcoreInfo.rootContainerClass»")				
+		@XpressModel(name="«p.baseSchema.name»",rootContainerClassRef="«xcoreInfo.rootContainerClass»")				
 		package «p.packageQN»
 
 		«FOR qn:p.importRegistry.sortBy[lastSegment]
@@ -612,11 +613,7 @@ class XcoreGenerator implements IGenerator {
 	 * Transforms an entity into a class definition. 
 	 */	
 	def dispatch void compileConcept(Entity e) {
-		
-		if("IfcRelReferencedInSpatialStructure" == e.name) {
-			LOGGER.warn("!!!")
-		}
-		
+				
 		// Partition package
 		var pckg = e.partitionXCorePackage
 		
