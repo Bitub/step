@@ -12,8 +12,8 @@ package de.bitub.step.express.tests.xcoregen
 
 import de.bitub.step.EXPRESSInjectorProvider
 import de.bitub.step.express.EnumType
-import de.bitub.step.xcore.XcoreAnalyticalPartitioningDelegate
-import de.bitub.step.xcore.XcoreAnalyticalPartitioningDelegate.ProceduralDescriptor
+import de.bitub.step.xcore.XcoreFunctionalPartitioningDelegate
+import de.bitub.step.xcore.XcoreFunctionalPartitioningDelegate.FunctionalDescriptor
 import de.bitub.step.xcore.XcorePackageDescriptor
 import org.eclipse.xtext.junit4.InjectWith
 import org.eclipse.xtext.junit4.XtextRunner
@@ -71,7 +71,7 @@ class XcoreAnalyticalPartitioningDelegateTest extends AbstractXcoreGeneratorTest
     def void testXcoreSuperTypeTest() {
     	
     	val model = generateEXPRESS(scheme)	 
-    	val root = new ProceduralDescriptor(new XcorePackageDescriptor() {
+    	val root = new FunctionalDescriptor(new XcorePackageDescriptor() {
 						
 						override getNsURI() {
 							"http://test.org"
@@ -85,12 +85,12 @@ class XcoreAnalyticalPartitioningDelegateTest extends AbstractXcoreGeneratorTest
 							QualifiedName.create("base","testpackage");
 						}						
 		})   	
-    	val apd = new XcoreAnalyticalPartitioningDelegate(root)
+    	val apd = new XcoreFunctionalPartitioningDelegate(root)
     	
-    	apd.append( ProceduralDescriptor.isDataKindOf(root, typeof(EnumType), "enums") )
-    	apd.append( ProceduralDescriptor.isAtInheritanceLevel(root, "at%d") )
-    	apd.append( ProceduralDescriptor.isLeastInheritanceLevel(root, 2, "level2") )
-    	apd.append( ProceduralDescriptor.isNamedLike(root, "^Special", "specials") )
+    	apd.append( FunctionalDescriptor.isDataKindOf(root, typeof(EnumType), "enums") )
+    	apd.append( FunctionalDescriptor.isAtInheritanceLevel(root, "at%d") )
+    	apd.append( FunctionalDescriptor.isLeastInheritanceLevel(root, 2, "level2") )
+    	apd.append( FunctionalDescriptor.isNamedLike(root, "^Special", "specials") )
     	
     	val map = newHashMap
 		for(c : model.entity) {

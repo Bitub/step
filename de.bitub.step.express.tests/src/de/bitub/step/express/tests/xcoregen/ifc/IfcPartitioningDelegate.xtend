@@ -1,24 +1,36 @@
 package de.bitub.step.express.tests.xcoregen.ifc
 
-import de.bitub.step.express.EnumType
-import de.bitub.step.xcore.XcoreAnalyticalPartitioningDelegate
-import de.bitub.step.xcore.XcorePackageDescriptor
-import de.bitub.step.express.SelectType
 import de.bitub.step.express.Entity
+import de.bitub.step.express.EnumType
+import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
+import de.bitub.step.xcore.XcoreFunctionalPartitioningDelegate
+import de.bitub.step.xcore.XcorePackageDescriptor
+
 import static extension de.bitub.step.util.EXPRESSExtension.*
 
-
-class IfcPartitioningDelegate extends XcoreAnalyticalPartitioningDelegate {
+/**
+ * An IFC procedural partitioner with the following rule set
+ * <ul>
+ * <li>All enums go into "enum"</li>
+ * <li>All non-relational selects go into "select"</li>
+ * <li>All abstract entities up to level 3 go into "core"</li>
+ * <li>All abstract entities above level 3 go into "model"</li>
+ * <li>All non-abstract entities go into "impl"</li>
+ * <li>All relation entities go into super package "relation"</li>
+ * <li>All explicite aggregation types go into "aggregation"</li>
+ * </ul>
+ */
+class IfcPartitioningDelegate extends XcoreFunctionalPartitioningDelegate {
 	
-	val ProceduralDescriptor ifcRootDescriptor
+	val FunctionalDescriptor ifcRootDescriptor
 		
 	new(XcorePackageDescriptor ifcPackageRoot) {
 		
-		this(new ProceduralDescriptor(ifcPackageRoot))
+		this(new FunctionalDescriptor(ifcPackageRoot))
 	}
 	
-	new(ProceduralDescriptor ifcRootDescriptor) {
+	new(FunctionalDescriptor ifcRootDescriptor) {
 		
 		super(ifcRootDescriptor)
 		this.ifcRootDescriptor = ifcRootDescriptor 
@@ -26,18 +38,45 @@ class IfcPartitioningDelegate extends XcoreAnalyticalPartitioningDelegate {
 		init(ifcRootDescriptor)
 	}
 
-	def private init(ProceduralDescriptor ifcRootPackage) {
+	def private init(FunctionalDescriptor ifcRootPackage) {
 		
-		append(ProceduralDescriptor.isDataKindOf(ifcRootPackage, typeof(EnumType), "enums"))
-		append(ProceduralDescriptor.isDataKindOf(ifcRootPackage, typeof(SelectType), "selects"))
-		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | if(c instanceof Entity) (c as Entity).abstract else false], "model"))
-		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | 
+		append(FunctionalDescriptor.isDataKindOf(ifcRootPackage, typeof(EnumType), "enum"))
+		append(FunctionalDescriptor.isDataKindOf(ifcRootPackage, typeof(SelectType), "select"))
+		
+		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
 				if(c instanceof Entity) 
-					(c as Entity).abstract && de.bitub.step.xcore.XcoreAnalyticalPartitioningDelegate.Predicates.getTypeLevel(c) > 3
-				else false	], "lomodel"))
-		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | if(c instanceof Entity) !(c as Entity).abstract else false], "impl"))
-		append(ProceduralDescriptor.isTrue(ifcRootPackage, [c | if(c instanceof Type) (c as Type).typeAggregation else false], "aggregation"))
-		append(ProceduralDescriptor.isNamedLike(ifcRootDescriptor,"^IfcRel|Relation", "relations"))
+					(c as Entity).abstract 
+						&& Predicates.getTypeLevel(c) <= 3
+				else 
+					false
+			], "core"))
+		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
+				if(c instanceof Entity) 
+					(c as Entity).abstract 
+						&& Predicates.getTypeLevel(c) > 3
+				else false	], "model"))
+				
+		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
+				if(c instanceof Entity) 
+					!(c as Entity).abstract && (c as Entity).attribute.exists[declaringInverseAttribute]
+				else 
+					false
+			], "impl"))
+		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
+				if(c instanceof Type) 
+					(c as Type).aggregation
+				else 
+					false
+			], "aggregation"))
+
+		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
+				if(c instanceof Entity) 
+					(c as Entity).attribute.exists[declaringInverseAttribute]
+				else 
+					false
+			], "tight"))
+			
+		append(FunctionalDescriptor.isNamedLike(ifcRootDescriptor,"^IfcRel|Relation", "relation"))
 	}
 	
 }
