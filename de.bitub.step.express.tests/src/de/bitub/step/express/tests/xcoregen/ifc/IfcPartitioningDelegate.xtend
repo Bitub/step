@@ -1,6 +1,5 @@
 package de.bitub.step.express.tests.xcoregen.ifc
 
-import de.bitub.step.express.Entity
 import de.bitub.step.express.EnumType
 import de.bitub.step.express.SelectType
 import de.bitub.step.express.Type
@@ -12,13 +11,13 @@ import static extension de.bitub.step.util.EXPRESSExtension.*
 /**
  * An IFC procedural partitioner with the following rule set
  * <ul>
- * <li>All enums go into "enum"</li>
- * <li>All non-relational selects go into "select"</li>
- * <li>All abstract entities up to level 3 go into "core"</li>
- * <li>All abstract entities above level 3 go into "model"</li>
+ * <li>All enums go into "enums"</li>
+ * <li>All non-relational selects go into "selects"</li>
+ * <li>All abstract entities go into "model"</li>
  * <li>All non-abstract entities go into "impl"</li>
+ * <li>All explicit aggregation types go into "aggregation"</li>
+ * <li>All entities having an unidirectional (inverse) relation go into "core"</li>
  * <li>All relation entities go into super package "relation"</li>
- * <li>All explicite aggregation types go into "aggregation"</li>
  * </ul>
  */
 class IfcPartitioningDelegate extends XcoreFunctionalPartitioningDelegate {
@@ -40,43 +39,25 @@ class IfcPartitioningDelegate extends XcoreFunctionalPartitioningDelegate {
 
 	def private init(FunctionalDescriptor ifcRootPackage) {
 		
-		append(FunctionalDescriptor.isDataKindOf(ifcRootPackage, typeof(EnumType), "enum"))
-		append(FunctionalDescriptor.isDataKindOf(ifcRootPackage, typeof(SelectType), "select"))
+		append(new Predicate(ifcRootPackage).isDataKindOf(typeof(EnumType)).mapPackageName("enums").create)
+		append(new Predicate(ifcRootPackage).isDataKindOf(typeof(SelectType)).mapPackageName("selects").create)
 		
-		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
-				if(c instanceof Entity) 
-					(c as Entity).abstract 
-						&& Predicates.getTypeLevel(c) <= 3
-				else 
-					false
-			], "core"))
-		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
-				if(c instanceof Entity) 
-					(c as Entity).abstract 
-						&& Predicates.getTypeLevel(c) > 3
-				else false	], "model"))
+		//append(new Predicate(ifcRootPackage).abstractEntity.lteSupertypeLevel(3).mapPackageName("high").create)
+		//append(new Predicate(ifcRootPackage).abstractEntity.gtSupertypeLevel(3).mapPackageName("model").create)
+		append(new Predicate(ifcRootPackage).abstractEntity.mapPackageName("model").create)
 				
-		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
-				if(c instanceof Entity) 
-					!(c as Entity).abstract && (c as Entity).attribute.exists[declaringInverseAttribute]
-				else 
-					false
-			], "impl"))
-		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
+		append(new Predicate(ifcRootPackage).nonAbstractEntity.mapPackageName("impl").create)
+			
+		append(new Predicate(ifcRootPackage).isTrue([i, c | 
 				if(c instanceof Type) 
 					(c as Type).aggregation
 				else 
 					false
-			], "aggregation"))
+			]).mapPackageName("aggregation").create)
 
-		append(FunctionalDescriptor.isTrue(ifcRootPackage, [c | 
-				if(c instanceof Entity) 
-					(c as Entity).attribute.exists[declaringInverseAttribute]
-				else 
-					false
-			], "tight"))
+		append(new Predicate(ifcRootPackage).hasUnidirectionalRelation.mapPackageName("core").create)
 			
-		append(FunctionalDescriptor.isNamedLike(ifcRootDescriptor,"^IfcRel|Relation", "relation"))
+		append(new Predicate(ifcRootPackage).isNamedLike("^IfcRel|Relation").mapPackageName("relation").create)
 	}
 	
 }

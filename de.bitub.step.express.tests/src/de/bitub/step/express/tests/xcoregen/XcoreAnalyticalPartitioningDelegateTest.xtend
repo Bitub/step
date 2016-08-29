@@ -22,6 +22,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
+import de.bitub.step.xcore.XcoreFunctionalPartitioningDelegate.Predicate
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
@@ -87,10 +88,10 @@ class XcoreAnalyticalPartitioningDelegateTest extends AbstractXcoreGeneratorTest
 		})   	
     	val apd = new XcoreFunctionalPartitioningDelegate(root)
     	
-    	apd.append( FunctionalDescriptor.isDataKindOf(root, typeof(EnumType), "enums") )
-    	apd.append( FunctionalDescriptor.isAtInheritanceLevel(root, "at%d") )
-    	apd.append( FunctionalDescriptor.isLeastInheritanceLevel(root, 2, "level2") )
-    	apd.append( FunctionalDescriptor.isNamedLike(root, "^Special", "specials") )
+    	apd.append( new Predicate(root).isDataKindOf(typeof(EnumType)).mapPackageName("enums").create )
+    	apd.append( new Predicate(root).mapSupertypeLevel("A","B","C").create )
+    	apd.append( new Predicate(root).gtSupertypeLevel(1).mapPackageName("level2").create )
+    	apd.append( new Predicate(root).isNamedLike("^Special").mapPackageName("specials").create )
     	
     	val map = newHashMap
 		for(c : model.entity) {
@@ -103,10 +104,10 @@ class XcoreAnalyticalPartitioningDelegateTest extends AbstractXcoreGeneratorTest
 			map.put(c.name, apd.apply(c).get.basePackage.toString)
 		}    	
 		
-		assertEquals("base.testpackage.at0", map.get("EntityA"))
-		assertEquals("base.testpackage.at1", map.get("EntityBA"))
-		assertEquals("base.testpackage.level2.at2", map.get("EntityCBA"))
-		assertEquals("base.testpackage.specials.at0", map.get("SpecialEntityC"))
-		assertEquals("base.testpackage.at0.enums", map.get("EnumExample"))
+		assertEquals("base.testpackage.a", map.get("EntityA"))
+		assertEquals("base.testpackage.b", map.get("EntityBA"))
+		assertEquals("base.testpackage.level2.c", map.get("EntityCBA"))
+		assertEquals("base.testpackage.specials.a", map.get("SpecialEntityC"))
+		assertEquals("base.testpackage.a.enums", map.get("EnumExample"))
     } 
 }
