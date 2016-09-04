@@ -8,7 +8,7 @@
  * Contributors:
  *  Bernold Kraft - initial implementation and initial documentation
  */
-package de.bitub.step.express.tests.xcoregen
+package de.bitub.step.express.tests.xcoregen.ifc
 
 import com.google.inject.Inject
 import de.bitub.step.EXPRESSInjectorProvider
@@ -19,11 +19,11 @@ import org.eclipse.xtext.junit4.XtextRunner
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import de.bitub.step.express.tests.xcoregen.AbstractXcoreGeneratorTest
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
-class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
-
+class XcoreIfc2x3GenTest extends AbstractXcoreGeneratorTest {
 
 	@Inject EXPRESSInterpreter interpreter
 
@@ -35,35 +35,21 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 	
 
 	@Test
-	def void testRunInfoForIfc4() {
+	def void testRunInfoForIfc2x3() {
 
-		val ifc4 = generateEXPRESS(readExpressSchema("IFC4"))
+		val ifc4 = generateEXPRESS(readExpressSchema("IFC2X3_TC1"))
 		val info = interpreter.process(ifc4)
 		
 		info.printInfoFor(ifc4)
 	}
 	
-	@Test
-	def void testRunInfoForIfc4Add1() {
-
-		val ifc4 = generateEXPRESS(readExpressSchema("IFC4_ADD1"))
-		val info = interpreter.process(ifc4)
 		
-		info.printInfoFor(ifc4)
-	}
-
 	@Test
-	def void testRunIfc4Conversion() {
-		generatedXcoreFilename = "ifc4.exp.xcore"
-		generateXCore(readExpressSchema("IFC4"))
+	def void testRunIfc2X3Conversion() {
+		
+		generateXCore(readExpressSchema("IFC2X3_TC1"))
 	}
-			
-	@Test
-	def void testRunIfc4Add1Conversion() {
-		generatedXcoreFilename = "ifc4_add1.exp.xcore"
-		generateXCore(readExpressSchema("IFC4_ADD1"))
-	}
-	
+		
 	
 	@Before
 	def void setup() {
@@ -75,8 +61,8 @@ class XcoreIfc4GenTest extends AbstractXcoreGeneratorTest {
 			\nwhich accompanies this distribution, and is available at
 			\n\nhttp://www.eclipse.org/legal/epl-v10.html
 			\n\nInitial contributors:\n\n - Bernold Kraft,Sebastian Riemschüssel,Torsten Krämer''')
-		generator.options.put(XcoreGenerator.Options.NS_URI, "http://www.bitub.de/IFC4")
-		generator.options.put(XcoreGenerator.Options.PACKAGE, "org.buildingsmart.ifc4")
-		generator.options.put(XcoreGenerator.Options.SOURCE_FOLDER, "/org.buildingsmart.ifc4/src-gen")
+		generator.options.put(XcoreGenerator.Options.NS_URI, "http://www.bitub.de/IFC2x3")
+		generator.options.put(XcoreGenerator.Options.PACKAGE, "org.buildingsmart.ifc2x3")
+		generator.options.put(XcoreGenerator.Options.SOURCE_FOLDER, "/org.buildingsmart.ifc2x3/src-gen")
 	}
 }

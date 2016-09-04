@@ -19,7 +19,7 @@
 	</properties>
 
 	<scm>
-		<connection>scm:git:https://github.com/Bitub/step.git</connection>
+		<connection>scm:git:https://github.com/bitub/step.git</connection>
 	</scm>
 
 	<!-- Profiles, default "platform-luna" -->

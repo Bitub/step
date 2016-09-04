@@ -151,7 +151,14 @@ class EXPRESSModelInfo {
 	
 	def int getCountInverseNMReferences(){
 		
-		inverseReferenceMap.entrySet.filter[ key.isInverseManyToManyRelation ].map[value.size].reduce[sum, size| sum + size]
+		val manyMany = inverseReferenceMap.entrySet.filter[ key.isInverseManyToManyRelation ]
+		if(manyMany.empty) {
+			
+			0 // Since iterables extension of Xbase returns null !
+		} else {
+			
+			manyMany.map[value.size].reduce[sum, size| sum + size]			
+		}
 	}
 	
 	
@@ -185,14 +192,21 @@ class EXPRESSModelInfo {
 	
 	
 	/** 
-	 * Get first opposite attribute if existing
+	 * Get first opposite attribute if existing.
 	 */
 	def Attribute getOppositeAttribute(Attribute a) {
 
-		if (null != a.opposite)
+		if (null != a.opposite) {
+			// If declaring, use known reference
 			a.opposite
-		else
-			inverseReferenceMap.get(a)?.findFirst[it != null]
+		} else {
+			// Otherwise query registration map and return first registered opposite.
+			val attributes = inverseReferenceMap.get(a)
+			val first = attributes.findFirst[true]
+			val next = attributes.iterator.next
+			
+			first			
+		}
 	}
 
 
@@ -236,10 +250,14 @@ class EXPRESSModelInfo {
 		} else {
 		
 			// Terminates with either builtin or concept reference
-			if(c.builtinAlias) {				
-				qn = c.refersDatatype.qualifiedReference					
+			val nestedConcept = c.refersConcept
+			if(null==nestedConcept) {
+								
+				qn = c.refersDatatype.qualifiedReference
+									
 			} else {
-				qn = QualifiedName.create(c.refersConcept.name)
+				
+				qn = QualifiedName.create(nestedConcept.name)
 			}	
 		}	
 		
@@ -302,16 +320,11 @@ class EXPRESSModelInfo {
 	 * <ul>
 	 * <li>more than one declaring inverse attribute</li>
 	 * <li>or "a" references a select branch</li>
-	 * <li>or "a" references a supertype of its opposite
 	 * </ul>
 	 */
 	def isInverseNonUniqueDirectedRelation(Attribute a) {
 		
-		a.inverseRelation && 
-			(a.allOppositeAttributes.size > 1 // More than 1 opposite
-				|| a.select 	// A select
-				|| EXPRESSExtension.isSupertypeOf(a.type.refersConcept as Entity, a.oppositeAttribute.eContainer as Entity) // refers supertype of opposite container
-			)		
+	 	a.inverseRelation && (a.allOppositeAttributes.size > 1 || a.select) 	// A select
 	}
 	
 	/**
@@ -319,9 +332,11 @@ class EXPRESSModelInfo {
 	 */
 	def isSupertypeOppositeDirectedRelation(Attribute a) {
 		
-		a.inverseRelation && a.refersConcept instanceof Entity && a.allOppositeAttributes.forall[
-			EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, eContainer as Entity) 
-		] // refers supertype of opposite container
+		a.inverseRelation 
+			&& a.refersConcept instanceof Entity 
+			&& a.allOppositeAttributes.forall[
+				EXPRESSExtension.isSupertypeOf(a.refersConcept as Entity, eContainer as Entity) 
+			] // refers supertype of opposite container
 	}
 	
 	def getSupertypeInverseRelations() {
