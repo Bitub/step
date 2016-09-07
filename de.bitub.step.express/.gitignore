@@ -1,5 +1,4 @@
 # Ignore generated sources
-
 /generated/**/*
 /generated-sources/**/*
 /src-gen/**/*
