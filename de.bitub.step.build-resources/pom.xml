@@ -3,18 +3,18 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.bitub.step</groupId>
-	<artifactId>Build</artifactId>
+	<artifactId>parent</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>BITUB EXPRESS / STEP P21 Build</name>
 
 	<properties>
-		<tycho-version>0.25.0</tycho-version>
-		<tycho-extras-version>0.25.0</tycho-extras-version>
+		<tycho-version>0.26.0</tycho-version>
+		<tycho-extras-version>0.26.0</tycho-extras-version>
 		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>	
-		<xtext.version>2.9.1</xtext.version>	
+		<xtext.version>2.10.0</xtext.version>	
 		<bitub.updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</bitub.updatesiteLocal>
 	</properties>
 
@@ -200,7 +200,7 @@
 					<target>
 						<artifact>
 							<groupId>de.bitub.step</groupId>
-							<artifactId>Build</artifactId>
+							<artifactId>parent</artifactId>
 							<version>${project.version}</version>
 							<classifier>de.bitub.step-${targetPlatform}</classifier>
 						</artifact>
