@@ -1,12 +1,20 @@
 package de.bitub.step.express.tests.xcoregen
 
 import com.google.inject.Inject
+import de.bitub.step.analyzing.EXPRESSModelInfo
+import de.bitub.step.express.BuiltInType
+import de.bitub.step.express.CollectionType
+import de.bitub.step.express.EnumType
+import de.bitub.step.express.ReferenceType
 import de.bitub.step.express.Schema
+import de.bitub.step.express.SelectType
 import de.bitub.step.xcore.XcoreGenerator
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.util.Map
+import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import org.eclipse.core.resources.ResourcesPlugin
 import org.eclipse.core.runtime.NullProgressMonitor
@@ -25,28 +33,23 @@ import org.eclipse.xtext.util.CancelIndicator
 import org.eclipse.xtext.validation.CheckMode
 import org.eclipse.xtext.validation.Issue
 
-import de.bitub.step.analyzing.EXPRESSModelInfo
-import org.apache.log4j.Level
-import de.bitub.step.express.EnumType
-import de.bitub.step.express.SelectType
-import de.bitub.step.express.BuiltInType
-import de.bitub.step.express.ReferenceType
-import de.bitub.step.express.CollectionType
-
-import static org.junit.Assert.*
 import static extension de.bitub.step.util.EXPRESSExtension.*
-
+import static org.junit.Assert.*
+import org.eclipse.emf.ecore.resource.Resource
 
 abstract class AbstractXcoreGeneratorTest {
-
+	
 	static Logger myLog = Logger.getLogger(AbstractXcoreGeneratorTest)
 	
 	@Inject protected XcoreGenerator generator	
 	@Inject protected ParseHelper<Schema> parseHelper	
 	
 	val protected ResourceSet resourceSet = new ResourceSetImpl
-	
-	var protected String generatedXcoreFilename	
+		
+	val ignoreValidationErrors = <String>newHashSet(
+		
+		"org.eclipse.emf.ecore.model.24"
+	)
 	
 	def protected printInfoFor(EXPRESSModelInfo info, Schema ifc){
 		myLog.level = Level.INFO
@@ -101,112 +104,132 @@ abstract class AbstractXcoreGeneratorTest {
 	 * Reads a model.
 	 */
 	def CharSequence readModel(InputStream in) {
-
+		
 		val reader = new BufferedReader(new InputStreamReader(in))
-
+		
 		var String line
-		var StringBuilder buffer = new StringBuilder
-		while ((line = reader.readLine()) != null) {
-
-			buffer.append(line).append('\n');
-		}
-		return buffer
+     	var StringBuilder buffer = new StringBuilder
+      	while ((line = reader.readLine()) != null) {
+      		
+        	buffer.append(line).append('\n');
+     	}
+     	return buffer
 	}
-
+	
 	def generateEXPRESS(CharSequence schema) {
+		
 		parseHelper.parse(schema, resourceSet)
 	}
-
+	
 	/**
 	 * Generates an Xcore model.
-	 */
+	 */	
 	def generateXCore(CharSequence schema) {
-
+		
 		val model = generateEXPRESS(schema)
 		if(!generator.options.containsKey(XcoreGenerator.Options.PACKAGE)) {
 			generator.options.put(XcoreGenerator.Options.PACKAGE, '''tests.xcore.«model.name.toLowerCase»''')		
-		} 
-		val xcoreModel = generator.compileSchema(model)
-
-		saveXcore(model.name, xcoreModel)
-
-		return xcoreModel
+		}
+		 
+		val xcoreModel = generator.compile(model)
+		
+		for(Map.Entry<String, CharSequence> e : xcoreModel.entrySet) {
+		
+			saveXcore(e.key, e.value)	
+		}		
+		
+		return xcoreModel		
 	}
-
+	
 	def saveXcore(String name, CharSequence xcoreModel) {
 				
-		writeToWorkspace(if(null==generatedXcoreFilename) name+".xcore" else generatedXcoreFilename, xcoreModel)
+		writeToWorkspace(name + ".xcore", xcoreModel)
 	}
 	
 	def createXtextProject() {
 		
-		
+		// TODO createXtextProject
 	}
-
+	
+	
+	def validateXCore(Map<String,CharSequence> xcoreModels) {
+	
+		val injector = new XcoreStandaloneSetup().createInjectorAndDoEMFRegistration
+		 
+		val xcoreResourceSet = injector.getInstance(XtextResourceSet);
+		val xcoreResourceValidator = injector.getInstance(XcoreResourceValidator)
+		
+		xcoreResourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
+		var resourceList = newArrayList
+		
+		// First load
+		for(Map.Entry<String,CharSequence> xcore : xcoreModels.entrySet) {
+			
+			val xtextResource = resourceSet.createResource(URI.createURI(xcore.key+".xcore"))
+			xtextResource.load(new ByteArrayInputStream( xcore.value.toString.bytes ), newHashMap)
+			resourceList += xtextResource
+		}
+		
+		// Validate
+		var succeeded = true
+		for(Resource r : resourceList) {
+			
+			val packageInstance = r.contents.findFirst[it instanceof XPackage] as XPackage;
+			
+			if(null!=packageInstance) {			
+				
+				myLog.info('''Validating generated Xcore model «packageInstance.name» ...''')
+				
+				val issues = xcoreResourceValidator.validate(
+					r,CheckMode.EXPENSIVE_ONLY,CancelIndicator.NullImpl
+				)
+				
+				// Ignore Code 24 (EObject resolving fails)
+				for(Issue i : issues.filter[severity==Severity.ERROR && !ignoreValidationErrors.contains(code)]) {
+					
+					myLog.error(
+						'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
+					)
+					succeeded = false
+				}	
+				for(Issue i : issues.filter[severity==Severity.WARNING]) {
+					
+					myLog.warn(
+						'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
+					)
+				}	
+			}			
+		}
+		
+		assertTrue("Xcore validation reported error(s) in generated files.", succeeded)		
+	}
+	
 	/**
 	 * Validates the generated files.
 	 */
-	def validateXCore(CharSequence xcoreModel) {
-
-		val injector = new XcoreStandaloneSetup().createInjectorAndDoEMFRegistration
-
-		val xcoreResourceSet = injector.getInstance(XtextResourceSet);
-		val xcoreResourceValidator = injector.getInstance(XcoreResourceValidator)
-
-		xcoreResourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
-
-		val xtextResource = resourceSet.createResource(URI.createURI("test.xcore"))
-		xtextResource.load(new ByteArrayInputStream(xcoreModel.toString.bytes), newHashMap)
-
-		val packageInstance = xtextResource.contents.findFirst[it instanceof XPackage] as XPackage;
-
-		var succeeded = true
-		if (null != packageInstance) {
-
-			myLog.info('''Validating generated Xcore model «packageInstance.name» ...''')
-
-			val issues = xcoreResourceValidator.validate(
-				xtextResource,
-				CheckMode.EXPENSIVE_ONLY,
-				CancelIndicator.NullImpl
-			)
-
-			// Ignore Code 24 (EObject resolving fails)
-			for(Issue i : issues.filter[severity==Severity.ERROR && code != "org.eclipse.emf.ecore.model.24"]) {
-				
-				myLog.error(
-					'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
-				)
-				succeeded = false
-			}
-			for (Issue i : issues.filter[severity == Severity.WARNING]) {
-
-				myLog.warn(
-					'''(«packageInstance.name») Line «i.lineNumber». «i.message»; Code «i.code»'''
-				)
-			}
-		}
-
-		assertTrue("Xcore validation reported error(s) in generated files.", succeeded)
+	def validateXCoreModel(CharSequence xcoreModel) {
+		
+		validateXCore(newHashMap( "test" -> xcoreModel ))
 	}
-
+	
+	
 	protected def writeToWorkspace(String name, CharSequence model) {
-
+				
 		val root = ResourcesPlugin.getWorkspace().getRoot()
 		val project = root.getProject(class.simpleName)
-
-		if (!project.exists) {
+		
+		if(!project.exists) {
 			project.create(new NullProgressMonitor)
 		}
-		if (!project.open) {
+		if(!project.open) {
 			project.open(new NullProgressMonitor)
 		}
-
-		val localFile = project.getFile(new Path(name))
-		if (localFile.exists) {
+				
+		val localFile = project.getFile( new Path(name) )
+		if(localFile.exists) {
 			localFile.delete(true, new NullProgressMonitor)
 		}
-		localFile.create(new ByteArrayInputStream(model.toString.bytes), true, new NullProgressMonitor)
+		localFile.create( new ByteArrayInputStream( model.toString.bytes ), true, new NullProgressMonitor)
 	}
-
+	
 }

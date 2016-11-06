@@ -3,86 +3,86 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.bitub.step</groupId>
-	<artifactId>Build</artifactId>
+	<artifactId>parent</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>BITUB EXPRESS / STEP P21 Build</name>
 
 	<properties>
-		<tycho-version>0.25.0</tycho-version>
-		<tycho-extras-version>0.25.0</tycho-extras-version>
+		<tycho-version>0.26.0</tycho-version>
+		<tycho-extras-version>0.26.0</tycho-extras-version>
 		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<xtext.version>2.9.1</xtext.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>	
+		<xtext.version>2.10.0</xtext.version>	
 		<bitub.updatesiteLocal>${user.home}/.p2/repository/bitub/${targetPlatform}</bitub.updatesiteLocal>
 	</properties>
 
 	<scm>
-		<connection>scm:git:https://github.com/Bitub/step.git</connection>
+		<connection>scm:git:https://github.com/bitub/step.git</connection>
 	</scm>
 
 	<!-- Profiles, default "platform-luna" -->
 	<profiles>
+		  
+	  <profile>
+		  <id>platform-luna</id>
+		  <activation>
+			<activeByDefault>true</activeByDefault>
+			<property>
+			  <name>platform-name</name>
+			  <value>luna</value>
+			</property>			
+		  </activation>
+		  <properties>
+			<targetPlatform>luna</targetPlatform>
+			<platformUsUrl>http://download.eclipse.org/releases/luna</platformUsUrl>
+		  </properties>
+      </profile>	
 
-		<profile>
-			<id>platform-luna</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<property>
-					<name>platform-name</name>
-					<value>luna</value>
-				</property>
-			</activation>
-			<properties>
-				<targetPlatform>luna</targetPlatform>
-				<platformUsUrl>http://download.eclipse.org/releases/luna</platformUsUrl>
-			</properties>
-		</profile>
-
-		<profile>
-			<id>platform-mars</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<property>
-					<name>platform-name</name>
-					<value>mars</value>
-				</property>
-			</activation>
-			<properties>
-				<targetPlatform>mars</targetPlatform>
-				<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
-			</properties>
-		</profile>
-
-		<profile>
-			<id>platform-test</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<property>
-					<name>platform-name</name>
-					<value>test</value>
-				</property>
-			</activation>
-			<properties>
-				<targetPlatform>test</targetPlatform>
-				<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
-			</properties>
-		</profile>
-
-	</profiles>
-
+	  <profile>
+		  <id>platform-mars</id>
+		  <activation>
+			<activeByDefault>true</activeByDefault>
+			<property>
+			  <name>platform-name</name>
+			  <value>mars</value>
+			</property>			
+		  </activation>
+		  <properties>
+			<targetPlatform>mars</targetPlatform>
+			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
+		  </properties>
+      </profile>
+      
+      <profile>
+		  <id>platform-test</id>
+		  <activation>
+			<activeByDefault>true</activeByDefault>
+			<property>
+			  <name>platform-name</name>
+			  <value>test</value>
+			</property>			
+		  </activation>
+		  <properties>
+			<targetPlatform>test</targetPlatform>
+			<platformUsUrl>http://download.eclipse.org/releases/mars</platformUsUrl>
+		  </properties>
+      </profile>	
+	  	  
+    </profiles>
+	
 	<modules>
 		<module>../de.bitub.step.express</module>
 		<module>../de.bitub.step.express.ui</module>
-		<module>../de.bitub.step.express.sdk-feature</module>
-
+		<module>../de.bitub.step.express.sdk-feature</module> 
+		
 		<module>../de.bitub.step.p21</module>
 		<module>../de.bitub.step.p21.antlr</module>
 		<module>../de.bitub.step.p21.f</module>
 
 		<module>../de.bitub.step-updatesite</module>
-
+		 
 	</modules>
 
 	<repositories>
@@ -92,6 +92,7 @@
 			<url>${platformUsUrl}</url>
 			<layout>p2</layout>
 		</repository>
+
 	</repositories>
 
 
@@ -199,7 +200,7 @@
 					<target>
 						<artifact>
 							<groupId>de.bitub.step</groupId>
-							<artifactId>Build</artifactId>
+							<artifactId>parent</artifactId>
 							<version>${project.version}</version>
 							<classifier>de.bitub.step-${targetPlatform}</classifier>
 						</artifact>

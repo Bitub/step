@@ -230,7 +230,10 @@
         label="Xcore"
         licenseConfirmationDisabled="true">
       <requirement
-          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
+          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"
+          versionRange="[1.3.0,1.4.0)"/>
+      <repository
+          url="http://download.eclipse.org/releases/mars"/>
       <description>Xcore</description>
     </setupTask>
     <setupTask
@@ -239,18 +242,24 @@
         label="Xtext &amp; Xtend &amp; MWE2"
         licenseConfirmationDisabled="true">
       <requirement
-          name="org.eclipse.xtext.sdk.feature.group"/>
+          name="org.eclipse.xtext.sdk.feature.group"
+          versionRange="[2.9.0,2.10.0)"/>
       <requirement
-          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"/>
+          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
+          versionRange="[2.8.3,2.8.4)"/>
       <requirement
-          name="org.eclipse.emf.mwe2.language.sdk.feature.group"/>
+          name="org.eclipse.emf.mwe2.language.sdk.feature.group"
+          versionRange="[2.8.3,2.8.4)"/>
+      <repository
+          url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
       <description>Xtext &amp; Xtend</description>
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
         label="Xtext ANTLR SDK">
       <requirement
-          name="de.itemis.xtext.antlr.sdk.feature.group"/>
+          name="de.itemis.xtext.antlr.sdk.feature.group"
+          versionRange="[2.1.1,2.1.2)"/>
       <repository
           url="http://download.itemis.com/updates/releases/2.1.1"/>
     </setupTask>
@@ -266,11 +275,17 @@
         label="M2E"
         licenseConfirmationDisabled="true">
       <requirement
+          name="org.sonatype.tycho.m2e.feature.feature.group"/>
+      <requirement
           name="org.eclipse.m2e.feature.feature.group"/>
+      <requirement
+          name="org.sonatype.m2e.buildhelper.feature.feature.group"/>
       <repository
-          url="http://download.eclipse.org/technology/m2e/releases/1.7/"/>
+          url="http://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-tycho/0.9.0/N/LATEST"/>
       <repository
-          url=" http://bitstrings.github.com/m2e-connectors-p2/releases"/>
+          url="http://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-buildhelper/0.15.0/N/0.15.0.201207090124/"/>
+      <repository
+          url="http://download.eclipse.org/technology/m2e/releases"/>
       <description>Maven connector</description>
     </setupTask>
     <setupTask
@@ -391,6 +406,8 @@
         label="OCL SDK">
       <requirement
           name="org.eclipse.ocl.master.feature.group"/>
+      <repository
+          url="http://www.eclipse.org/modeling/updates/"/>
     </setupTask>
   </setupTask>
   <setupTask
@@ -399,7 +416,7 @@
     <setupTask
         xsi:type="git:GitCloneTask"
         id="git.clone.step"
-        remoteURI="https://github.com/Bitub/step.git">
+        remoteURI="https://github.com/bitub/step">
       <annotation
           source="http://www.eclipse.org/oomph/setup/InducedChoices">
         <detail
@@ -437,7 +454,7 @@
         </detail>
         <detail
             key="location">
-          <value>${git.clone.step.remoteURI|gitRepository}/de.bitub.step.build-resources/de.bitub.step-test.target</value>
+          <value>${installation.location/git/}${git.clone.step.remoteURI|gitRepository}/de.bitub.step.build-resources/de.bitub.step-test.target</value>
         </detail>
         <detail
             key="includeAllPlatforms">
@@ -453,15 +470,19 @@
         </detail>
       </annotation>
       <requirement
-          name="org.eclipse.xtext.sdk.feature.group"/>
+          name="org.eclipse.xtext.sdk.feature.group"
+          versionRange="[2.9.0,2.10.0)"/>
       <requirement
           name="org.eclipse.emf.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"/>
+          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
+          versionRange="[2.8.3,2.8.4)"/>
       <requirement
-          name="org.eclipse.emf.mwe2.language.sdk.feature.group"/>
+          name="org.eclipse.emf.mwe2.language.sdk.feature.group"
+          versionRange="[2.8.3,2.8.4)"/>
       <requirement
-          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
+          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"
+          versionRange="[1.3.0,1.4.0)"/>
       <requirement
           name="org.eclipse.equinox.core.sdk.feature.group"/>
       <requirement

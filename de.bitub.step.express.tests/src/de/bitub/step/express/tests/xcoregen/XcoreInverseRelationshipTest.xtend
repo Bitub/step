@@ -23,7 +23,7 @@ import static org.junit.Assert.*
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(EXPRESSInjectorProvider))
-class XCoreInverseRelationshipTest extends AbstractXcoreGeneratorTest {
+class XcoreInverseRelationshipTest extends AbstractXcoreGeneratorTest {
 	
 	
 	@Inject EXPRESSInterpreter test 
@@ -34,11 +34,11 @@ class XCoreInverseRelationshipTest extends AbstractXcoreGeneratorTest {
     		
     		ENTITY EntityA;
     		INVERSE
-    		  RelationA : LIST [0:?] OF EntityB FOR RelationB;
+    		  RelationToB : LIST [0:?] OF EntityB FOR RelationB;
     		END_ENTITY;
     		
     		ENTITY EntityB;
-    		  RelationB : LIST [0:?] OF EntityA;
+    		  RelationToA : LIST [0:?] OF EntityA;
     		END_ENTITY;
 
     		    		

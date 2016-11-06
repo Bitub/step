@@ -5,7 +5,7 @@
 
 	<parent>		
 		<groupId>de.bitub.step</groupId>
-		<artifactId>Build</artifactId>
+		<artifactId>parent</artifactId>
 		<version>0.1.0-SNAPSHOT</version>
 		<relativePath>../de.bitub.step.build-resources/pom.xml</relativePath>
 	</parent>

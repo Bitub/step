@@ -11,6 +11,8 @@
 
 package de.bitub.step.ui.commands;
 
+import java.util.Map;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -48,35 +50,35 @@ public class EXPRESSXCoreGenerationHandler extends AbstractHandler implements IH
   {
     ISelection selection = HandlerUtil.getCurrentSelection(event);
     if (selection instanceof IStructuredSelection) {
-
+      
       IStructuredSelection structuredSelection = (IStructuredSelection) selection;
       Object firstElement = structuredSelection.getFirstElement();
-
+      
       if (firstElement instanceof IFile) {
-
+        
         IFile file = (IFile) firstElement;
-
+        
         URI uri = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
         ResourceSet rs = new ResourceSetImpl();
         Resource xtextResource = rs.getResource(uri, true);
-
-        XcoreGenerator oclInEcoreGenerator = new XcoreGenerator();
+        
+        XcoreGenerator xcoreGen = new XcoreGenerator();
         // TODO file.getProject().getFullPath().toString()
-
-        IFile genFile = file.getParent().getFile(new Path(file.getName() + ".xcore")); //$NON-NLS-1$
-
-        CharSequence charSequence = oclInEcoreGenerator.compile(xtextResource);
-        try {
-
-          if (genFile.exists()) {
-            genFile.delete(true, new NullProgressMonitor());
+        
+        for(Map.Entry<String, CharSequence> e : xcoreGen.compile(xtextResource).entrySet()) {
+          
+          IFile genFile = file.getParent().getFile(new Path(e.getKey()+".xcore")); //$NON-NLS-1$
+          try {
+            
+            if(genFile.exists()) {
+              genFile.delete(true, new NullProgressMonitor());
+            }
+            genFile.create(new StringInputStream(e.getValue().toString()), IResource.FORCE|IResource.REPLACE, new NullProgressMonitor());
           }
-          genFile.create(new StringInputStream(charSequence.toString()), IResource.FORCE | IResource.REPLACE,
-              new NullProgressMonitor());
-        }
-        catch (CoreException e1) {
+          catch (CoreException e1) {
 
-          e1.printStackTrace();
+            e1.printStackTrace();
+          }        
         }
       }
     }

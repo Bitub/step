@@ -34,6 +34,7 @@ target/
 
 # ignore log files
 *.log
+*.log.*
 
 # ignore generated files
 src-gen/**/*
@@ -57,3 +58,6 @@ org.buildingsmart.mvd.tmvd.ui/xtend-gen/
 org.buildingsmart.mvd.tmvd.tests/src-gen/
 org.buildingsmart.mvd.tmvd.tests/xtend-gen/
 de.bitub.step.express/src/de/bitub/step/generator/EXPRESSGenerator.xtend
+
+# Generated plugin configs
+*.xml_gen

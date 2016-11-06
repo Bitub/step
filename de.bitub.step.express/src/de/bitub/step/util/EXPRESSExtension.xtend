@@ -23,6 +23,8 @@ import de.bitub.step.express.Type
 import java.util.Set
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import java.util.Stack
+import java.util.Iterator
 
 /**
  * Shorthand utility method to derive more information about model elements of EXPRESS.
@@ -81,6 +83,48 @@ class EXPRESSExtension {
 		
 		false
 	}
+
+	/**
+	 * Gets the level of inheritance. Here: always 0.
+	 */	
+	def dispatch static getSpecificationLevel(Type t) {
+		
+		0
+	}
+	
+	
+	/**
+	 * Gets the level of inheritance.
+	 */
+	def dispatch static getSpecificationLevel(Entity c) {
+					
+		var mLevel = 0
+		var cLevel = 0
+		
+		val stack = new Stack<Iterator<Entity>>()
+		stack.push(c.supertype.iterator)
+		
+		while(!stack.isEmpty) {
+			
+			val iterator = stack.peek
+			if(iterator.hasNext) {
+				
+				cLevel++
+				mLevel = Math.max(cLevel, mLevel)
+											
+				val entity = iterator.next
+				stack.push(entity.supertype.iterator)
+				
+			} else {
+				
+				cLevel--
+				stack.pop
+			}
+		}
+		
+		mLevel
+	}	
+	
 
 	/**
 	 * Get the antity container for the given attribute.
@@ -266,7 +310,7 @@ class EXPRESSExtension {
 	
 
 	/**
-	 * Whether a datatype is referable (non-datatype in Java terms).
+	 * Whether a datatype is referable (non-datatype in Xcore terms).
 	 */
 	def static isReferable(DataType t) {
 
@@ -282,6 +326,7 @@ class EXPRESSExtension {
 				false			
 		}
 	}
+	
 	
 	def static isSelect(Attribute a) {
 		
@@ -312,7 +357,8 @@ class EXPRESSExtension {
 		switch(c) {
 			
 			Type: 
-				(c as Type).datatype.refersConcept
+				c.datatype.refersConcept
+				
 			default: 
 				c
 		} 		
@@ -330,16 +376,13 @@ class EXPRESSExtension {
 				
 			CollectionType: 
 				dataType.type.refersConcept
+				
+			EnumType, SelectType:
+				dataType.eContainer as ExpressConcept
 			
 			default: 
 				
-				if(dataType.eContainer instanceof Type) {
-					
-					dataType.eContainer as Type
-				} else {
-					
-					null
-				}
+				null
 		}
 	}
 
@@ -417,8 +460,10 @@ class EXPRESSExtension {
 	def static dispatch boolean isBuiltinAlias(ExpressConcept e) {
 
 		switch e {
+			
 			Type: 
 				e.datatype.builtinAlias
+				
 			default: 
 				false
 		}
@@ -430,17 +475,21 @@ class EXPRESSExtension {
 	def static dispatch boolean isBuiltinAlias(DataType t) {
 
 		switch t {
+			
 			CollectionType: 
-				t.type.builtinAlias
+				t.type.isBuiltinAlias
+				
 			ReferenceType: 
 				t.instance.builtinAlias
+				
 			BuiltInType: 
 				true
+				
 			default: 
 				false
 		}
 	}
-	
+		
 	/**
 	 * Determines the flat set of EXPRESS concepts represented by given Select statement.
 	 */

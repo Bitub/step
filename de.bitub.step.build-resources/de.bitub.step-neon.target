@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="de.bitub.step-mars" sequenceNumber="61">
+<?pde version="3.8"?><target name="de.bitub.step-neon" sequenceNumber="56">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
-<unit id="org.abego.treelayout.org.abego.treelayout.core" version="0.0.0"/>
-<unit id="org.antlr.antlr4-runtime-osgi" version="0.0.0"/>
+<unit id="org.openifctools.stringconverter.f.feature.group" version="1.0.0.201504181854"/>
+<repository location="https://bitub.github.io/step-p2-stringconverter/p2/"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
+<unit id="org.antlr.antlr4-runtime-osgi.source" version="4.5.0"/>
+<unit id="org.abego.treelayout.org.abego.treelayout.core.source" version="1.0.1"/>
+<unit id="org.antlr.antlr4-runtime-osgi" version="4.5.0"/>
+<unit id="org.abego.treelayout.org.abego.treelayout.core" version="1.0.1"/>
 <repository location="https://bitub.github.io/step-p2-antlr4/p2/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
@@ -11,29 +17,16 @@
 <repository location="http://bitub.github.io/step-ifc4"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
-<unit id="org.openifctools.stringconverter.f.feature.group" version="0.0.0"/>
-<repository location="https://bitub.github.io/step-p2-stringconverter/p2/"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
-<unit id="org.eclipse.equinox.sdk.feature.group" version="3.12.0.v20160606-1311"/>
-<unit id="org.eclipse.platform.sdk" version="4.6.0.I20160606-1100"/>
-<unit id="org.eclipse.sdk.ide" version="4.6.0.I20160606-1100"/>
-<repository location="http://download.eclipse.org/eclipse/updates/4.6"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
-<unit id="org.eclipse.viatra.dse.feature.source.feature.group" version="0.13.0.201607071446"/>
-<unit id="org.eclipse.viatra.query.sdk.feature.source.feature.group" version="1.3.0.201607071446"/>
-<unit id="org.eclipse.gef4.zest.sdk.feature.group" version="0.1.0.201607041345"/>
-<unit id="org.eclipse.viatra.integration.mwe2.feature.source.feature.group" version="0.13.0.201607071446"/>
-<unit id="org.eclipse.viatra.query.sdk.extensions.feature.feature.group" version="0.13.0.201607071446"/>
-<unit id="org.eclipse.viatra.query.tooling.ui.visualization.feature.source.feature.group" version="0.13.0.201607071446"/>
-<repository location="http://download.eclipse.org/viatra/updates/release"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
-<unit id="org.eclipse.xtext.sdk.feature.group" version="2.10.0.v201605250459"/>
 <unit id="org.eclipse.emf.ecore.xcore.sdk.feature.group" version="1.4.0.v20160526-0606"/>
-<unit id="org.eclipse.ocl.examples.feature.group" version="6.1.0.v20160526-1513"/>
-<unit id="org.eclipse.ocl.all.sdk.feature.group" version="5.2.0.v20160523-1914"/>
+<unit id="org.eclipse.emf.sdk.feature.group" version="2.12.0.v20160526-0356"/>
+<unit id="org.eclipse.emf.mwe.sdk.feature.group" version="1.3.20.v201605261103"/>
+<unit id="org.eclipse.net4j.sdk.feature.group" version="4.5.0.v20160607-1511"/>
+<unit id="org.eclipse.xtext.sdk.feature.group" version="2.10.0.v201605250459"/>
+<unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="2.9.0.v201605261103"/>
+<unit id="org.eclipse.zest.sdk.feature.group" version="1.7.0.201606061308"/>
+<unit id="org.eclipse.emf.cdo.sdk.feature.group" version="4.5.0.v20160607-1511"/>
+<unit id="org.eclipse.emf.mwe2.language.sdk.feature.group" version="2.9.0.v201605261103"/>
+<unit id="org.eclipse.sdk.ide" version="4.6.0.I20160606-1100"/>
 <repository location="http://download.eclipse.org/releases/neon"/>
 </location>
 </locations>
