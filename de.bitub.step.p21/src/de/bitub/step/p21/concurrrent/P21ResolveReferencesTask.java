@@ -22,7 +22,16 @@ public class P21ResolveReferencesTask implements Runnable
   @Override
   public void run()
   {
-    StepUntypedToEcore.connectEntityWithResolvedReference(feature, entity, resolvedEntity);
+    try {
+      if (feature != null && entity != null && resolvedEntity != null) {
+        StepUntypedToEcore.connectEntityWithResolvedReference(feature, entity, resolvedEntity);
+      } else {
+        System.err.println(String.format("Null entry %s %s %s", entity, resolvedEntity, feature));
+      }
+    }
+    catch (IndexOutOfBoundsException | ClassCastException | ArrayStoreException e) {
+      System.err.println(String.format("Exception %s %s %s", entity, resolvedEntity, feature.getName()));
+    }
   }
 
 }

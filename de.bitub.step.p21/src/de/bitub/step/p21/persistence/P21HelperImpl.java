@@ -106,7 +106,8 @@ public class P21HelperImpl implements P21Helper
         }
       }
       catch (InterruptedException | ExecutionException e) {
-        e.printStackTrace();
+        Thread.currentThread().interrupt(); // Reset interrupted status
+        System.err.println(e);
       }
     }
 

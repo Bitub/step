@@ -206,24 +206,21 @@ public class StepUntypedToEcore
       entity.eSet(feature, StepUntypedToEcore.prepareSelect(feature, resolvedEntity));
     } else {
 
-      if (XPressModel.isDelegate(feature)) {
+      if (feature != null && resolvedEntity != null) {
+        if (XPressModel.isDelegate(feature)) {
 
-        entity.eSet(feature, StepUntypedToEcore.prepareDelegate(feature, resolvedEntity));
+          entity.eSet(feature, StepUntypedToEcore.prepareDelegate(feature, resolvedEntity));
+        } else {
+
+          try {
+            entity.eSet(feature, resolvedEntity);
+          }
+          catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("UNRESOLVED: " + resolvedEntity + "  " + feature);
+          }
+        }
       } else {
-
-        try {
-          entity.eSet(feature, resolvedEntity);
-        }
-        catch (NullPointerException | ClassCastException | ArrayIndexOutOfBoundsException e) {
-          System.out.println("UNRESOLVED: " + resolvedEntity + "  " + feature);
-          if (e instanceof ClassCastException) {
-            System.out.println("ClassCastException: " + entity);
-          }
-
-          if (e instanceof NullPointerException) {
-            System.out.println("NullPointerException: " + entity + " " + feature + " " + resolvedEntity);
-          }
-        }
+        System.out.println("null entry" + feature + " " + resolvedEntity);
       }
     }
   }

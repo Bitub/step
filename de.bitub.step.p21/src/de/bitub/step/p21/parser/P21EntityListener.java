@@ -319,8 +319,11 @@ public class P21EntityListener extends P21LevelListener
 
       boolean isNested = index.level() > 1;
       if (isNested) {
-        entities.store(refs, listWrapper, listWrapper.eClass().getEStructuralFeatures().get(0));
-        listWrapper = null;
+
+        if (null != listWrapper) {
+          entities.store(refs, listWrapper, listWrapper.eClass().getEStructuralFeatures().get(0));
+          listWrapper = null;
+        }
       }
 
       if (index.level() == 1 && Objects.nonNull(listWrapper)) {
