@@ -18,16 +18,15 @@ import de.bitub.step.xcore.XcoreGenerator;
 /**
  * Use this class to register components to be used at runtime / without the
  * Equinox extension registry.
- * 
  * This is the DI Configuration Module for the internally used Google Guice.
- * 
  */
 public class EXPRESSRuntimeModule extends de.bitub.step.AbstractEXPRESSRuntimeModule
 {
-  
+
   /**
    * Overwrite DI bindings from EXPRESSgenerator to Xcoregenerator.
    */
+  @Override
   public Class<? extends IGenerator> bindIGenerator()
   {
     return XcoreGenerator.class;
