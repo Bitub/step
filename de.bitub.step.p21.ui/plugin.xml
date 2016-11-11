@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="P21 File Multi-page Editor"
+            extensions="ifc"
+            icon="icons/sample.gif"
+            contributorClass="org.eclipse.emf.ecore.presentation.EcoreActionBarContributor"
+            class="de.bitub.step.p21.ui.editors.P21MultiPageEditor"
+            id="de.bitub.step.p21.ui.editors.P21MultiPageEditor">
+      </editor>
+   </extension>
+
+</plugin>
