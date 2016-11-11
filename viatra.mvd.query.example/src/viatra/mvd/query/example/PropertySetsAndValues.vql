@@ -1,0 +1,129 @@
+package viatra.mvd.query.example
+
+import "http://www.bitub.de/IFC4"
+import "http://www.eclipse.org/emf/2002/Ecore"
+
+pattern allWalls(Wall : EObject) {
+	IfcWallStandardCase(Wall);
+} or {
+	IfcWall(Wall);
+} or {
+	IfcWallElementedCase(Wall);
+}
+
+@Constraint(key = {
+	wallType }, severity = "error", message = "Wrong PredefinedType $wallType$")
+pattern predefinedType(wallType) = {
+	IfcWallType.predefinedType(wallType, predefinedType);
+	predefinedType == IfcWallTypeEnum::NOTDEFINED;
+}
+
+pattern isApplicable(Object : IfcWall) {
+
+// step 1
+	find propertySetsForObjects(Object, PropertySet, 'Pset_WallCommon');
+
+	// step 2
+	find
+	hasDistinctPropertyValue(PropertySet, LoadBearing, IsExternal, 'LoadBearing', 'IsExternal');
+
+	find checkForBooleanValue(LoadBearing, true);
+	find checkForBooleanValue(IsExternal, true);
+} or {
+
+// ???
+	neg find propertySetsForObjects(Object, PropertySet, 'Pset_WallCommon');
+
+	// step 1
+	find propertySetsForTypes(Object, PropertySet, 'Pset_WallCommon');
+
+	// step 2
+	find
+	hasDistinctPropertyValue(PropertySet, LoadBearing, IsExternal, 'LoadBearing', 'IsExternal');
+
+	find checkForBooleanValue(LoadBearing, true);
+	find checkForBooleanValue(IsExternal, true);
+}
+
+@Constraint(key = {
+	Object }, severity = "warning", message = "Non applicable wall $Object$")
+pattern notApplicable(Object : IfcWall) {
+	neg find isApplicable(Object);
+}
+
+pattern
+checkForBooleanValue(PropertySingleValue : IfcPropertySingleValue, Result) {
+	IfcPropertySingleValue.nominalValue(PropertySingleValue, Value);
+
+	IfcValue.ifcValue(Value, EnumIfcValue::IFCBOOLEAN);
+	IfcValue.booleanValue(Value, Result);
+}
+
+pattern
+checkForThermalTransmittanceMeasureValue(PropertySingleValue : IfcPropertySingleValue, Result) {
+	IfcPropertySingleValue.nominalValue(PropertySingleValue, Value);
+
+	IfcValue.ifcValue(Value, EnumIfcValue::IFCTHERMALTRANSMITTANCEMEASURE);
+	IfcValue.doubleValue(Value, Result);
+}
+
+pattern
+hasDistinctPropertyValue(PropertySet : IfcPropertySet, PropertyValue1 : IfcPropertySingleValue, PropertyValue2 : IfcPropertySingleValue, PropertyName1, PropertyName2) {
+	IfcPropertySet.hasProperties(PropertySet, PropertyValue1);
+	IfcPropertySet.hasProperties(PropertySet, PropertyValue2);
+
+	IfcPropertySingleValue.name(PropertyValue1, PropertyName1);
+	IfcPropertySingleValue.name(PropertyValue2, PropertyName2);
+	PropertyValue1 != PropertyValue2;
+}
+
+pattern
+propertySetsForObjects(Object : IfcObject, PropertySet : IfcPropertySet, Name : EString) {
+	IfcObject.isDefinedBy.ifcRelDefinesByProperties(Object, RelDefinesByProperties);
+	IfcRelDefinesByProperties.relatingPropertyDefinition(RelDefinesByProperties, DelegateSupertype);
+	DelegateIfcPropertySetDefinitionIfcRelDefinesByProperties.relatingPropertyDefinition(DelegateSupertype, PropertySet);
+
+	IfcPropertySet(PropertySet);
+	IfcPropertySet.name(PropertySet, Name);
+}
+
+pattern
+propertySetsForTypes(Object : IfcObject, PropertySet : IfcPropertySet, Name : EString) {
+	IfcObject.isTypedBy.relatingType.hasPropertySets(Object, PropertySet);
+
+	IfcPropertySet(PropertySet);
+	IfcPropertySet.name(PropertySet, Name);
+}
+
+pattern hasWallPropertyThermalTransmittance(Wall : IfcWall) {
+	find hasPropertyWithThermalValue(Wall, 'ThermalTransmittance');
+}
+
+pattern hasWallPropertyFireRating(Wall : IfcWall) {
+	find hasPropertyWithBooleanValueSetToTrue(Wall, 'FireRating');
+}
+
+pattern hasPropertyWithBooleanValueSetToTrue(Object : IfcObject, PropertyValueString) {
+	find propertySetsForObjects(Object, PropertySet, 'Pset_WallCommon');
+
+	IfcPropertySet.hasProperties(PropertySet, PropertyValue);
+	IfcPropertySingleValue.name(PropertyValue, PropertyValueString);
+
+	find checkForBooleanValue(PropertyValue, true);
+}
+
+pattern hasPropertyWithThermalValue(Object : IfcObject, PropertyValueString) {
+	find propertySetsForObjects(Object, PropertySet, 'Pset_WallCommon');
+
+	IfcPropertySet.hasProperties(PropertySet, PropertyValue);
+	
+	IfcPropertySingleValue.name(PropertyValue, PropertyValueString);
+	IfcPropertySingleValue.nominalValue(PropertyValue, Value);
+
+	IfcValue.ifcValue(Value, EnumIfcValue::IFCTHERMALTRANSMITTANCEMEASURE);
+}
+
+
+
+
+

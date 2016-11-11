@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><plugin>
+  <extension id="viatra.mvd.query.example.Aggregate" point="org.eclipse.viatra.query.runtime.queryspecification">
+    <group group="org.eclipse.viatra.query.runtime.extensibility.SingletonExtensionFactory:viatra.mvd.query.example.Aggregate" id="viatra.mvd.query.example.Aggregate">
+      <query-specification fqn="viatra.mvd.query.example.Aggregates"/>
+      <query-specification fqn="viatra.mvd.query.example.BuildingType"/>
+      <query-specification fqn="viatra.mvd.query.example.BuildingStoreyType"/>
+      <query-specification fqn="viatra.mvd.query.example.ProjectType"/>
+      <query-specification fqn="viatra.mvd.query.example.SiteType"/>
+      <query-specification fqn="viatra.mvd.query.example.notProjectType"/>
+    </group>
+  </extension>
+  <extension id="viatra.mvd.query.example.PropertySetsAndValues" point="org.eclipse.viatra.query.runtime.queryspecification">
+    <group group="org.eclipse.viatra.query.runtime.extensibility.SingletonExtensionFactory:viatra.mvd.query.example.PropertySetsAndValues" id="viatra.mvd.query.example.PropertySetsAndValues">
+      <query-specification fqn="viatra.mvd.query.example.allWalls"/>
+      <query-specification fqn="viatra.mvd.query.example.predefinedType"/>
+      <query-specification fqn="viatra.mvd.query.example.isApplicable"/>
+      <query-specification fqn="viatra.mvd.query.example.notApplicable"/>
+      <query-specification fqn="viatra.mvd.query.example.checkForBooleanValue"/>
+      <query-specification fqn="viatra.mvd.query.example.checkForThermalTransmittanceMeasureValue"/>
+      <query-specification fqn="viatra.mvd.query.example.hasDistinctPropertyValue"/>
+      <query-specification fqn="viatra.mvd.query.example.propertySetsForObjects"/>
+      <query-specification fqn="viatra.mvd.query.example.propertySetsForTypes"/>
+      <query-specification fqn="viatra.mvd.query.example.hasWallPropertyThermalTransmittance"/>
+      <query-specification fqn="viatra.mvd.query.example.hasWallPropertyFireRating"/>
+      <query-specification fqn="viatra.mvd.query.example.hasPropertyWithBooleanValueSetToTrue"/>
+      <query-specification fqn="viatra.mvd.query.example.hasPropertyWithThermalValue"/>
+    </group>
+  </extension>
+</plugin>
