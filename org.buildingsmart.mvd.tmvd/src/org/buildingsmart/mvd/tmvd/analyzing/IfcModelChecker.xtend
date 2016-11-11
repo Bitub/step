@@ -44,6 +44,7 @@ class IfcModelChecker {
 		]
 	}
 
+	// TODO remove hard-coded example
 	def ProjectHaveTerrainObject(IfcProject project) {
 
 		newArrayList(project).map [
@@ -52,7 +53,8 @@ class IfcModelChecker {
 			relatedObjects
 		].flatten.filter(IfcObject).toList
 	}
-
+	
+	// TODO remove hard-coded example
 	def PropertyName(IfcDoor door) {
 
 		newArrayList(door).map [
@@ -65,7 +67,8 @@ class IfcModelChecker {
 			hasProperties
 		].flatten.filter(IfcPropertySingleValue).toList
 	}
-
+	
+	// TODO remove hard-coded example
 	def isApplicable(IfcWall wall) {
 
 		var result = newArrayList(wall).map [
