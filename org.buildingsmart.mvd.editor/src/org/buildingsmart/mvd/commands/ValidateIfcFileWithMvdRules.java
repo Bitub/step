@@ -12,8 +12,6 @@ import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.emf.common.util.URI;
 
-import test.QueryIfc;
-
 public class ValidateIfcFileWithMvdRules extends AbstractHandler implements IHandler
 {
 
@@ -30,15 +28,16 @@ public class ValidateIfcFileWithMvdRules extends AbstractHandler implements IHan
     IfcModelChecker checker = new IfcModelChecker(model, mvd);
     checker.checkAll();
 
-    QueryIfc viatra = new QueryIfc();
+    // TODO enable if merged
+//    QueryIfc viatra = new QueryIfc();
 //    viatra.test(model);
-    URI patternURI = URI.createURI("platform:/plugin/test/src/test/query.vql");
-
-    String result = viatra.executePattern_LoadFromVQL(model, patternURI, "test.isApplicable");
-    System.out.println(result);
-
-    result = viatra.executePattern_LoadFromVQL(model, patternURI, "test.propertySetsForObjects");
-    System.out.println(result);
+//    URI patternURI = URI.createURI("platform:/plugin/test/src/test/query.vql");
+//
+//    String result = viatra.executePattern_LoadFromVQL(model, patternURI, "test.isApplicable");
+//    System.out.println(result);
+//
+//    result = viatra.executePattern_LoadFromVQL(model, patternURI, "test.propertySetsForObjects");
+//    System.out.println(result);
     return null;
   }
 }

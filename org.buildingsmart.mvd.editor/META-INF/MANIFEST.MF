@@ -18,6 +18,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.buildingsmart.mvd.tmvd;bundle-version="1.0.0",
  de.bitub.step.p21;bundle-version="0.1.0",
  org.buildingsmart.ifc4,
- org.buildingsmart.mvd,
- test
+ org.buildingsmart.mvd
 Bundle-ActivationPolicy: lazy
