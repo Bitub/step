@@ -26,11 +26,11 @@ Require-Bundle: org.eclipse.ui,
 Import-Package: org.apache.log4j,
  org.hamcrest.core,
  org.junit,
- org.junit.runner,
- org.junit.runner.manipulation,
- org.junit.runner.notification,
- org.junit.runners,
- org.junit.runners.model
+ org.junit.runner;version="4.5.0",
+ org.junit.runner.manipulation;version="4.5.0",
+ org.junit.runner.notification;version="4.5.0",
+ org.junit.runners;version="4.5.0",
+ org.junit.runners.model;version="4.5.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: de.bitub.step.express.tests.xcoregen; uses:="de.bitub.step.express,  org.eclipse.emf.ecore.resource,  de.bitub.step.xcore,  de.bitub.step.analyzing,  org.eclipse.xtext.junit4.util",
  de.bitub.step

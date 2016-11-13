@@ -20,13 +20,12 @@ import de.bitub.step.xcore.XcoreGenerator;
  * Equinox extension registry.
  * This is the DI Configuration Module for the internally used Google Guice.
  */
-public class EXPRESSRuntimeModule extends de.bitub.step.AbstractEXPRESSRuntimeModule
+public class EXPRESSRuntimeModule extends AbstractEXPRESSRuntimeModule
 {
 
   /**
    * Overwrite DI bindings from EXPRESSgenerator to Xcoregenerator.
    */
-  @Override
   public Class<? extends IGenerator> bindIGenerator()
   {
     return XcoreGenerator.class;
