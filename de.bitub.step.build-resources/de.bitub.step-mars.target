@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="de.bitub.step-mars" sequenceNumber="58">
+<?pde version="3.8"?><target name="de.bitub.step-mars" sequenceNumber="62">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
 <unit id="org.abego.treelayout.org.abego.treelayout.core" version="0.0.0"/>
@@ -36,6 +36,15 @@
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
 <unit id="org.eclipse.zest.sdk.feature.group" version="1.6.1.201508170204"/>
 <repository location="http://download.eclipse.org/releases/mars"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="false" type="InstallableUnit">
+<unit id="org.eclipse.viatra.addon.viewers.runtime.feature.source.feature.group" version="0.14.1.201611031635"/>
+<unit id="org.eclipse.viatra.query.sdk.feature.source.feature.group" version="1.4.1.201611031635"/>
+<unit id="org.eclipse.viatra.addon.viewers.tooling.feature.source.feature.group" version="0.14.1.201611031635"/>
+<unit id="org.eclipse.viatra.addon.viewers.tooling.feature.feature.group" version="0.14.1.201611031635"/>
+<unit id="org.eclipse.viatra.query.tooling.ui.visualization.feature.source.feature.group" version="0.14.1.201611031635"/>
+<unit id="org.eclipse.viatra.query.sdk.extensions.feature.feature.group" version="0.14.1.201611031635"/>
+<repository location="http://download.eclipse.org/viatra/updates/release"/>
 </location>
 </locations>
 </target>
