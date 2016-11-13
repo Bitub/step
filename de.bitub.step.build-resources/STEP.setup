@@ -230,10 +230,7 @@
         label="Xcore"
         licenseConfirmationDisabled="true">
       <requirement
-          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"
-          versionRange="[1.3.0,1.4.0)"/>
-      <repository
-          url="http://download.eclipse.org/releases/mars"/>
+          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
       <description>Xcore</description>
     </setupTask>
     <setupTask
@@ -242,14 +239,11 @@
         label="Xtext &amp; Xtend &amp; MWE2"
         licenseConfirmationDisabled="true">
       <requirement
-          name="org.eclipse.xtext.sdk.feature.group"
-          versionRange="[2.9.0,2.10.0)"/>
+          name="org.eclipse.xtext.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
-          versionRange="[2.8.3,2.8.4)"/>
+          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.emf.mwe2.language.sdk.feature.group"
-          versionRange="[2.8.3,2.8.4)"/>
+          name="org.eclipse.emf.mwe2.language.sdk.feature.group"/>
       <repository
           url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
       <description>Xtext &amp; Xtend</description>
@@ -258,8 +252,7 @@
         xsi:type="setup.p2:P2Task"
         label="Xtext ANTLR SDK">
       <requirement
-          name="de.itemis.xtext.antlr.sdk.feature.group"
-          versionRange="[2.1.1,2.1.2)"/>
+          name="de.itemis.xtext.antlr.sdk.feature.group"/>
       <repository
           url="http://download.itemis.com/updates/releases/2.1.1"/>
     </setupTask>
@@ -331,7 +324,7 @@
       <requirement
           name="org.eclipse.b3.aggregator.editor.feature.feature.group"/>
       <repository
-          url="http://download.eclipse.org/modeling/emft/b3/updates-4.3"/>
+          url="http://download.eclipse.org/modeling/emft/b3/updates-4.4"/>
     </setupTask>
     <setupTask
         xsi:type="setup.p2:P2Task"
@@ -414,6 +407,8 @@
         label="VIATRA">
       <requirement
           name="org.eclipse.viatra.query.sdk.feature.feature.group"/>
+      <repository
+          url="http://download.eclipse.org/viatra/updates/release"/>
     </setupTask>
   </setupTask>
   <setupTask
@@ -476,19 +471,15 @@
         </detail>
       </annotation>
       <requirement
-          name="org.eclipse.xtext.sdk.feature.group"
-          versionRange="[2.9.0,2.10.0)"/>
+          name="org.eclipse.xtext.sdk.feature.group"/>
       <requirement
           name="org.eclipse.emf.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"
-          versionRange="[2.8.3,2.8.4)"/>
+          name="org.eclipse.emf.mwe2.runtime.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.emf.mwe2.language.sdk.feature.group"
-          versionRange="[2.8.3,2.8.4)"/>
+          name="org.eclipse.emf.mwe2.language.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"
-          versionRange="[1.3.0,1.4.0)"/>
+          name="org.eclipse.emf.ecore.xcore.sdk.feature.group"/>
       <requirement
           name="org.eclipse.equinox.core.sdk.feature.group"/>
       <requirement
