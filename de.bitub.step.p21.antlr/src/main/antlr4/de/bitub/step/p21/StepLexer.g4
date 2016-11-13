@@ -93,7 +93,7 @@ REAL
 
 STRING
 :
-	APOSTROPHE .*? APOSTROPHE
+	APOSTROPHE (~[\r\n\'] | '\'\'')* APOSTROPHE
 	{
 	     String s = getText();
 	     s = s.substring(1, s.length() - 1); // strip the leading and trailing quotes

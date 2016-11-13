@@ -108,18 +108,23 @@ public class StepUntypedToEcore
     //
     EObject select = EcoreUtil.create((EClass) selectFeature.getEType());
 
-    // set entity to correct select field
-    //
-    EStructuralFeature valueFeature = XPressModel.selectFeature(select, entity);
+    try {
 
-    // set correct value into select
-    //
-    select.eSet(valueFeature, entity);
+      // set entity to correct select field
+      //
+      EStructuralFeature valueFeature = XPressModel.selectFeature(select, entity);
 
-    // set enumeration to indicate which value was set
-    //
-    setSelectEnumValue(select, valueFeature.getEType().getName().toUpperCase());
+      // set correct value into select
+      //
+      select.eSet(valueFeature, entity);
 
+      // set enumeration to indicate which value was set
+      //
+      setSelectEnumValue(select, valueFeature.getEType().getName().toUpperCase());
+    }
+    catch (IndexOutOfBoundsException e) {
+      System.out.println("IndexOutOfBoundsException" + select + " " + XPressModel.selectFeature(select, entity));
+    }
     return select;
   }
 
@@ -201,17 +206,21 @@ public class StepUntypedToEcore
       entity.eSet(feature, StepUntypedToEcore.prepareSelect(feature, resolvedEntity));
     } else {
 
-      if (XPressModel.isDelegate(feature)) {
+      if (feature != null && resolvedEntity != null) {
+        if (XPressModel.isDelegate(feature)) {
 
-        entity.eSet(feature, StepUntypedToEcore.prepareDelegate(feature, resolvedEntity));
+          entity.eSet(feature, StepUntypedToEcore.prepareDelegate(feature, resolvedEntity));
+        } else {
+
+          try {
+            entity.eSet(feature, resolvedEntity);
+          }
+          catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("UNRESOLVED: " + resolvedEntity + "  " + feature);
+          }
+        }
       } else {
-
-        try {
-          entity.eSet(feature, resolvedEntity);
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-          System.out.println("UNRESOLVED: " + resolvedEntity + "  " + feature);
-        }
+        System.out.println("null entry" + feature + " " + resolvedEntity);
       }
     }
   }
@@ -230,8 +239,13 @@ public class StepUntypedToEcore
     try {
       ECollections.setEList(list, entities);
     }
-    catch (ArrayIndexOutOfBoundsException e) {
+    catch (ArrayStoreException | ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
       e.printStackTrace();
+
+      if (e instanceof ArrayStoreException) {
+//        System.out.println(list);
+//        System.out.println(entities);
+      }
     }
   }
 

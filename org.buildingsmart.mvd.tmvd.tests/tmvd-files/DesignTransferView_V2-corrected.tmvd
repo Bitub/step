@@ -1,0 +1,566 @@
+@UUID ( 00000000-0000-0000-0000-000000000000 )
+mvd DesignTransferView_V1 ;
+def templates :
+
+	@UUID ( 805deb96-2684-4bc5-a9ad-3a29199dc023 )
+	Project_Context: ConceptTemplate => [
+		applicableEntity IfcContext
+		applicableSchema IFC4
+		def
+			rules :
+			attr ObjectType
+				entity IfcLabel
+					end
+					end
+					attr Phase
+						entity IfcLabel
+							end
+							end
+							attr LongName
+								entity IfcLabel
+									end
+									end
+								end
+								def subTemplates :
+
+									@UUID ( ab1e2cfd-9f21-4f4a-b6af-cc26d84e45ac )
+									Project_Declaration: ConceptTemplate => [
+										applicableEntity IfcContext
+										applicableSchema IFC4
+										def
+											rules :
+											attr Declares
+												entity IfcRelDeclares
+													attr RelatedDefinitions
+														ruleID Type
+														end
+														end
+														end
+														attr Phase
+															entity IfcLabel
+																end
+																end
+																attr ObjectType
+																	entity IfcLabel
+																		end
+																		end
+																		attr LongName
+																			entity IfcLabel
+																				end
+																				end
+																			end
+																			def subTemplates :
+
+																				@UUID ( 634e27f7-7edb-4e22-b8cc-25f1cdc765ce )
+																				Object_Type_Definitions: ConceptTemplate => [
+																					applicableEntity IfcContext
+																					applicableSchema IFC4
+																					def
+																						rules :
+																						attr Declares
+																							entity IfcRelDeclares
+																								attr RelatedDefinitions
+																									ruleID Type
+																									entity IfcTypeObject
+																										end
+																										end
+																										end
+																										end
+																										attr Phase
+																											entity IfcLabel
+																												end
+																												end
+																												attr ObjectType
+																													entity IfcLabel
+																														end
+																														end
+																														attr LongName
+																															entity IfcLabel
+																																end
+																																end
+																															end
+																														],
+
+																														@UUID ( d6eddceb-c102-4247-8ec0-24e7d4c5da9b )
+																														Property_Template_Definitions: ConceptTemplate
+																														=> [
+																															applicableEntity IfcContext
+																															applicableSchema IFC4
+																															def
+																																rules :
+																																attr Declares
+																																	entity IfcRelDeclares
+																																		attr RelatedDefinitions
+																																			ruleID Type
+																																			entity IfcPropertySetTemplate
+																																				attr TemplateType
+																																					entity IfcPropertySetTemplateTypeEnum
+																																						end
+																																						end,
+																																						attr ApplicableEntity
+																																							entity IfcIdentifier
+																																								end
+																																								end,
+																																								attr HasPropertyTemplates
+																																									entity IfcSimplePropertyTemplate
+																																										attr TemplateType
+																																											entity
+																																												IfcSimplePropertyTemplateTypeEnum
+																																												end
+																																												end,
+																																												attr PrimaryMeasureType
+																																													entity IfcLabel
+																																														end
+																																														end,
+																																														attr SecondaryMeasureType
+																																															entity IfcLabel
+																																																end
+																																																end,
+																																																attr Enumerators
+																																																	entity IfcPropertyEnumeration
+																																																		attr Name
+																																																			entity IfcLabel
+																																																				end
+																																																				end,
+																																																				attr EnumerationValues
+																																																					entity IfcValue
+														end
+														end
+														end
+														end,
+														attr AccessState
+															entity IfcStateEnum
+																end
+																end,
+																attr PrimaryUnit
+																	entity IfcUnit
+																		end
+																		end,
+																		attr SecondaryUnit
+																			entity IfcUnit
+																				end
+																				end,
+																				attr Expression
+																					entity IfcLabel
+																						end
+																						end
+																						end
+																						end
+																						end
+																						end
+																						end
+																						end
+																						attr Phase
+																							entity IfcLabel
+																								end
+																								end
+																								attr ObjectType
+																									entity IfcLabel
+																										end
+																										end
+																										attr LongName
+																											entity IfcLabel
+																												end
+																												end
+																											end
+																										]
+
+																									end
+																								],
+
+																								@UUID ( 4ccaac0c-88f8-4c1d-91fd-2214d0e513c4 )
+																								Project_Units: ConceptTemplate => [
+																									applicableEntity IfcContext
+																									applicableSchema IFC4
+																									def
+																										rules :
+																										attr UnitsInContext
+																											entity IfcUnitAssignment
+																												attr Units
+																													entity IfcDerivedUnit
+																														attr UnitType
+																															ruleID DerivedUnitType
+																															entity IfcDerivedUnitEnum
+																																end
+																																end,
+																																attr Elements
+																																	entity IfcDerivedUnitElement
+																																		attr Unit
+																																			entity IfcNamedUnit
+																																				end
+																																				end
+																																				end
+																																				end,
+																																				attr UserDefinedType
+																																					entity IfcLabel
+																																						end
+																																						end
+																																						end,
+																																						entity IfcMonetaryUnit
+																																							attr Currency
+																																								entity IfcLabel
+																																									end
+																																									end
+																																									end,
+																																									entity IfcSIUnit
+																																										attr UnitType
+																																											entity IfcUnitEnum
+																																												end
+																																												end,
+																																												attr Prefix
+																																													entity IfcSIPrefix
+																																														end
+																																														end,
+																																														attr Name
+																																															entity IfcSIUnitName
+																																																end
+																																																end
+																																																end,
+																																																entity IfcConversionBasedUnit
+																																																	attr Dimensions
+																																																		entity
+																																																			IfcDimensionalExponents
+																																																			end
+																																																			end,
+																																																			attr UnitType
+																																																				entity IfcUnitEnum
+																																																					end
+																																																					end,
+																																																					attr Name
+														entity IfcLabel
+															end
+															end,
+															attr ConversionFactor
+																entity IfcMeasureWithUnit
+																	end
+																	end
+																	end,
+																	entity IfcConversionBasedUnitWithOffset
+																		attr Dimensions
+																			entity IfcDimensionalExponents
+																				end
+																				end,
+																				attr UnitType
+																					entity IfcUnitEnum
+																						end
+																						end,
+																						attr Name
+																							entity IfcLabel
+																								end
+																								end,
+																								attr ConversionFactor
+																									entity IfcMeasureWithUnit
+																										end
+																										end,
+																										attr ConversionOffset
+																											entity IfcReal
+																												end
+																												end
+																												end
+																												end
+																												end
+																												end
+																												attr Phase
+																													entity IfcLabel
+																														end
+																														end
+																														attr ObjectType
+																															entity IfcLabel
+																																end
+																																end
+																																attr LongName
+																																	entity IfcLabel
+																																		end
+																																		end
+																																	end
+																																],
+
+																																@UUID ( 38dac6f0-997c-4544-9bca-b6326b9a3e4b )
+																																Project_Representation_Context: ConceptTemplate
+																																=> [
+																																	applicableEntity IfcContext
+																																	applicableSchema IFC4
+																																	def
+																																		rules :
+																																		attr RepresentationContexts
+																																			entity IfcGeometricRepresentationContext
+																																				attr ContextIdentifier
+																																					ruleID ContextIdentifier
+																																					entity IfcLabel
+																																						end
+																																						end,
+																																						attr ContextType
+																																							ruleID ContextType
+																																							entity IfcLabel
+																																								end
+																																								end,
+																																								attr Precision
+																																									end,
+																																									attr CoordinateSpaceDimension
+																																										entity IfcDimensionCount
+																																											end
+																																											end,
+																																											attr WorldCoordinateSystem
+																																												entity IfcAxis2Placement3D
+																																													attr Location
+																																														entity IfcCartesianPoint
+																																															end
+																																															end,
+																																															attr Axis
+																																																entity IfcDirection
+																																																	end
+																																																	end,
+																																																	attr RefDirection
+																																																		entity IfcDirection
+																																																			end
+																																																			end
+																																																			end
+																																																			end,
+																																																			attr TrueNorth
+																																																				entity IfcDirection
+																																																					end
+																																																					end,
+																																																					attr HasSubContexts
+														entity IfcGeometricRepresentationSubContext
+															attr TargetScale
+																entity IfcPositiveRatioMeasure
+																	end
+																	end,
+																	attr TargetView
+																		entity IfcGeometricProjectionEnum
+																			end
+																			end,
+																			attr UserDefinedTargetView
+																				entity IfcLabel
+																					end
+																					end
+																					end
+																					end
+																					end
+																					end
+																					attr Phase
+																						entity IfcLabel
+																							end
+																							end
+																							attr ObjectType
+																								entity IfcLabel
+																									end
+																									end
+																									attr LongName
+																										entity IfcLabel
+																											end
+																											end
+																										end
+																										def subTemplates :
+
+																											@UUID ( 0c93e2c2-cb23-46a8-8b9a-c772c280fc26 )
+																											Project_Representation_Context_3D: ConceptTemplate
+																											=> [
+																												applicableEntity IfcContext
+																												applicableSchema IFC4
+																												def
+																													rules :
+																													attr RepresentationContexts
+																														entity IfcGeometricRepresentationContext
+																															attr ContextIdentifier
+																																ruleID ContextIdentifier
+																																entity IfcLabel
+																																	end
+																																	end,
+																																	attr ContextType
+																																		ruleID ContextType
+																																		entity IfcLabel
+																																			end
+																																			end,
+																																			attr CoordinateSpaceDimension
+																																				entity IfcDimensionCount
+																																					end
+																																					end,
+																																					attr WorldCoordinateSystem
+																																						entity IfcAxis2Placement3D
+																																							attr Location
+																																								entity IfcCartesianPoint
+																																									end
+																																									end,
+																																									attr Axis
+																																										entity IfcDirection
+																																											end
+																																											end,
+																																											attr RefDirection
+																																												entity IfcDirection
+																																													end
+																																													end
+																																													end
+																																													end,
+																																													attr TrueNorth
+																																														entity IfcDirection
+																																															end
+																																															end,
+																																															attr HasSubContexts
+																																																entity
+																																																	IfcGeometricRepresentationSubContext
+																																																	attr TargetScale
+																																																		entity
+																																																			IfcPositiveRatioMeasure
+																																																			end
+																																																			end,
+																																																			attr TargetView
+																																																				entity
+																																																					IfcGeometricProjectionEnum
+																																																					end
+																																																					end,
+																																																					attr
+														UserDefinedTargetView
+														entity IfcLabel
+															end
+															end
+															end
+															end,
+															attr Precision
+																end
+																end
+																end
+																attr Phase
+																	entity IfcLabel
+																		end
+																		end
+																		attr ObjectType
+																			entity IfcLabel
+																				end
+																				end
+																				attr LongName
+																					entity IfcLabel
+																						end
+																						end
+																					end
+																				]
+
+																			end
+																		],
+
+																		@UUID ( d326800d-02e0-4442-84e7-b8fb4fde0400 )
+																		Project_Global_Positioning: ConceptTemplate => [
+																			applicableEntity IfcContext
+																			applicableSchema IFC4
+																			def
+																				rules :
+																				attr RepresentationContexts
+																					entity IfcGeometricRepresentationContext
+																						attr HasCoordinateOperation
+																							entity IfcMapConversion
+																								attr Eastings
+																									entity IfcLengthMeasure
+																										end
+																										end,
+																										attr Northings
+																											entity IfcLengthMeasure
+																												end
+																												end,
+																												attr OrthogonalHeight
+																													entity IfcLengthMeasure
+																														end
+																														end,
+																														attr XAxisAbscissa
+																															entity IfcReal
+																																end
+																																end,
+																																attr XAxisOrdinate
+																																	entity IfcReal
+																																		end
+																																		end,
+																																		attr Scale
+																																			entity IfcReal
+																																				end
+																																				end,
+																																				attr TargetCRS
+																																					entity IfcProjectedCRS
+																																						attr Name
+																																							entity IfcLabel
+																																								end
+																																								end,
+																																								attr Description
+																																									entity IfcText
+																																										end
+																																										end,
+																																										attr GeodeticDatum
+																																											entity IfcIdentifier
+																																												end
+																																												end,
+																																												attr VerticalDatum
+																																													entity IfcIdentifier
+																																														end
+																																														end,
+																																														attr MapProjection
+																																															entity IfcIdentifier
+																																																end
+																																																end,
+																																																attr MapZone
+																																																	entity IfcIdentifier
+																																																		end
+																																																		end
+																																																		end
+																																																		end
+																																																		end
+																																																		end
+																																																		end
+																																																		end
+																																																		attr Phase
+																																																			entity IfcLabel
+																																																				end
+																																																				end
+																																																				attr ObjectType
+																																																					entity IfcLabel
+														end
+														end
+														attr LongName
+															entity IfcLabel
+																end
+																end
+															end
+														],
+
+														@UUID ( 818ca5a3-4574-49b1-9951-ae7bad5c3341 )
+														Project_Classification_Information: ConceptTemplate => [
+															applicableEntity IfcContext
+															applicableSchema IFC4
+															def
+																rules :
+																attr HasAssociations
+																	entity IfcRelAssociatesClassification
+																		attr RelatingClassification
+																			entity IfcClassification
+																				attr HasReferences
+																					entity IfcClassificationReference
+																						attr HasReferences
+																							entity IfcClassificationReference
+																								end
+																								end,
+																								attr Identification
+																									entity IfcIdentifier
+																										end
+																										end,
+																										attr Name
+																											entity IfcLabel
+																												end
+																												end,
+																												attr Description
+																													entity IfcText
+																														end
+																														end,
+																														attr Sort
+																															entity IfcIdentifier
+																																end
+																																end
+																																end
+																																end,
+																																attr Source
+																																	ruleID Source
+																																	entity IfcLabel
+																																		end
+																																		end,
+																																		attr Name
+																																			ruleID Name
+																																			entity IfcLabel
+																																				end
+																																				end,
+																													

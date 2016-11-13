@@ -1,0 +1,16 @@
+ISO-10303-21;
+HEADER;
+FILE_DESCRIPTION((''),'2;1');
+FILE_NAME('','2015-07-10T21:12:02',('Jon'),('Unknown'),'','','None');
+FILE_SCHEMA (('IFC4'));
+ENDSEC;
+
+DATA;
+#1= IFCWALLSTANDARDCASE('0DWgwt6o1FOx7466fPk$jl',$,$,$,$,$,$,$,$);
+#2= IFCPROJECTIONELEMENT('39t4Pu3nTC4ekXYRIHJB9W$jl',$,$,$,$,$,$,$,$);
+#4= IFCRELPROJECTSELEMENT('36U74BIPDD89cYkx9bkV$Y',$,'Project Element Name','Project Element Desc',#1,#2);
+ENDSEC;
+
+END-ISO-10303-21;
+
+1

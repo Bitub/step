@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.buildingsmart.ifc4.Ifc4Package;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -97,6 +98,9 @@ public class P21LoadImpl implements P21Load
 
     this.ePackage = helper.getEPackage((String) options.get(P21Resource.OPTION_PACKAGE_NS_URI));
 
+    if (this.ePackage == null) {
+      this.ePackage = Ifc4Package.eINSTANCE;
+    }
     load(resource, inputStream);
   }
 

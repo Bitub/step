@@ -133,6 +133,11 @@ class EXPRESSExtension {
 		
 		attribute.getContainerOfType(typeof(Entity))
 	}
+	
+	def getExplicitAttribute(Entity entity){
+		
+		entity.attribute.filter[it.expression == null && it.opposite == null]
+	}
 
 	/**
 	 * Get all derived attributes of the given entity.

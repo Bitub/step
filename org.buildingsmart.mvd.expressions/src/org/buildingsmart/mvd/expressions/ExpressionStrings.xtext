@@ -1,0 +1,123 @@
+grammar org.buildingsmart.mvd.expressions.ExpressionStrings with org.eclipse.xtext.common.Terminals
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+generate expressionStrings "http://www.buildingsmart.org/mvd/expressions/ExpressionStrings"
+
+Expression:
+	OrExpression;
+
+OrExpression returns Expression:
+	AndExpression ({Or.left=current} OR right=AndExpression)*;
+
+AndExpression returns Expression:
+	XorExpression ({And.left=current} AND right=XorExpression)*;
+
+XorExpression returns Expression:
+	NandExpression ({Xor.left=current} XOR right=NandExpression)*;
+
+NandExpression returns Expression:
+	NorExpression ({Nand.left=current} NAND right=NorExpression)*;
+
+NorExpression returns Expression:
+	NxorExpression ({Nor.left=current} NOR right=NxorExpression)*;
+
+NxorExpression returns Expression:
+	BooleanTerm ({Nxor.left=current} NXOR right=BooleanTerm)*;
+
+BooleanTerm returns Expression:
+	LPAREN Expression RPAREN | EqualityTerm | ComparisonTerm;// | SimpleTerm;
+
+EqualityTerm returns BooleanTerm:
+	param=Parameter op=(EQUAL | NOT_EQUAL) value=Value;
+
+ComparisonTerm returns BooleanTerm:
+	param=Parameter op=(GREATER_THAN | GREATER_THAN_OR_EQUAL | LESS_THAN | LESS_THAN_OR_EQUAL) value=Value;
+
+	// mvd 1.0 expression
+//SimpleTerm:
+//	param=SIMPLEID op=EQUAL value=Value;
+
+Parameter:
+	name=SIMPLEID (metric=Metric)?;
+
+enum Metric:
+	VALUE='[Value]' | SIZE='[Size]' | TYPE='[Type]' | UNIQUE='Unique' | EXISTS='[Exists]';
+
+Value:
+	LogicalLiteral | {RealLiteral} value=RealLiteral | {StringLiteral} value=STRING;
+
+LogicalLiteral:
+	value=LOGICAL;
+
+RealLiteral returns ecore::EDouble:
+	('+' | '-')? INT ('.')? INT? ('e' ('+' | '-')? INT)?;
+
+terminal AND:
+	'AND';
+
+terminal OR:
+	'OR';
+
+terminal XOR:
+	'XOR';
+
+terminal NAND:
+	'NAND';
+
+terminal NOR:
+	'NOR';
+
+terminal NXOR:
+	'NXOR';
+
+terminal FALSE:
+	'false';
+
+terminal TRUE:
+	'true';
+
+terminal UNKNOWN:
+	'unknown';
+
+terminal LOGICAL returns ecore::EBoolean:
+	FALSE | TRUE | UNKNOWN;
+
+terminal EQUAL:
+	'=';
+
+terminal NOT_EQUAL:
+	'!=';
+
+terminal GREATER_THAN:
+	GREATER;
+
+terminal GREATER_THAN_OR_EQUAL:
+	GREATER EQUAL;
+
+terminal fragment GREATER:
+	'>';
+
+terminal LESS_THAN:
+	'<';
+
+terminal LESS_THAN_OR_EQUAL:
+	'<=';
+
+terminal LPAREN:
+	'(';
+
+terminal RPAREN:
+	')';
+
+terminal fragment LETTER:
+	'a'..'z' | 'A'..'Z';
+
+terminal fragment DIGIT:
+	'0'..'9';
+
+terminal fragment UNDERSCORE:
+	'_';
+
+terminal SIMPLEID:
+	'^'? (LETTER) (LETTER | UNDERSCORE | DIGIT)*;
+

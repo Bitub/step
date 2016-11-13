@@ -409,6 +409,12 @@
       <repository
           url="http://www.eclipse.org/modeling/updates/"/>
     </setupTask>
+    <setupTask
+        xsi:type="setup.p2:P2Task"
+        label="VIATRA">
+      <requirement
+          name="org.eclipse.viatra.query.sdk.feature.feature.group"/>
+    </setupTask>
   </setupTask>
   <setupTask
       xsi:type="setup:CompoundTask"
@@ -512,6 +518,14 @@
           name="de.bitub.step.ifc4.f.feature.group"/>
       <requirement
           name="org.eclipse.ocl.master.feature.group"/>
+      <requirement
+          name="org.eclipse.viatra.addon.validation.runtime.feature.feature.group"/>
+      <requirement
+          name="org.eclipse.viatra.addon.viewers.runtime.feature.feature.group"/>
+      <requirement
+          name="org.eclipse.viatra.addon.viewers.tooling.feature.feature.group"/>
+      <requirement
+          name="org.eclipse.viatra.transformation.runtime.emf.feature.feature.group"/>
       <sourceLocator
           rootFolder="${installation.location/git/}${git.clone.step.remoteURI|gitRepository}"/>
       <repositoryList
@@ -534,6 +548,25 @@
             url="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/"/>
         <repository
             url="http://www.eclipse.org/modeling/updates/"/>
+        <repository
+            url="http://download.eclipse.org/viatra/updates/release"/>
+      </repositoryList>
+      <repositoryList
+          name="Neon">
+        <repository
+            url="http://download.eclipse.org/releases/neon"/>
+        <repository
+            url="http://download.eclipse.org/eclipse/updates/4.6/"/>
+        <repository
+            url="http://www.eclipse.org/modeling/updates/"/>
+        <repository
+            url="https://bitub.github.io/step-p2-antlr4/p2/"/>
+        <repository
+            url="https://bitub.github.io/step-p2-stringconverter/p2/"/>
+        <repository
+            url="https://bitub.github.io/step-ifc4"/>
+        <repository
+            url="http://download.eclipse.org/viatra/updates/release"/>
       </repositoryList>
     </targlet>
   </setupTask>
@@ -543,6 +576,12 @@
   <setupTask
       xsi:type="launching:LaunchTask"
       launcher="Generate Language Infrastructure (de.bitub.step.express)"/>
+  <setupTask
+      xsi:type="launching:LaunchTask"
+      launcher="GenerateExpressionStrings.mwe2"/>
+  <setupTask
+      xsi:type="launching:LaunchTask"
+      launcher="GenerateTextualMVD.mwe2"/>
   <setupTask
       xsi:type="setup:CompoundTask"
       name="Mylyn Github Issues">
@@ -623,8 +662,8 @@
     <setupTask
         xsi:type="setup:VariableTask"
         name="eclipse.target.platform"
-        value="Mars"
-        defaultValue="Mars"
+        value="Neon"
+        defaultValue="Neon"
         storageURI="scope://Workspace"
         label="Target Platform">
       <description>Choose the compatibility level of the target platform</description>

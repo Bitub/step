@@ -1,0 +1,43 @@
+package viatra.mvd.query.example
+
+import "http://www.bitub.de/IFC4"
+import "http://www.eclipse.org/emf/2002/Ecore"
+
+// get all aggregates
+//
+pattern Aggregates(ApplicableEntity : IfcObjectDefinition, Object : IfcObject) {
+	IfcObjectDefinition.isDecomposedBy(ApplicableEntity, IfcRelAggregates);
+	IfcRelAggregates.relatedObjects(IfcRelAggregates, Object);
+}
+
+// associates type
+//
+pattern BuildingType(Building : IfcBuilding, Type : IfcObject) {
+	find Aggregates(Building, Type);
+}
+
+/////////////
+pattern BuildingStoreyType(BuildingStorey : IfcBuildingStorey) {
+	find Aggregates(BuildingStorey, Object);
+	IfcSpace(Object);
+}
+
+/////////////
+@Constraint(key = {
+	Project }, severity = "error", message = "Wrong data $Project$")
+pattern ProjectType(Project : IfcProject) {
+	find Aggregates(Project, Object);
+	IfcSite(Object);
+}
+
+//////////////
+pattern SiteType(Site : IfcSite) {
+	find Aggregates(Site, Object);
+	IfcBuilding(Object);
+}
+
+@Constraint(key = {
+	Project }, severity = "error", message = "Wrong data $Project$")
+pattern notProjectType(Project : IfcProject) {
+	neg find ProjectType(Project);
+}
